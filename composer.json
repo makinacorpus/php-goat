@@ -4,7 +4,7 @@
     "description": "Goat bundle",
     "keywords": ["orm", "postgresql", "mysql", "database", "symfony", "pdo"],
     "homepage": "http://github.com/pounard/goat-bundle",
-    "license": "GPL-2",
+    "license": "GPL-2.0-or-later",
     "authors": [
         {
             "name" : "Pierre RINEAU",
