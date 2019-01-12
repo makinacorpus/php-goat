@@ -1,0 +1,39 @@
+{
+    "name" : "makinacorpus/goat-bundle",
+    "type": "library",
+    "description": "Goat bundle",
+    "keywords": ["orm", "postgresql", "mysql", "database", "symfony", "pdo"],
+    "homepage": "http://github.com/pounard/goat-bundle",
+    "license": "GPL-2",
+    "authors": [
+        {
+            "name" : "Pierre RINEAU",
+            "email" : "pierre.rineau@processus.org"
+        }
+    ],
+    "minimum-stability" : "dev",
+    "prefer-stable" : true,
+    "autoload" : {
+        "psr-4" : {
+            "Goat\\Bridge\\Symfony\\" : "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Goat\\Bridge\\Symfony\\Tests\\": "tests/"
+        }
+    },
+    "require" : {
+        "makinacorpus/goat-query": "^1.0.0-alpha8",
+        "php" : ">=7.2"
+    },
+    "suggest" : {
+        "doctrine/dbal": "For query builder usage over a Doctrine PDO connection",
+        "doctrine/doctrine-bundle": "For query builder usage over a Doctrine PDO connection",
+        "jdorn/sql-formatter": "When the profiler is enabled, in order to format queries",
+        "makinacorpus/goat-hydrator": "Brings a graph object hydrator for performant object hydration"
+    },
+    "require-dev" : {
+        "phpunit/phpunit" : "7.*"
+    }
+}

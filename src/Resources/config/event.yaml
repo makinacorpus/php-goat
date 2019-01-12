@@ -1,0 +1,13 @@
+services:
+
+    goat.domain.dispatcher:
+        class: Goat\Domain\Event\Dispatcher
+        arguments: ['@event_dispatcher', '@messenger.bus.app', '@messenger.bus.async']
+
+    goat.domain.transaction_handler.goat:
+        class: Goat\Domain\Event\GoatTransactionHandler
+        arguments: ['@goat.runner.default']
+        tags: ['goat.domain.transaction_handler']
+
+    Goat\Domain\Event\Dispatcher:
+        alias: goat.domain.dispatcher

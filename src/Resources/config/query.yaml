@@ -1,0 +1,9 @@
+# Query builder services
+services:
+
+    goat.converter.default:
+        public: false
+        class: Goat\Converter\DefaultConverter
+
+    Goat\Converter\ConverterInterface:
+        alias: goat.converter.default

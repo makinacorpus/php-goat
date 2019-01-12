@@ -1,0 +1,6 @@
+# Domain services
+services:
+    Goat\Domain\Command\GenerateEntityCommand:
+        public: false
+        arguments: ['@goat.runner.default', '@goat.converter.default']
+        tags: [console.command]
