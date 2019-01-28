@@ -4,14 +4,15 @@ declare(strict_types=1);
 
 namespace Goat\Bridge\Symfony\DataCollector;
 
+use Goat\Hydrator\HydratorMap;
 use Goat\Query\QueryBuilder;
 use Goat\Query\Statement;
+use Goat\Query\Writer\FormatterInterface;
 use Goat\Runner\EmptyResultIterator;
 use Goat\Runner\ResultIterator;
 use Goat\Runner\Runner;
 use Goat\Runner\Transaction;
 use Goat\Runner\Driver\AbstractRunner;
-use Goat\Hydrator\HydratorMap;
 
 final class RunnerProfiler implements Runner
 {
@@ -83,6 +84,14 @@ final class RunnerProfiler implements Runner
             return $this->runner->getHydratorMap();
         }
         throw new \BadMethodCallException();
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    final public function getFormatter(): FormatterInterface
+    {
+        return $this->formatter;
     }
 
     /**

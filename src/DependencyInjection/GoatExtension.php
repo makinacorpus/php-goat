@@ -86,10 +86,8 @@ final class GoatExtension extends Extension
                 'goat.runner.default' => $runnerDefinition,
                 'goat.query_builder.default' => $queryBuilderDefinition,
             ]);
-            $container->addAliases([
-                Runner::class => 'goat.runner.default',
-                QueryBuilder::class => 'goat.query_builder.default',
-            ]);
+            $container->setAlias(Runner::class, 'goat.runner.default')->setPublic(true);
+            $container->setAlias(QueryBuilder::class, 'goat.query_builder.default')->setPublic(true);
         }
 
         if (\in_array(WebProfilerBundle::class, $container->getParameter('kernel.bundles'))) {
