@@ -91,7 +91,7 @@ final class RunnerProfiler implements Runner
      */
     final public function getFormatter(): FormatterInterface
     {
-        return $this->formatter;
+        return $this->runner->getFormatter();
     }
 
     /**
