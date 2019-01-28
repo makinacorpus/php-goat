@@ -11,6 +11,7 @@ use Goat\Runner\ResultIterator;
 use Goat\Runner\Runner;
 use Goat\Runner\Transaction;
 use Goat\Runner\Driver\AbstractRunner;
+use Goat\Hydrator\HydratorMap;
 
 final class RunnerProfiler implements Runner
 {
@@ -60,6 +61,28 @@ final class RunnerProfiler implements Runner
         } else {
             $this->data[$name] += $value;
         }
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    final public function setHydratorMap(HydratorMap $hydratorMap): void
+    {
+        if (\method_exists($this->runner, 'setHydratorMap')) {
+            $this->runner->setHydratorMap($hydratorMap);
+        }
+        throw new \BadMethodCallException();
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    final public function getHydratorMap(): HydratorMap
+    {
+        if (\method_exists($this->runner, 'getHydratorMap')) {
+            return $this->runner->getHydratorMap();
+        }
+        throw new \BadMethodCallException();
     }
 
     /**
