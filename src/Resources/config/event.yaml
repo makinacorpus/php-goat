@@ -1,7 +1,7 @@
 services:
 
     goat.domain.dispatcher:
-        class: Goat\Domain\Event\Dispatcher
+        class: Goat\Domain\Event\DefaultDispatcher
         arguments: ['@event_dispatcher', '@messenger.bus.app', '@messenger.bus.async']
 
     goat.domain.transaction_handler.goat:
