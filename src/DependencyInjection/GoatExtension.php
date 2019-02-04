@@ -30,12 +30,16 @@ final class GoatExtension extends Extension
         $loader = new YamlFileLoader($container, new FileLocator(\dirname(__DIR__).'/Resources/config'));
         $loader->load('query.yaml');
 
-        $domainEnabled = \interface_exists(RepositoryInterface::class);
+        $domainEnabled = \interface_exists(RepositoryInterface::class) && ($config['domain']['enabled'] ?? true);
         $messengerEnabled = \interface_exists(MessageBusInterface::class);
+        $journalEnabled = $domainEnabled && ($config['domain']['journalisation'] ?? false);
 
         if ($domainEnabled) {
             $loader->load('domain.yaml');
             $this->processDomainIntegration($container);
+        }
+        if ($journalEnabled) {
+            $loader->load('journalisation.yaml');
         }
         if ($messengerEnabled) {
             $loader->load('messenger.yaml');

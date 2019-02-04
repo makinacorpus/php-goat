@@ -3,3 +3,6 @@ goat:
         driver: doctrine
     query:
         enabled: true
+    domain:
+        enabled: true
+        journalisation: false

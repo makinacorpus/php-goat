@@ -32,6 +32,12 @@ final class GoatConfiguration implements ConfigurationInterface
                         ->booleanNode('enabled')->defaultTrue()->end()
                     ->end()
                 ->end()
+                ->arrayNode('domain')
+                    ->children()
+                        ->booleanNode('enabled')->defaultTrue()->end()
+                        ->booleanNode('journalisation')->defaultFalse()->end()
+                    ->end()
+                ->end()
             ->end()
         ;
 

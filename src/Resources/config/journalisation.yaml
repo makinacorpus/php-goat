@@ -1,0 +1,15 @@
+# Journalisation services
+services:
+
+    goat.journal.repository.goat:
+        public: false
+        class: Goat\Domain\Journal\GoatJournalRepository
+        arguments: ['@goat.runner.default']
+
+    goat.journal.repository:
+        public: true
+        alias: goat.journal.repository.goat
+
+    Goat\Domain\Journal\JournalRepository:
+        public: true
+        alias: goat.journal.repository
