@@ -4,6 +4,7 @@ services:
     goat.converter.default:
         public: false
         class: Goat\Converter\DefaultConverter
+        tags: ['container.hot_path']
 
     Goat\Converter\ConverterInterface:
         alias: goat.converter.default
