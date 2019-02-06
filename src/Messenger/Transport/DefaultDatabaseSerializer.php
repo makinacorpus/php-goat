@@ -7,25 +7,24 @@ namespace Goat\Bridge\Symfony\Messenger\Transport;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Transport\Serialization\SerializerInterface;
 
-final class DatabaseSerializer implements SerializerInterface
+final class DefaultDatabaseSerializer implements SerializerInterface
 {
     const HEADER_DEBUG = 'X-Sender-Debug';
     const HEADER_ENV = 'X-Sender-Env';
-    const HEADER_SIGNATURE = 'X-Sender-Signature';
     const HEADER_TYPE = 'type';
 
+    private $base64encode = true;
     private $debug = false;
     private $environment;
-    private $signature;
 
     /**
      * Default constructor
      */
-    public function __construct(?string $signature, ?string $environment, bool $debug = false)
+    public function __construct(bool $base64encode = true, bool $debug = false, ?string $environment = null)
     {
+        $this->base64encode = $base64encode;
         $this->debug = $debug;
         $this->environment = $environment;
-        $this->signature = $signature;
     }
 
     /**
@@ -38,7 +37,11 @@ final class DatabaseSerializer implements SerializerInterface
         }
 
         $envelopeItems = isset($encodedEnvelope['headers']['X-Message-Envelope-Items']) ? \unserialize($encodedEnvelope['headers']['X-Message-Envelope-Items']) : [];
-        $message = \unserialize(\base64_decode($encodedEnvelope['body']));
+        if ($this->base64encode) { // Ideally, an automatic detection would be better.
+            $message = \unserialize(\base64_decode($encodedEnvelope['body']));
+        } else {
+            $message = \unserialize($encodedEnvelope['body']);
+        }
 
         return new Envelope($message, $envelopeItems);
     }
@@ -57,14 +60,14 @@ final class DatabaseSerializer implements SerializerInterface
         if ($this->environment) {
             $headers[self::HEADER_ENV] = (string)$this->environment;
         }
-        if ($this->signature) {
-            $headers[self::HEADER_SIGNATURE] = (string)$this->signature;
-        }
 
         if ($configurations = $envelope->all()) {
             $headers['X-Message-Envelope-Items'] = \serialize($configurations);
         }
 
-        return ['body' => \base64_encode(\serialize($envelope->getMessage())), 'headers' => $headers];
+        if ($this->base64encode) {
+            return ['body' => \base64_encode(\serialize($envelope->getMessage())), 'headers' => $headers];
+        }
+        return ['body' => \serialize($envelope->getMessage()), 'headers' => $headers];
     }
 }

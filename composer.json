@@ -31,7 +31,8 @@
         "doctrine/dbal": "For query builder usage over a Doctrine PDO connection",
         "doctrine/doctrine-bundle": "For query builder usage over a Doctrine PDO connection",
         "jdorn/sql-formatter": "When the profiler is enabled, in order to format queries",
-        "makinacorpus/goat-hydrator": "Brings a graph object hydrator for performant object hydration"
+        "makinacorpus/goat-hydrator": "Brings a graph object hydrator for performant object hydration",
+        "symfony/serializer-pack": "For better object serialisation and normalisation within the bus"
     },
     "require-dev" : {
         "phpunit/phpunit" : "7.*"

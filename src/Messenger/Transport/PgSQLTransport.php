@@ -7,6 +7,7 @@ namespace Goat\Bridge\Symfony\Messenger\Transport;
 use Goat\Runner\Runner;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Transport\TransportInterface;
+use Symfony\Component\Messenger\Transport\Serialization\SerializerInterface;
 
 /**
  * @todo implement purging messages
@@ -23,13 +24,13 @@ final class PgSQLTransport implements TransportInterface
     /**
      * Default constructor
      */
-    public function __construct(Runner $runner, array $options = [], bool $debug = false)
+    public function __construct(Runner $runner, SerializerInterface $serializer, array $options = [], bool $debug = false)
     {
         $this->debug = $debug;
         $this->channel = $options['channel'] ?? 'default';
         $this->options = $options;
         $this->runner = $runner;
-        $this->serializer = new DatabaseSerializer($options['signature'] ?? null, null, $this->debug);
+        $this->serializer = $serializer;
     }
 
     private function normalizeHeaderName(string $string): string
