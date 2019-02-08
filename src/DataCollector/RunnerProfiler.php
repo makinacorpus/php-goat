@@ -67,6 +67,22 @@ final class RunnerProfiler implements Runner
     /**
      * {@inheritdoc}
      */
+    public function setDebug(bool $value): void
+    {
+        $this->runner->setDebug($value);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function isDebugEnabled(): bool
+    {
+        return $this->runner->isDebugEnabled();
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     final public function setHydratorMap(HydratorMap $hydratorMap): void
     {
         if (\method_exists($this->runner, 'setHydratorMap')) {
