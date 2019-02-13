@@ -10,6 +10,7 @@ use Goat\Query\QueryBuilder;
 use Goat\Runner\Runner;
 use Symfony\Bundle\WebProfilerBundle\WebProfilerBundle;
 use Symfony\Component\Config\FileLocator;
+use Symfony\Component\Console\Command\Command;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
@@ -30,6 +31,7 @@ final class GoatExtension extends Extension
         $loader = new YamlFileLoader($container, new FileLocator(\dirname(__DIR__).'/Resources/config'));
         $loader->load('query.yaml');
 
+        $consoleEnabled = \class_exists(Command::class);
         $domainEnabled = \interface_exists(RepositoryInterface::class) && ($config['domain']['enabled'] ?? true);
         $messengerEnabled = \interface_exists(MessageBusInterface::class);
         $eventStoreEnabled = $domainEnabled && ($config['domain']['event_store'] ?? false);
@@ -40,12 +42,18 @@ final class GoatExtension extends Extension
         }
         if ($eventStoreEnabled) {
             $loader->load('event-store.yaml');
+            if ($consoleEnabled) {
+                $loader->load('event-store-console.yaml');
+            }
         }
         if ($messengerEnabled) {
             $loader->load('messenger.yaml');
         }
         if ($messengerEnabled && $domainEnabled) {
             $loader->load('event.yaml');
+            if ($consoleEnabled) {
+                $loader->load('event-console.yaml');
+            }
         }
 
         $runnerDefinition = null;

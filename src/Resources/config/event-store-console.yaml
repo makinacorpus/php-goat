@@ -1,0 +1,6 @@
+services:
+
+    Goat\Domain\Command\EventStoreQueryCommand:
+        public: false
+        arguments: ["@goat.domain.event_store", "@?goat.domain.event_store.exporter"]
+        tags: ["console.command"]

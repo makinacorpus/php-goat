@@ -27,6 +27,16 @@ services:
             - [setIdentifierMap, ["@goat.domain.identifier_map.default"]]
             - [setNamespaceMap, ["@goat.domain.event_store.namespace_map"]]
 
+    # @todo this should be optional, serializer might not be present
+    goat.domain.event_store.exporter:
+        public: false
+        class: Goat\Domain\EventStore\Exchange\EventExporter
+        arguments: ['@serializer']
+
     Goat\Domain\EventStore:
         public: false
         alias: goat_domain.event_store
+
+    Goat\Domain\EventStore\Exchange\EventExporter:
+        public: false
+        alias: goat.domain.event_store.exporter

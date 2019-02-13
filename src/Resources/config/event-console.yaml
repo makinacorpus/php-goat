@@ -1,0 +1,11 @@
+services:
+
+    Goat\Domain\Command\DispatcherListCommand:
+        public: false
+        arguments: []
+        tags: ["console.command"]
+
+    Goat\Domain\Command\DispatcherPushCommand:
+        public: false
+        arguments: ["@goat.domain.dispatcher", "@serializer"]
+        tags: ["console.command"]
