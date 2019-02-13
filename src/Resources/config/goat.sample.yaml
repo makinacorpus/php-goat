@@ -5,4 +5,4 @@ goat:
         enabled: true
     domain:
         enabled: true
-        journalisation: false
+        event_store: false

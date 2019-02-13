@@ -32,14 +32,14 @@ final class GoatExtension extends Extension
 
         $domainEnabled = \interface_exists(RepositoryInterface::class) && ($config['domain']['enabled'] ?? true);
         $messengerEnabled = \interface_exists(MessageBusInterface::class);
-        $journalEnabled = $domainEnabled && ($config['domain']['journalisation'] ?? false);
+        $eventStoreEnabled = $domainEnabled && ($config['domain']['event_store'] ?? false);
 
         if ($domainEnabled) {
             $loader->load('domain.yaml');
             $this->processDomainIntegration($container);
         }
-        if ($journalEnabled) {
-            $loader->load('journalisation.yaml');
+        if ($eventStoreEnabled) {
+            $loader->load('event-store.yaml');
         }
         if ($messengerEnabled) {
             $loader->load('messenger.yaml');
