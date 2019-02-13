@@ -1,14 +1,22 @@
 services:
 
     goat.domain.dispatcher:
+        public: false
         class: Goat\Domain\Event\DefaultDispatcher
         arguments: ['@event_dispatcher', '@messenger.bus.app', '@messenger.bus.async']
         tags: ['container.hot_path']
 
+    goat.domain.dispatcher_middleware:
+        public: false
+        class: Goat\Domain\Messenger\DispatcherMiddleware
+        arguments: ['@goat.domain.dispatcher']
+
     goat.domain.transaction_handler.goat:
+        public: false
         class: Goat\Domain\Event\GoatTransactionHandler
         arguments: ['@goat.runner.default']
         tags: ['goat.domain.transaction_handler', 'container.hot_path']
 
     Goat\Domain\Event\Dispatcher:
+        public: true
         alias: goat.domain.dispatcher
