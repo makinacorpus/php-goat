@@ -1,19 +1,5 @@
 services:
 
-    goat.domain.identifier_map.default:
-        public: false
-        class: Goat\Domain\EventStore\DefaultIdentifierMap
-
-    goat.domain.identifier_map.goat:
-        public: false
-        class: Goat\Domain\EventStore\Goat\GoatIdentifierMap
-        decorates: "goat.domain.identifier_map.default"
-        arguments: ["@goat.domain.identifier_map.goat.inner", "@goat.runner.default"]
-
-    Goat\Domain\EventStore\IdentifierMap:
-        public: false
-        alias: goat.domain.identifier_map.default
-
     # @todo autoconfigure this from user configuration
     goat.domain.event_store.namespace_map:
         class: Goat\Domain\EventStore\NamespaceMap
@@ -24,7 +10,6 @@ services:
         # @todo make this configurable, allow table namespace configuration
         arguments: ["@goat.runner.default"]
         calls:
-            - [setIdentifierMap, ["@goat.domain.identifier_map.default"]]
             - [setNamespaceMap, ["@goat.domain.event_store.namespace_map"]]
 
     # @todo this should be optional, serializer might not be present
