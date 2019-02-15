@@ -8,6 +8,7 @@ use Goat\Runner\Runner;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Transport\TransportInterface;
 use Symfony\Component\Messenger\Transport\Serialization\SerializerInterface;
+use Ramsey\Uuid\Uuid;
 
 /**
  * @todo implement purging messages
@@ -146,11 +147,12 @@ SQL
 
         $this->runner->execute(<<<SQL
 insert into "message_broker"
-    (channel, headers, body)
+    (id, channel, headers, body)
 values
-    (?, ?, ?)
+    (?, ?, ?, ?)
 SQL
            , [
+               Uuid::uuid4(),
                $this->channel,
                $this->serializeHeaders($data['headers']),
                $data['body'],
