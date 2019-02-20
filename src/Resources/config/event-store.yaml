@@ -18,9 +18,9 @@ services:
         class: Goat\Domain\EventStore\Exchange\EventExporter
         arguments: ['@serializer']
 
-    Goat\Domain\EventStore:
+    Goat\Domain\EventStore\EventStore:
         public: false
-        alias: goat_domain.event_store
+        alias: goat.domain.event_store
 
     Goat\Domain\EventStore\Exchange\EventExporter:
         public: false
