@@ -4,3 +4,8 @@ services:
         public: false
         arguments: ["@goat.domain.event_store", "@?goat.domain.event_store.exporter"]
         tags: ["console.command"]
+
+    Goat\Domain\Command\EventStoreImportCommand:
+        public: false
+        arguments: ["@goat.domain.dispatcher", "@?goat.domain.event_store.importer"]
+        tags: ["console.command"]

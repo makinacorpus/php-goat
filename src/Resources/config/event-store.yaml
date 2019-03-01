@@ -17,6 +17,10 @@ services:
         public: false
         class: Goat\Domain\EventStore\Exchange\EventExporter
         arguments: ['@serializer']
+    goat.domain.event_store.importer:
+        public: false
+        class: Goat\Domain\EventStore\Exchange\EventImporter
+        arguments: ['@serializer']
 
     Goat\Domain\EventStore\EventStore:
         public: false
