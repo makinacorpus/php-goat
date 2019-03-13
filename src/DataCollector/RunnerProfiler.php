@@ -111,6 +111,25 @@ final class RunnerProfiler implements Runner
     }
 
     /**
+     * Prune non-scalar variables
+     */
+    private function pruneNonScalarFrom($data)
+    {
+        if (\is_array($data)) {
+            foreach ($data as $key => $value) {
+                $data[$key] = $this->pruneNonScalarFrom($value);
+            }
+        }
+        if (\is_object($data)) {
+            if (\method_exists($data, '__toString')) {
+                return \sprintf("Instance of '%s': '%s'", \get_class($data), (string)$data);
+            }
+            return \sprintf("Instance of '%s'", \get_class($data));
+        }
+        return $data;
+    }
+
+    /**
      * Log a single query
      */
     private function addQueryToData($query, $arguments = null, $options = null, bool $prepared = false)
@@ -123,8 +142,8 @@ final class RunnerProfiler implements Runner
 
         $this->data['queries'][] = [
             'sql' => $rawSQL,
-            'params' => $arguments,
-            'options' => $options,
+            'params' => $this->pruneNonScalarFrom($arguments),
+            'options' => $this->pruneNonScalarFrom($options),
             'prepared' => $prepared,
         ];
     }
