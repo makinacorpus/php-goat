@@ -1,0 +1,6 @@
+services:
+
+    goat.domain.lock_service:
+        public: false
+        class: Goat\Domain\Service\LockService
+        arguments: ['@goat.runner.default']

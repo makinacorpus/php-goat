@@ -35,6 +35,7 @@ final class GoatExtension extends Extension
         $domainEnabled = \interface_exists(RepositoryInterface::class) && ($config['domain']['enabled'] ?? true);
         $messengerEnabled = \interface_exists(MessageBusInterface::class);
         $eventStoreEnabled = $domainEnabled && ($config['domain']['event_store'] ?? false);
+        $lockServiceEnabled = $domainEnabled && ($config['domain']['lock_service'] ?? false);
 
         if ($domainEnabled) {
             $loader->load('domain.yaml');
@@ -45,6 +46,9 @@ final class GoatExtension extends Extension
             if ($consoleEnabled) {
                 $loader->load('event-store-console.yaml');
             }
+        }
+        if ($lockServiceEnabled) {
+            $loader->load('lock.yaml');
         }
         if ($messengerEnabled) {
             $loader->load('messenger.yaml');
