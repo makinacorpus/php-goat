@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Goat\Bridge\Symfony\DataCollector;
 
 use Goat\Runner\Transaction;
+use Goat\Runner\TransactionSavepoint;
 
 /**
  * This specific transaction implementation will keep track of everything
@@ -83,7 +84,7 @@ final class TransactionProfiler implements Transaction
     /**
      * {@inheritdoc}
      */
-    public function savepoint(string $name = null): string
+    public function savepoint(string $name = null): TransactionSavepoint
     {
         if ($name) {
             return $this->transaction->savepoint($name);
