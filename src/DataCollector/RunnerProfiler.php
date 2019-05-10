@@ -241,12 +241,26 @@ final class RunnerProfiler implements Runner
     /**
      * {@inheritdoc}
      */
-    public function startTransaction(int $isolationLevel = Transaction::REPEATABLE_READ, bool $allowPending = false): Transaction
+    public function createTransaction(int $isolationLevel = Transaction::REPEATABLE_READ, bool $allowPending = false): Transaction
     {
         $this->data['transaction_count']++;
 
         $timer = new Timer();
-        $transaction = $this->runner->startTransaction($isolationLevel, $allowPending);
+        // @todo this will profile a non started transaction.
+        $transaction = $this->runner->createTransaction($isolationLevel, $allowPending);
+
+        return new TransactionProfiler($this, $transaction, $timer);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function beginTransaction(int $isolationLevel = Transaction::REPEATABLE_READ, bool $allowPending = false): Transaction
+    {
+        $this->data['transaction_count']++;
+
+        $timer = new Timer();
+        $transaction = $this->runner->beginTransaction($isolationLevel, $allowPending);
 
         return new TransactionProfiler($this, $transaction, $timer);
     }
@@ -257,7 +271,7 @@ final class RunnerProfiler implements Runner
     public function runTransaction(callable $callback, int $isolationLevel = Transaction::REPEATABLE_READ)
     {
         $ret = null;
-        $transaction = $this->startTransaction($isolationLevel, true);
+        $transaction = $this->beginTransaction($isolationLevel, true);
 
         try {
             if (!$transaction->isStarted()) {
@@ -299,6 +313,14 @@ final class RunnerProfiler implements Runner
     public function supportsDeferingConstraints(): bool
     {
         return $this->runner->supportsDeferingConstraints();
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function supportsTransactionSavepoints(): bool
+    {
+        return $this->runner->supportsTransactionSavepoints();
     }
 
     /**

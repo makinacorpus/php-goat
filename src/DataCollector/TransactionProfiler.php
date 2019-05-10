@@ -26,7 +26,7 @@ final class TransactionProfiler implements Transaction
         $this->transaction = $transaction;
         $this->profiler = $profiler;
 
-        // Timer is supposed to be start when calling startTransaction() for
+        // Timer is supposed to be start when calling beginTransaction() for
         // the first time, since per documentation, connections are supposed to
         // start it directly on this call
         $this->timer = $timer;
@@ -85,7 +85,26 @@ final class TransactionProfiler implements Transaction
      */
     public function savepoint(string $name = null): string
     {
-        return $this->transaction->savepoint($name);
+        if ($name) {
+            return $this->transaction->savepoint($name);
+        }
+        return $this->transaction->savepoint();
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getSavepointName(): ?string
+    {
+        return null;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function isNested(): bool
+    {
+        return false;
     }
 
     /**
