@@ -241,7 +241,7 @@ final class RunnerProfiler implements Runner
     /**
      * {@inheritdoc}
      */
-    public function createTransaction(int $isolationLevel = Transaction::REPEATABLE_READ, bool $allowPending = false): Transaction
+    public function createTransaction(int $isolationLevel = Transaction::REPEATABLE_READ, bool $allowPending = true): Transaction
     {
         $this->data['transaction_count']++;
 
@@ -255,7 +255,7 @@ final class RunnerProfiler implements Runner
     /**
      * {@inheritdoc}
      */
-    public function beginTransaction(int $isolationLevel = Transaction::REPEATABLE_READ, bool $allowPending = false): Transaction
+    public function beginTransaction(int $isolationLevel = Transaction::REPEATABLE_READ, bool $allowPending = true): Transaction
     {
         $this->data['transaction_count']++;
 
