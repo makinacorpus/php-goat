@@ -7,12 +7,11 @@ namespace Goat\Bridge\Symfony\DataCollector;
 use Goat\Query\DeleteQuery;
 use Goat\Query\InsertQueryQuery;
 use Goat\Query\InsertValuesQuery;
+use Goat\Query\PreparedQuery;
 use Goat\Query\Query;
 use Goat\Query\QueryBuilder;
 use Goat\Query\SelectQuery;
 use Goat\Query\UpdateQuery;
-use Goat\Query\PreparedQuery;
-use Goat\Query\QueryError;
 
 final class QueryBuilderProfiler implements QueryBuilder
 {
@@ -33,16 +32,7 @@ final class QueryBuilderProfiler implements QueryBuilder
      */
     public function prepare(callable $callback, ?string $identifier = null): Query
     {
-        $query = \call_user_func($callback, $this);
-
-        if (!$query instanceof Query) {
-            throw new QueryError(\sprintf(
-                "Callable passed to %s::%s must return a %s object",
-                __CLASS__, __METHOD__, Query::class
-            ));
-        }
-
-        return new PreparedQuery($this->profiler, $query, $identifier);
+        return new PreparedQuery($this->profiler, $callback, $identifier);
     }
 
     /**
