@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Goat\Bridge\Symfony\DataCollector;
 
+use Goat\Converter\ConverterInterface;
 use Goat\Hydrator\HydratorMap;
 use Goat\Query\QueryBuilder;
 use Goat\Query\Statement;
@@ -13,6 +14,7 @@ use Goat\Runner\ResultIterator;
 use Goat\Runner\Runner;
 use Goat\Runner\Transaction;
 use Goat\Runner\Driver\AbstractRunner;
+use Goat\Runner\Metadata\ResultMetadataCache;
 
 final class RunnerProfiler implements Runner
 {
@@ -294,6 +296,22 @@ final class RunnerProfiler implements Runner
     /**
      * {@inheritdoc}
      */
+    public function setResultMetadataCache(ResultMetadataCache $metadataCache): void
+    {
+        $this->runner->setResultMetadataCache($metadataCache);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function isResultMetadataSlow(): bool
+    {
+        return $this->runner->isResultMetadataSlow();
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function getQueryBuilder(): QueryBuilder
     {
         return new QueryBuilderProfiler($this->runner->getQueryBuilder(), $this);
@@ -337,5 +355,13 @@ final class RunnerProfiler implements Runner
     public function supportsReturning(): bool
     {
         return $this->runner->supportsReturning();
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getConverter(): ConverterInterface
+    {
+        return $this->runner->getConverter();
     }
 }
