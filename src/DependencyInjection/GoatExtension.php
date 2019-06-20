@@ -8,6 +8,7 @@ use Doctrine\DBAL\Connection;
 use Goat\Domain\Repository\RepositoryInterface;
 use Goat\Query\QueryBuilder;
 use Goat\Runner\Runner;
+use Goat\Runner\Metadata\ApcuResultMetadataCache;
 use Symfony\Bundle\WebProfilerBundle\WebProfilerBundle;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\Console\Command\Command;
@@ -78,14 +79,34 @@ final class GoatExtension extends Extension
                     ;
                     break;
 
-                default:
-                    // No need for a message, in theory Configuration component alread
-                    // did handle that case for us.
+                default: // Configuration should have handled invalid values
                     throw new \InvalidArgumentException();
             }
         }
 
         if ($runnerDefinition) {
+
+            if ($config['runner']['metadata_cache']) {
+                switch ($config['runner']['metadata_cache']) {
+
+                    case 'array': // Do nothing, it's the default.
+                        break;
+
+                    case 'apcu':
+                        // @todo raise error if APCu is not present or disabled.
+                        $metadataCacheDefinition = (new Definition())
+                            ->setClass(ApcuResultMetadataCache::class)
+                            ->setArguments([(string)$config['runner']['metadata_cache_prefix']])
+                            ->setPublic(false)
+                        ;
+                        $container->setDefinition('goat.result_metadata_cache', $metadataCacheDefinition);
+                        $runnerDefinition->addMethodCall('setResultMetadataCache', [new Reference('goat.result_metadata_cache')]);
+                        break;
+
+                    default: // Configuration should have handled invalid values
+                        throw new \InvalidArgumentException();
+                }
+            }
 
             // Create the query builder definition
             $queryBuilderDefinition = (new Definition())

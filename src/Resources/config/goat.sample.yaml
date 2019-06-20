@@ -1,6 +1,8 @@
 goat:
     runner:
         driver: doctrine
+        metadata_cache: apcu
+        metadata_cache_prefix: "app_%kernel.environment%"
     query:
         enabled: true
     domain:
