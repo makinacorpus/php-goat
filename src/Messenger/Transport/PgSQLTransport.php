@@ -5,18 +5,19 @@ declare(strict_types=1);
 namespace Goat\Bridge\Symfony\Messenger\Transport;
 
 use Goat\Runner\Runner;
+use Ramsey\Uuid\Uuid;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Transport\TransportInterface;
 use Symfony\Component\Messenger\Transport\Serialization\SerializerInterface;
-use Ramsey\Uuid\Uuid;
 
 /**
  * @todo implement purging messages
+ * @todo this needs a serious rewrite for symfony >=4.3
  */
 final class PgSQLTransport implements TransportInterface
 {
     private $debug = false;
-    private $channel;
+    private $queue;
     private $options;
     private $runner;
     private $serializer;
@@ -28,39 +29,10 @@ final class PgSQLTransport implements TransportInterface
     public function __construct(Runner $runner, SerializerInterface $serializer, array $options = [], bool $debug = false)
     {
         $this->debug = $debug;
-        $this->channel = $options['channel'] ?? 'default';
+        $this->queue = $options['queue'] ?? 'default';
         $this->options = $options;
         $this->runner = $runner;
         $this->serializer = $serializer;
-    }
-
-    private function normalizeHeaderName(string $string): string
-    {
-        return \str_replace(":", "", $this->stripEOL($string));
-    }
-
-    private function stripEOL(string $string): string
-    {
-        return \str_replace("\n", "\\n", $string);
-    }
-
-    private function serializeHeaders(array $headers): string
-    {
-        $normalized = [];
-        foreach ($headers as $key => $value) {
-            $normalized[] = sprintf("%s: %s", $this->normalizeHeaderName($key), $this->stripEOL($value));
-        }
-        return \implode("\n", $normalized);
-    }
-
-    private function unserializeHeaders(string $headers): array
-    {
-        $ret = [];
-        foreach (\explode("\n", $headers) as $string) {
-            list($key, $value) = \explode(':', $string, 2);
-            $ret[\trim($key)] = \trim($value);
-        }
-        return $ret;
     }
 
     /**
@@ -82,7 +54,7 @@ where
         select "id"
         from "message_broker"
         where
-            "channel" = ?
+            "queue" = ?::string
             and "consumed_at" is null
         order by
             "created_at" asc
@@ -90,7 +62,7 @@ where
     )
 returning "id", "headers", "body"
 SQL
-           , [$this->channel])->fetch();
+           , [$this->queue])->fetch();
 
            if (!$data) {
                 $handler(null);
@@ -104,7 +76,6 @@ SQL
             }
 
             try {
-                $data['headers'] = $this->unserializeHeaders($data['headers'] ?? []);
                 if (\is_resource($data['body'])) { // Bytea
                     $data['body'] = \stream_get_contents($data['body']);
                 }
@@ -117,7 +88,7 @@ update "message_broker"
 set
     "has_failed" = true
 where
-    "id" = ?
+    "id" = ?::bool
 SQL
                 , [$data['id']]);
 
@@ -147,14 +118,14 @@ SQL
 
         $this->runner->execute(<<<SQL
 insert into "message_broker"
-    (id, channel, headers, body)
+    (id, queue, headers, body)
 values
-    (?, ?, ?, ?)
+    (?::uuid, ?::string, ?::json, ?::bytea)
 SQL
            , [
                Uuid::uuid4(),
-               $this->channel,
-               $this->serializeHeaders($data['headers']),
+               $this->queue,
+               $data['headers'],
                $data['body'],
            ]
         );

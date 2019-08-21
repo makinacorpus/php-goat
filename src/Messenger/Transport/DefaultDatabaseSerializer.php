@@ -9,9 +9,11 @@ use Symfony\Component\Messenger\Transport\Serialization\SerializerInterface;
 
 final class DefaultDatabaseSerializer implements SerializerInterface
 {
+    const HEADER_CONTENT_ENCODING = 'content-encoding';
+    const HEADER_CONTENT_TYPE = 'content-type';
     const HEADER_DEBUG = 'X-Sender-Debug';
     const HEADER_ENV = 'X-Sender-Env';
-    const HEADER_TYPE = 'type';
+    const HEADER_SERIALIZER_CLASS = 'type';
 
     private $base64encode = true;
     private $debug = false;
@@ -52,10 +54,11 @@ final class DefaultDatabaseSerializer implements SerializerInterface
     public function encode(Envelope $envelope): array
     {
         $headers = [
-            self::HEADER_TYPE => \get_class($envelope->getMessage()),
+            self::HEADER_CONTENT_ENCODING => 'UTF-8',
+            self::HEADER_SERIALIZER_CLASS => \get_class($envelope->getMessage()),
         ];
         if ($this->debug) {
-            $headers[self::HEADER_DEBUG] = "true";
+            $headers[self::HEADER_DEBUG] = 1;
         }
         if ($this->environment) {
             $headers[self::HEADER_ENV] = (string)$this->environment;
