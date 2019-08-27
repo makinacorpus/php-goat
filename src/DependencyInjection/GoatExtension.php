@@ -15,6 +15,7 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\DependencyInjection\Exception\InvalidArgumentException;
 use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 use Symfony\Component\Messenger\MessageBusInterface;
@@ -47,6 +48,7 @@ final class GoatExtension extends Extension
             if ($consoleEnabled) {
                 $loader->load('event-store-console.yaml');
             }
+            $this->processNormalization($container, $config['normalization']['map'] ?? [], $config['normalization']['aliases'] ?? []);
         }
         if ($lockServiceEnabled) {
             $loader->load('lock.yaml');
@@ -130,6 +132,69 @@ final class GoatExtension extends Extension
         if (\in_array(WebProfilerBundle::class, $container->getParameter('kernel.bundles'))) {
             $loader->load('profiler.yml');
         }
+    }
+
+    /**
+     * Normalize type name, do not check for type existence
+     */
+    private function normalizeType(string $type, string $key): string
+    {
+        if (!\is_string($type)) {
+            throw new InvalidArgumentException(\sprintf(
+                "goat.normalization.map: key '%s': value must be a string",
+                $key
+            ));
+        }
+        if (\ctype_digit($key)) {
+            throw new InvalidArgumentException(\sprintf(
+                "goat.normalization.map: key '%s': cannot be numeric",
+                $key
+            ));
+        }
+        // Normalize to FQDN
+        return \ltrim(\trim($type), '\\');
+    }
+
+    /**
+     * Process type normalization map and aliases.
+     */
+    private function processNormalization(ContainerBuilder $container, array $map, array $aliases): void
+    {
+        $types = [];
+        foreach ($map as $key => $type) {
+            $type = $this->normalizeType($type, $key);
+            if ('string' !== $type && 'array' !== $type && 'null' !== $type && !\class_exists($type)) {
+                throw new InvalidArgumentException(\sprintf(
+                    "goat.normalization.map: key '%s': class '%s' does not exist",
+                    $key, $type
+                ));
+            }
+            if ($existing = ($types[$type] ?? null)) {
+                throw new InvalidArgumentException(\sprintf(
+                    "goat.normalization.map: key '%s': class '%s' previously defined at key '%s'",
+                    $key, $type, $existing
+                ));
+            }
+            // Value is normalized, fix incomming array.
+            $map[$key] = $type;
+            $types[$type] = $key;
+        }
+
+        foreach ($aliases as $alias => $type) {
+            $type = $this->normalizeType($type, $key);
+            // Alias toward another alias, or alias toward an PHP native type?
+            if (!isset($map[$alias]) && !\in_array($type, $map)) {
+                if ($existing = ($types[$type] ?? null)) {
+                    throw new InvalidArgumentException(\sprintf(
+                        "goat.normalization.alias: key '%s': normalized name or type '%s' is not defined in goat.normalization.map",
+                        $alias, $type, $existing
+                    ));
+                }
+            }
+            $aliases[$alias] = $type;
+        }
+
+        $container->getDefinition('goat.domain.name_map')->setArguments([$map, $aliases]);
     }
 
     /**

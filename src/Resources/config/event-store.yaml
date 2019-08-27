@@ -1,7 +1,21 @@
 services:
 
+    goat.domain.name_map:
+        public: false
+        class: Goat\Domain\EventStore\DefaultNameMap
+        arguments: [[], []]
+
+    Goat\Domain\EventStore\NameMap:
+        public: false
+        alias: goat.domain.name_map
+
+    Goat\Domain\EventStore\TypeMap:
+        public: false
+        alias: goat.domain.name_map
+
     # @todo autoconfigure this from user configuration
     goat.domain.event_store.namespace_map:
+        public: false
         class: Goat\Domain\EventStore\NamespaceMap
 
     goat.domain.event_store:
@@ -11,12 +25,14 @@ services:
         arguments: ["@goat.runner.default"]
         calls:
             - [setNamespaceMap, ["@goat.domain.event_store.namespace_map"]]
+            - [setNameMap, ["@goat.domain.name_map"]]
 
     # @todo this should be optional, serializer might not be present
     goat.domain.event_store.exporter:
         public: false
         class: Goat\Domain\EventStore\Exchange\EventExporter
         arguments: ['@serializer']
+
     goat.domain.event_store.importer:
         public: false
         class: Goat\Domain\EventStore\Exchange\EventImporter

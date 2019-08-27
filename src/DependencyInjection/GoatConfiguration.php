@@ -46,6 +46,12 @@ final class GoatConfiguration implements ConfigurationInterface
                         ->booleanNode('lock_service')->defaultFalse()->end()
                     ->end()
                 ->end()
+                ->arrayNode('normalization')
+                    ->children()
+                        ->variableNode('map')->end()
+                        ->variableNode('aliases')->end()
+                    ->end()
+                ->end()
             ->end()
         ;
 

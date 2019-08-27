@@ -1,0 +1,90 @@
+goat:
+    runner:
+        #
+        # Driver for the SQL abstraction laye
+        #
+        # Until now only 'doctrine' supported, and it requires a valid Doctrine
+        # DBAL connection to be configured in the container.
+        #
+        driver: doctrine
+
+        #
+        # SQL query return types cache
+        #
+        # Caches locally your SQL requests result types for performance.
+        # It only exists because PDOStatement::getColumnMeta() actually
+        # does silent SQL requests in background to fetch type information.
+        #
+        # Using a driver such as the native 'pgsql' extension this would not
+        # be necessary, because it fetches type information along the result
+        # in a very efficient manner.
+        #
+        # There is two possible values here:
+        #
+        #   - apcu: recommend and default, if the apcu extension is enabled,
+        #     it will cache everything in shared memory and live with it.
+        #
+        #   - array: graceful degradation that keeps the cache for the HTTP
+        #     lifetime, which causes PDOStatement::getColumnMeta() to be
+        #     called at least once per SQL query and HTTTP request.
+        #
+        metadata_cache: apcu
+
+        #
+        # SQL query return type cache prefix, for when sharing memory with
+        # multiple applications.
+        #
+        metadata_cache_prefix: "app_%kernel.environment%"
+
+    query:
+        # Enable the SQL abstraction layer
+        enabled: true
+
+    normalization:
+        #
+        # PHP native type to normalized type name
+        #
+        # This is one very important yet missing symfony/serializer feature:
+        #
+        #   - While you code will evolve upon time passing, at some point you
+        #     will eventually end up renaming your classes, or moving them
+        #     around in other namespaces, this allows you to map legacy names.
+        # 
+        #   - While your platform evolve, and you start plugging new external
+        #     components on the same message broker, you may want at some point
+        #     want to normalize event names to a semantic business-relative
+        #     codified names.
+        #
+        # In both cases, it decorates the symfony/serializer component and
+        # transparently convert incomming normalized names to PHP native types
+        # to avoid it exploding upon missing classes. It also removes you the
+        # pain of developping custom normalizers after each code modification
+        # you do.
+        #
+        # This maps incomming normalized names to PHP types, but it also serve
+        # the same purpose the other way arround, you MUST NOT put duplicates
+        # in there, use the 'aliases' option key for duplicates.
+        #
+        map:
+            my_app.normalized_name: Php\Native\Type
+            my_app.other_normalized_name: Php\Other\Native\Type
+
+        #
+        # Whereas each PHP native type may have only one valid normalized name
+        # at a single point in time.
+        #
+        aliases:
+            Php\Legacy\Name: Php\Native\Type
+            Php\EvenMoreLegacy\Name: Php\Native\Type
+            my_app.legacy_normalized_name: Php\Native\Type
+            my_app.other_legacy_normalized_name: my_app.normalized_name
+
+    domain:
+        # Enable the domain features (event dispatcher)
+        enabled: true
+        # Enable the event store, plugged over the event dispatcher and Symfony
+        # messenger, which will log all messages.
+        event_store: true
+        # Enable the lock service that locks mutually exclusive event processing
+        # within the messenger bus. This is compatible with PostgreSQL >= 9 only.
+        lock_service: true
