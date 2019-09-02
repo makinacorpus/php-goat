@@ -5,6 +5,8 @@ create table "message_broker" (
     "consumed_at" timestamp default null,
     "has_failed" bool default false,
     "headers" jsonb not null default '{}'::jsonb,
+    "type" text default null,
+    "content_type" default null,
     "body" bytea not null,
     primary key ("id")
 );

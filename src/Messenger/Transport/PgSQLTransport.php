@@ -60,7 +60,7 @@ where
             "created_at" asc
         limit 1 offset 0
     )
-returning "id", "headers", "body"
+returning "id", "headers", "type", "content_type", "body"
 SQL
            , [$this->queue])->fetch();
 
@@ -78,6 +78,13 @@ SQL
             try {
                 if (\is_resource($data['body'])) { // Bytea
                     $data['body'] = \stream_get_contents($data['body']);
+                }
+
+                if (isset($data['type'])) {
+                    $data['headers']['type'] = $data['type'];
+                }
+                if (isset($data['content_type'])) {
+                    $data['headers']['Content-Type'] = $data['content_type'];
                 }
 
                 $handler($this->serializer->decode($data));
@@ -118,14 +125,16 @@ SQL
 
         $this->runner->execute(<<<SQL
 insert into "message_broker"
-    (id, queue, headers, body)
+    (id, queue, headers, type, content_type, body)
 values
-    (?::uuid, ?::string, ?::json, ?::bytea)
+    (?::uuid, ?::string, ?::json, ?, ?, ?::bytea)
 SQL
            , [
                Uuid::uuid4(),
                $this->queue,
                $data['headers'],
+               $data['headers']['type'] ?? null,
+               $data['headers']['content_type'] ?? null,
                $data['body'],
            ]
         );
