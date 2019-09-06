@@ -95,7 +95,7 @@ update "message_broker"
 set
     "has_failed" = true
 where
-    "id" = ?::bool
+    "id" = ?
 SQL
                 , [$data['id']]);
 
