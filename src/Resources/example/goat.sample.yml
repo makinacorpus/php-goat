@@ -1,40 +1,58 @@
 goat:
     runner:
         #
-        # Driver for the SQL abstraction laye
+        # Default connection, if none provided, default one will be created
+        # using Doctrine DBAL driver plugged on DBAL "default" connection.
         #
-        # Until now only 'doctrine' supported, and it requires a valid Doctrine
-        # DBAL connection to be configured in the container.
-        #
-        driver: doctrine
+        default:
+            #
+            # Driver for the SQL abstraction laye
+            #
+            # Until now only 'doctrine' supported, and it requires a valid Doctrine
+            # DBAL connection to be configured in the container.
+            #
+            driver: doctrine
+
+            #
+            # If you are using the Doctrine DBAL driver, you can specify which
+            # connection to use.
+            #
+            doctrine_connection: default
+
+            #
+            # SQL query return types cache
+            #
+            # Caches locally your SQL requests result types for performance.
+            # It only exists because PDOStatement::getColumnMeta() actually
+            # does silent SQL requests in background to fetch type information.
+            #
+            # Using a driver such as the native 'pgsql' extension this would not
+            # be necessary, because it fetches type information along the result
+            # in a very efficient manner.
+            #
+            # There is two possible values here:
+            #
+            #   - apcu: recommend and default, if the apcu extension is enabled,
+            #     it will cache everything in shared memory and live with it.
+            #
+            #   - array: graceful degradation that keeps the cache for the HTTP
+            #     lifetime, which causes PDOStatement::getColumnMeta() to be
+            #     called at least once per SQL query and HTTTP request.
+            #
+            metadata_cache: apcu
+
+            #
+            # SQL query return type cache prefix, for when sharing memory with
+            # multiple applications.
+            #
+            metadata_cache_prefix: "app_%kernel.environment%"
 
         #
-        # SQL query return types cache
+        # You may specify as many connections as you wish.
         #
-        # Caches locally your SQL requests result types for performance.
-        # It only exists because PDOStatement::getColumnMeta() actually
-        # does silent SQL requests in background to fetch type information.
-        #
-        # Using a driver such as the native 'pgsql' extension this would not
-        # be necessary, because it fetches type information along the result
-        # in a very efficient manner.
-        #
-        # There is two possible values here:
-        #
-        #   - apcu: recommend and default, if the apcu extension is enabled,
-        #     it will cache everything in shared memory and live with it.
-        #
-        #   - array: graceful degradation that keeps the cache for the HTTP
-        #     lifetime, which causes PDOStatement::getColumnMeta() to be
-        #     called at least once per SQL query and HTTTP request.
-        #
-        metadata_cache: apcu
-
-        #
-        # SQL query return type cache prefix, for when sharing memory with
-        # multiple applications.
-        #
-        metadata_cache_prefix: "app_%kernel.environment%"
+        logging:
+            driver: doctrine
+            doctrine_connection: another_connection
 
     query:
         # Enable the SQL abstraction layer

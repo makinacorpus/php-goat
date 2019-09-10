@@ -42,15 +42,58 @@ or controllers action methods parameters):
 
 # Advanced configuration
 
+## Driver configuration
+
 None as of now - since Doctrine is the only driver available, all configuration
 happens in Doctrine and not in this bundle.
 
-You should end up with a configuration such as this:
+## Runners
+
+A runner is a connection, you may have one or more. Per default, you should
+always configure the `default` connection:
 
 ```yaml
 goat:
     runner:
-        driver: doctrine
+        default:
+              doctrine_connection: default
+              driver: doctrine
+              metadata_cache: apcu
+              metadata_cache_prefix: "%goat.runner.metadata_cache_prefix%"
     query:
         enabled: true
 ```
+
+You may have more than one connection:
+
+```yaml
+goat:
+    runner:
+        default:
+              doctrine_connection: default
+              driver: doctrine
+              metadata_cache: apcu
+              metadata_cache_prefix: "%goat.runner.metadata_cache_prefix%"
+        logging:
+              autocommit: true
+              doctrine_connection: another_connnection
+              driver: doctrine
+              metadata_cache: apcu
+              metadata_cache_prefix: "%goat.runner.metadata_cache_prefix%"
+    query:
+        enabled: true
+```
+
+The `default` runner is the one that per default will be injected into services
+using the `\Goat\Runner\Runner` interface as type-hint when using autowiring.
+
+In order to inject a specific runner, you may use the `goat.runner.NAME` service
+identifier, in the above example, you would have the following two services
+available:
+
+ - `goat.runner.default`, the default one,
+ - `goat.runner.logging`, the other one.
+
+## Runners options
+
+@todo
