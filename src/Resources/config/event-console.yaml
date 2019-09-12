@@ -2,7 +2,7 @@ services:
 
     Goat\Domain\Command\DispatcherListCommand:
         public: false
-        arguments: []
+        arguments: ["@goat.domain.name_map"]
         tags: ["console.command"]
 
     Goat\Domain\Command\DispatcherPushCommand:
