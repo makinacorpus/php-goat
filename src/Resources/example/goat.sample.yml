@@ -55,7 +55,9 @@ goat:
             doctrine_connection: another_connection
 
     query:
+        #
         # Enable the SQL abstraction layer
+        #
         enabled: true
 
     normalization:
@@ -97,12 +99,54 @@ goat:
             my_app.legacy_normalized_name: Php\Native\Type
             my_app.other_legacy_normalized_name: my_app.normalized_name
 
-    domain:
-        # Enable the domain features (event dispatcher)
+
+    preferences:
+        #
+        # Preferences - a key-value/registry like user configuration storage
+        # that restitutes values as environement variable in your container.
+        #
         enabled: true
+
+        #
+        # Define a schema.
+        #
+        # If you remove this, all repositories will work in YOLO mode, meaning
+        # nothing will ever be validated not even value types, you may then use
+        # this API for arbitrary value storage.
+        #
+        # In the opposite, by defining a schema, you enable type and allowed
+        # values validation for what is going to be stored, and also enable
+        # the PreferenceSchema component in your container, allowing you to
+        # dynamically build forms.
+        #
+        schema:
+
+            # One variable
+            app_domain_some_variable:
+                label: Some variable
+                description: Uncheck this value to deactive this feature
+                type: bool
+                collection: false
+                default: true
+
+            # Another one
+            app_other_variable:
+                # ... all values here are optional
+
+    domain:
+        #
+        # Enable the domain features (event dispatcher)*
+        #
+        enabled: true
+
+        #
         # Enable the event store, plugged over the event dispatcher and Symfony
         # messenger, which will log all messages.
+        #
         event_store: true
+
+        #
         # Enable the lock service that locks mutually exclusive event processing
         # within the messenger bus. This is compatible with PostgreSQL >= 9 only.
+        #
         lock_service: true

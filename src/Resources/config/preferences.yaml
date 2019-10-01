@@ -1,0 +1,15 @@
+services:
+
+    goat.preferences.repository:
+        public: true
+        class: Goat\Preferences\Domain\Repository\GoatPreferencesRepository
+        # @todo make this configurable, allow table namespace configuration
+        arguments: ["@goat.runner.default"]
+
+    Goat\Preferences\Domain\Repository\PreferencesRepository:
+        alias: goat.preferences.repository
+
+    goat.preferences.env_var_processor:
+        class: Goat\Preferences\DependencyInjection\PreferencesEnvVarProcessor
+        arguments: ["@goat.preferences.repository"]
+        tags: ['container.env_var_processor']

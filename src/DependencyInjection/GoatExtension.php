@@ -6,6 +6,8 @@ namespace Goat\Bridge\Symfony\DependencyInjection;
 
 use Doctrine\DBAL\Connection;
 use Goat\Domain\Repository\RepositoryInterface;
+use Goat\Preferences\Domain\Repository\ArrayPreferencesSchema;
+use Goat\Preferences\Domain\Repository\PreferencesRepository;
 use Goat\Query\QueryBuilder;
 use Goat\Runner\Runner;
 use Goat\Runner\Metadata\ApcuResultMetadataCache;
@@ -35,6 +37,7 @@ final class GoatExtension extends Extension
 
         $consoleEnabled = \class_exists(Command::class);
         $domainEnabled = \interface_exists(RepositoryInterface::class) && ($config['domain']['enabled'] ?? true);
+        $preferenceEnabled = \interface_exists(PreferencesRepository::class) && ($config['preferences']['enabled'] ?? false);
         $messengerEnabled = \interface_exists(MessageBusInterface::class);
         $eventStoreEnabled = $domainEnabled && ($config['domain']['event_store'] ?? false);
         $lockServiceEnabled = $domainEnabled && ($config['domain']['lock_service'] ?? false);
@@ -63,6 +66,11 @@ final class GoatExtension extends Extension
             if ($consoleEnabled) {
                 $loader->load('event-console.yaml');
             }
+        }
+
+        if ($preferenceEnabled) {
+            $loader->load('preferences.yaml');
+            $this->processPreferences($container, $config['preferences'] ?? []);
         }
 
         if (\in_array(WebProfilerBundle::class, $container->getParameter('kernel.bundles'))) {
@@ -262,11 +270,32 @@ final class GoatExtension extends Extension
     }
 
     /**
+     * Process preferences.
+     */
+    private function processPreferences(ContainerBuilder $container, array $config)
+    {
+        // $repositoryDefinition = $container->getDefinition('goat.preferences.repository');
+        $envVarProcessorDefinition = $container->getDefinition('goat.preferences.env_var_processor');
+
+        // @todo caching strategy.
+        if (isset($config['schema'])) {
+            $schemaDefinition = new Definition();
+            $schemaDefinition->setClass(ArrayPreferencesSchema::class);
+            // In theory, our configuration was correctly registered, this should
+            // work gracefully.
+            $schemaDefinition->setArguments([$config['schema']]);
+            $container->setDefinition('goat.preferences.schema', $schemaDefinition);
+
+            $envVarProcessorDefinition->setArgument(1, new Reference('goat.preferences.schema'));
+        }
+    }
+
+    /**
      * Integration with makinacorpus/goat-domain package.
      */
     private function processDomainIntegration(ContainerBuilder $container)
     {
-        // @todo
+        // @todo is there actually anything to do?
     }
 
     /**
