@@ -1,7 +1,7 @@
 services:
 
     goat.preferences.repository:
-        public: true
+        public: false
         class: Goat\Preferences\Domain\Repository\GoatPreferencesRepository
         # @todo make this configurable, allow table namespace configuration
         arguments: ["@goat.runner.default"]
@@ -9,15 +9,25 @@ services:
     Goat\Preferences\Domain\Repository\PreferencesRepository:
         alias: goat.preferences.repository
 
+    goat.preferences:
+        public: true
+        class: Goat\Preferences\Domain\Repository\DefaultPreferences
+        arguments: ["@goat.preferences.repository", "@?goat.preferences.schema"]
+
+    Goat\Preferences\Domain\Repository\Preferences:
+        alias: goat.preferences
+
     goat.preferences.form_type.value:
+        public: false
         class: Goat\Preferences\Form\PreferenceValueType
-        arguments: ["@goat.preferences.repository", '@?goat.preferences.schema']
-        tags: ['form.type']
+        arguments: ["@goat.preferences.repository", "@?goat.preferences.schema"]
+        tags: ["form.type"]
 
     Goat\Preferences\Form\PreferenceValueType:
         alias: goat.preferences.form_type.value
 
     goat.preferences.env_var_processor:
+        public: false
         class: Goat\Preferences\DependencyInjection\PreferencesEnvVarProcessor
-        arguments: ["@goat.preferences.repository", '@?goat.preferences.schema']
-        tags: ['container.env_var_processor']
+        arguments: ["@goat.preferences"]
+        tags: ["container.env_var_processor"]
