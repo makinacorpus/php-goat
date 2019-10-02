@@ -9,7 +9,15 @@ services:
     Goat\Preferences\Domain\Repository\PreferencesRepository:
         alias: goat.preferences.repository
 
+    goat.preferences.form_type.value:
+        class: Goat\Preferences\Form\PreferenceValueType
+        arguments: ["@goat.preferences.repository", '@?goat.preferences.schema']
+        tags: ['form.type']
+
+    Goat\Preferences\Form\PreferenceValueType:
+        alias: goat.preferences.form_type.value
+
     goat.preferences.env_var_processor:
         class: Goat\Preferences\DependencyInjection\PreferencesEnvVarProcessor
-        arguments: ["@goat.preferences.repository"]
+        arguments: ["@goat.preferences.repository", '@?goat.preferences.schema']
         tags: ['container.env_var_processor']

@@ -8,6 +8,7 @@ use Doctrine\DBAL\Connection;
 use Goat\Domain\Repository\RepositoryInterface;
 use Goat\Preferences\Domain\Repository\ArrayPreferencesSchema;
 use Goat\Preferences\Domain\Repository\PreferencesRepository;
+use Goat\Preferences\Domain\Repository\PreferencesSchema;
 use Goat\Query\QueryBuilder;
 use Goat\Runner\Runner;
 use Goat\Runner\Metadata\ApcuResultMetadataCache;
@@ -71,6 +72,9 @@ final class GoatExtension extends Extension
         if ($preferenceEnabled) {
             $loader->load('preferences.yaml');
             $this->processPreferences($container, $config['preferences'] ?? []);
+            if ($messengerEnabled) {
+                $loader->load('preferences-messenger.yaml');
+            }
         }
 
         if (\in_array(WebProfilerBundle::class, $container->getParameter('kernel.bundles'))) {
@@ -274,9 +278,6 @@ final class GoatExtension extends Extension
      */
     private function processPreferences(ContainerBuilder $container, array $config)
     {
-        // $repositoryDefinition = $container->getDefinition('goat.preferences.repository');
-        $envVarProcessorDefinition = $container->getDefinition('goat.preferences.env_var_processor');
-
         // @todo caching strategy.
         if (isset($config['schema'])) {
             $schemaDefinition = new Definition();
@@ -285,8 +286,7 @@ final class GoatExtension extends Extension
             // work gracefully.
             $schemaDefinition->setArguments([$config['schema']]);
             $container->setDefinition('goat.preferences.schema', $schemaDefinition);
-
-            $envVarProcessorDefinition->setArgument(1, new Reference('goat.preferences.schema'));
+            $container->setAlias(PreferencesSchema::class, 'goat.preferences.schema');
         }
     }
 
