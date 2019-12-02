@@ -1,7 +1,7 @@
 {
     "name" : "makinacorpus/goat-bundle",
     "type": "library",
-    "description": "Goat tooling, including Symfony bundle, domain driven design tools, and various other helpers",
+    "description": "Event store, domain repositories and preference API for PHP, with a Symfony bundle",
     "keywords": ["orm", "postgresql", "mysql", "database", "symfony", "pdo", "preferences", "configuration"],
     "homepage": "http://github.com/makinacorpus/php-goat",
     "license": "GPL-2.0-or-later",
