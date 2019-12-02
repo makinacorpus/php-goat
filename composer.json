@@ -51,6 +51,11 @@
             "Goat\\Preferences\\Tests\\": "tests/Preferences/"
         }
     },
+    "replace": {
+        "makinacorpus/goat-bundle": "*",
+        "makinacorpus/goat-domain": "*",
+        "makinacorpus/goat-preferences": "*"
+    },
     "require" : {
         "php" : ">=7.2",
         "psr/log": "^1.0",
