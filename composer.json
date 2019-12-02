@@ -1,40 +1,80 @@
 {
     "name" : "makinacorpus/goat-bundle",
     "type": "library",
-    "description": "Goat bundle",
-    "keywords": ["orm", "postgresql", "mysql", "database", "symfony", "pdo"],
-    "homepage": "http://github.com/pounard/goat-bundle",
+    "description": "Goat tooling, including Symfony bundle, domain driven design tools, and various other helpers",
+    "keywords": ["orm", "postgresql", "mysql", "database", "symfony", "pdo", "preferences", "configuration"],
+    "homepage": "http://github.com/makinacorpus/php-goat",
     "license": "GPL-2.0-or-later",
     "authors": [
         {
             "name" : "Pierre RINEAU",
             "email" : "pierre.rineau@processus.org"
+        },
+        {
+            "name" : "Régis LEROY",
+            "email" : "regis.leroy@makina-corpus.com",
+            "role": "Developer"
+        },
+        {
+            "name" : "Simon MELLERIN",
+            "email" : "simon.mellerin@makina-corpus.com",
+            "role": "Developer"
+        },
+        {
+            "name" : "Makina Corpus",
+            "homepage" : "https://www.makina-corpus.com"
         }
     ],
     "minimum-stability" : "dev",
     "prefer-stable" : true,
     "autoload" : {
         "psr-4" : {
-            "Goat\\Bridge\\Symfony\\" : "src/"
-        }
+            "Goat\\Bridge\\Symfony\\" : "src/Bridge/Symfony/",
+            "Goat\\Domain\\" : "src/Domain/",
+            "Goat\\Preferences\\" : "src/Preferences"
+        },
+        "classmap": [
+            "src/Domain/Event/Error.php",
+            "src/Domain/Event/Message.php",
+            "src/Domain/EventStore/Mapping.php",
+            "src/Domain/Generator/MessageDocumentation.php",
+            "src/Preferences/Domain/Handler.php",
+            "src/Preferences/Domain/Message.php",
+            "src/Preferences/Domain/Model.php",
+            "src/Preferences/Domain/Repository.php"
+        ]
     },
     "autoload-dev": {
         "psr-4": {
-            "Goat\\Bridge\\Symfony\\Tests\\": "tests/"
+            "Goat\\Bridge\\Symfony\\Tests\\": "tests/Bridge/Symfony/",
+            "Goat\\Domain\\Tests\\": "tests/Domain/",
+            "Goat\\Preferences\\Tests\\": "tests/Preferences/"
         }
     },
     "require" : {
-        "makinacorpus/goat-query": "^1.0.0-alpha8",
-        "php" : ">=7.2"
+        "php" : ">=7.2",
+        "psr/log": "^1.0",
+        "ramsey/uuid": "^3.8",
+        "symfony/event-dispatcher": "^4.2"
     },
     "suggest" : {
         "doctrine/dbal": "For query builder usage over a Doctrine PDO connection",
         "doctrine/doctrine-bundle": "For query builder usage over a Doctrine PDO connection",
-        "jdorn/sql-formatter": "When the profiler is enabled, in order to format queries",
+        "jdorn/sql-formatter": "Formats SQL queries nicely in Symfony profiler plugin",
         "makinacorpus/goat-hydrator": "Brings a graph object hydrator for performant object hydration",
+        "makinacorpus/goat-query": "For using PostgreSQL implementations of everything",
+        "symfony/form": "For preferences form widget usage",
+        "symfony/messenger": "For domain's event store and message publisher usage",
         "symfony/serializer-pack": "For better object serialisation and normalisation within the bus"
     },
     "require-dev" : {
-        "phpunit/phpunit" : "7.*"
+        "makinacorpus/goat-query": "^1.0.0-alpha8",
+        "phpunit/phpunit" : "7.*",
+        "symfony/console": "^4",
+        "symfony/dependency-injection": "^4.2",
+        "symfony/event-dispatcher": "^4",
+        "symfony/form": "^4",
+        "symfony/messenger": "^4.2",
+        "symfony/serializer-pack": "^1.0"
     }
 }
