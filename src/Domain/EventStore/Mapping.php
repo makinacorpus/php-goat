@@ -57,8 +57,13 @@ interface NameMap extends TypeMap
  */
 final class DefaultNameMap implements NameMap
 {
+    /** @var string[] */
     private $aliases = [];
+
+    /** @var string[] */
     private $nameToTypeMap = [];
+
+    /** @var string[] */
     private $typeToNameMap = [];
 
     /**

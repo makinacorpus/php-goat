@@ -4,36 +4,44 @@ declare(strict_types=1);
 
 namespace Goat\Domain\Event;
 
-use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\MessageBusInterface;
+use Symfony\Component\Messenger\Handler\HandlersLocatorInterface;
 
-final class DefaultDispatcher extends AbstractDispatcher
+final class DefaultDispatcher extends AbstractDirectDispatcher
 {
-    private $appBus;
+    /** @var MessageBusInterface */
     private $asyncBus;
+
+    /** @var MessageBusInterface */
+    private $eventBus;
 
     /**
      * Default constructor
      */
-    public function __construct(MessageBusInterface $appBus, MessageBusInterface $asyncBus)
-    {
-        $this->appBus = $appBus;
+    public function __construct(
+        HandlersLocatorInterface $handlersLocator,
+        MessageBusInterface $asyncBus,
+        ?MessageBusInterface $eventBus = null
+    ) {
+        parent::__construct($handlersLocator);
+
         $this->asyncBus = $asyncBus;
+        $this->eventBus = $eventBus ?? $asyncBus;
     }
 
     /**
-     * Process
+     * {@inheritdoc}
      */
-    protected function doSynchronousProcess(MessageEnvelope $envelope): Envelope
+    protected function doAsynchronousCommandDispatch(MessageEnvelope $envelope): void
     {
-        return $this->appBus->dispatch($envelope->getMessage());
+        $this->asyncBus->dispatch($envelope->getMessage());
     }
 
     /**
-     * Send in bus
+     * {@inheritdoc}
      */
-    protected function doAsynchronousDispatch(MessageEnvelope $envelope): Envelope
+    protected function doAsynchronousEventDispatch(MessageEnvelope $envelope): void
     {
-        return $this->asyncBus->dispatch($envelope->getMessage());
+        $this->eventBus->dispatch($envelope->getMessage());
     }
 }

@@ -74,6 +74,96 @@ final class Event
     }
 
     /**
+     * Convert custom properties to AMQP properties.
+     */
+    public static function toAmqpProperties(array $properties): array
+    {
+        $ret = [];
+
+        foreach ($properties as $key => $value) {
+            switch ($key) {
+
+                case self::PROP_APP_ID:
+                case self::PROP_CONTENT_ENCODING:
+                case self::PROP_CONTENT_TYPE:
+                case self::PROP_MESSAGE_ID:
+                case self::PROP_MESSAGE_TYPE:
+                case self::PROP_REPLY_TO:
+                case self::PROP_SUBJECT:
+                case self::PROP_USER_ID:
+                    $ret[\str_replace('-', '_', $key)] = $value;
+                    break;
+
+                // @todo should we handle those?
+                //   They've been copied from php-amqplib.
+                case 'delivery_mode':
+                case 'priority':
+                case 'correlation_id':
+                case 'expiration':
+                case 'timestamp':
+                case 'cluster_id':
+                    $ret[$key] = $key;
+                    break;
+
+                default:
+                    $ret['application_headers'][$key] = $value;
+                    break;
+            }
+        }
+
+        return $ret;
+    }
+
+    /**
+     * convert AMQP properties to custom properties.
+     */
+    public static function fromAmqpProperties(array $properties): array
+    {
+        $ret = [];
+
+        foreach ($properties as $key => $value) {
+            switch ($key) {
+
+                case 'app_id':
+                case 'content_encoding':
+                case 'content_type':
+                case 'message_id':
+                case 'type':
+                case 'reply_to':
+                case 'subject':
+                case 'user_id':
+                    $ret[\str_replace('_', '-', $key)] = $value;
+                    break;
+
+                case 'application_headers':
+                    if (\is_array($value)) {
+                        foreach ($value as $name => $headerValue) {
+                            $ret[$name] = $headerValue;
+                        }
+                    }
+                    break;
+
+                // @todo should we handle those?
+                //   They've been copied from php-amqplib.
+                case 'delivery_mode':
+                case 'priority':
+                case 'correlation_id':
+                case 'expiration':
+                case 'timestamp':
+                case 'cluster_id':
+                    $ret[$key] = $key;
+                    break;
+
+                default:
+                    $ret[$key] = $value;
+                    break;
+            }
+        }
+
+        return $ret;
+    }
+
+    /**
      * Get position in the whole namespace
      */
     public function getPosition(): int

@@ -29,6 +29,9 @@ abstract class AbstractEventStore implements EventStore
         return $mimetype;
     }
 
+    /**
+     * Symfony serializer to mime type.
+     */
     protected function serializerToMimetype(string $type)
     {
         switch ($type) {
@@ -41,6 +44,9 @@ abstract class AbstractEventStore implements EventStore
         }
     }
 
+    /**
+     * Compute event properties that can be computed automatically.
+     */
     final protected function computeProperties(Event $event): array
     {
         $properties = $event->getProperties();
@@ -52,7 +58,7 @@ abstract class AbstractEventStore implements EventStore
                 $properties[Event::PROP_MESSAGE_TYPE] =  \get_class($message);
             }
         } else {
-            $properties[Event::PROP_CONTENT_TYPE] = 'string';
+            $properties[Event::PROP_CONTENT_TYPE] = 'text/plain';
             if (empty($properties[Event::PROP_MESSAGE_TYPE])) {
                 $properties[Event::PROP_MESSAGE_TYPE] =  \gettype($message);
             }
@@ -114,9 +120,6 @@ abstract class AbstractEventStore implements EventStore
             // want anything to break in a so ugly fashion, let's return
             // a broken message and allow the upper layer using us do what
             // it has to do or fail by itself.
-            
-            // FIXME : TODO logger of $e->getMessage()
-
             return new BrokenMessage($aggregateType, $aggregateId, $data, $eventName);
         }
     }

@@ -61,6 +61,7 @@
         "doctrine/dbal": "For query builder usage over a Doctrine PDO connection",
         "doctrine/doctrine-bundle": "For query builder usage over a Doctrine PDO connection",
         "jdorn/sql-formatter": "Formats SQL queries nicely in Symfony profiler plugin",
+        "makinacorpus/amqp-patterns": "Allows pluging the domain's dispatcher on an AMQP broker",
         "makinacorpus/goat-hydrator": "Brings a graph object hydrator for performant object hydration",
         "makinacorpus/goat-query": "For using PostgreSQL implementations of everything",
         "symfony/form": "For preferences form widget usage",
@@ -68,13 +69,14 @@
         "symfony/serializer-pack": "For better object serialisation and normalisation within the bus"
     },
     "require-dev" : {
+        "makinacorpus/amqp-patterns": "*",
         "makinacorpus/goat-query": "^1.0.0-alpha8",
         "phpunit/phpunit" : "7.*",
         "symfony/console": "^4",
         "symfony/dependency-injection": "^4.2",
         "symfony/event-dispatcher": "^4",
         "symfony/form": "^4",
-        "symfony/messenger": "^4.2",
+        "symfony/messenger": "4.2",
         "symfony/serializer-pack": "^1.0"
     }
 }

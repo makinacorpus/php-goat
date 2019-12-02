@@ -6,7 +6,6 @@ namespace Goat\Domain\Event;
 
 use Goat\Domain\EventStore\EventStore;
 use Goat\Domain\Service\LockService;
-use Symfony\Component\Messenger\Envelope;
 
 /**
  * Dispatcher that serves as a facade to send command and events to the bus.
@@ -34,14 +33,28 @@ interface Dispatcher
     public function setLockService(LockService $lockService): void;
 
     /**
-     * Same as dispatch() but do not respect transactions, no matter if there
-     * is anything pending, it will be delt with outside of the transaction
-     * asynchronously.
+     * Dispatch event asynchronously (via the bus).
      */
-    public function dispatch($message, array $properties = []): ?Envelope;
+    public function dispatchEvent($message, array $properties = []): void;
 
     /**
-     * Process command synchronously
+     * Dispatch command asynchronously (via the bus).
      */
-    public function process($message, array $properties = [], bool $withTransaction = true): ?Envelope;
+    public function dispatchCommand($message, array $properties = []): void;
+
+    /**
+     * Dispatch command asynchronously (via the bus).
+     *
+     * @deprecated
+     *   Use dispatchCommand() instead.
+     */
+    public function dispatch($message, array $properties = []): void;
+
+    /**
+     * Process command synchronously.
+     *
+     * It can work only if the command was meant to be consumed within the same
+     * application, otherwise it will be rejected, and fail.
+     */
+    public function process($message, array $properties = [], bool $withTransaction = true): void;
 }

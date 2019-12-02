@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Goat\Domain\Event;
 
-use Goat\Domain\EventStore\Event;
+use Goat\Domain\EventStore\Event as StoredEvent;
 use Ramsey\Uuid\Uuid;
 use Ramsey\Uuid\UuidInterface;
 
@@ -27,6 +27,24 @@ interface Message
      * Get target aggregate type
      */
     public function getAggregateType(): ?string;
+}
+
+/**
+ * Event is a message that advertise a state change: it happened.
+ * It can be consumed by any number of consummers, it should not
+ * trigger system state changes, it may or may be not consummed.
+ */
+interface Event extends Message
+{
+}
+
+/**
+ * Command is a message that triggers a change: it has not happened yet.
+ * It can only be sent a single consumer, the only exception is in case
+ * of failure it may be retried by someone else.
+ */
+interface Command extends Message
+{
 }
 
 /**
@@ -188,14 +206,14 @@ final class MessageEnvelope
         }
 
         if ($message instanceof self) {
-            if (!$message->hasProperty(Event::PROP_MESSAGE_ID)) {
-                $properties[Event::PROP_MESSAGE_ID] = (string)Uuid::uuid4();
+            if (!$message->hasProperty(StoredEvent::PROP_MESSAGE_ID)) {
+                $properties[StoredEvent::PROP_MESSAGE_ID] = (string)Uuid::uuid4();
             }
             return $message->withProperties($properties);
         }
 
-        if (!isset($properties[Event::PROP_MESSAGE_ID])) {
-            $properties[Event::PROP_MESSAGE_ID] = (string)Uuid::uuid4();
+        if (!isset($properties[StoredEvent::PROP_MESSAGE_ID])) {
+            $properties[StoredEvent::PROP_MESSAGE_ID] = (string)Uuid::uuid4();
         }
 
         $ret = new self;
@@ -230,6 +248,17 @@ final class MessageEnvelope
     public function getProperties(): array
     {
         return $this->properties;
+    }
+
+    /**
+     * Get properties compatible with AMQP
+     */
+    public function getAmqpProperties(): array
+    {
+        if ($this->properties) {
+            return StoredEvent::toAmqpProperties($this->properties);
+        }
+        return [];
     }
 
     /**

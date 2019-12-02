@@ -6,7 +6,6 @@ namespace Goat\Domain\Event;
 
 use Goat\Domain\EventStore\EventStore;
 use Goat\Domain\Service\LockService;
-use Symfony\Component\Messenger\Envelope;
 
 abstract class AbstractDispatcher implements Dispatcher
 {
@@ -65,12 +64,17 @@ abstract class AbstractDispatcher implements Dispatcher
     /**
      * Process
      */
-    abstract protected function doSynchronousProcess(MessageEnvelope $envelope): ?Envelope;
+    abstract protected function doSynchronousProcess(MessageEnvelope $envelope): void;
 
     /**
      * Send in bus
      */
-    abstract protected function doAsynchronousDispatch(MessageEnvelope $envelope): ?Envelope;
+    abstract protected function doAsynchronousCommandDispatch(MessageEnvelope $envelope): void;
+
+    /**
+     * Send in bus
+     */
+    abstract protected function doAsynchronousEventDispatch(MessageEnvelope $envelope): void;
 
     /**
      * Process message with a semaphore
@@ -92,15 +96,16 @@ abstract class AbstractDispatcher implements Dispatcher
     /**
      * Call doSynchronousProcess but checks for Parallel/Lock potential problems before
      */
-    private function synchronousProcess(MessageEnvelope $envelope): ?Envelope
+    private function synchronousProcess(MessageEnvelope $envelope): void
     {
         if ($this->lockService) {
             $message = $envelope->getMessage();
             if ($message instanceof UnparallelizableMessage) {
-                return $this->processWithLock($envelope, $message->getUniqueIntIdentifier());
+                $this->processWithLock($envelope, $message->getUniqueIntIdentifier());
+                return;
             }
         }
-        return $this->doSynchronousProcess($envelope);
+        $this->doSynchronousProcess($envelope);
     }
 
     /**
@@ -162,19 +167,18 @@ abstract class AbstractDispatcher implements Dispatcher
     /**
      * Process synchronously with a transaction
      */
-    private function processInTransaction(MessageEnvelope $envelope): ?Envelope
+    private function processInTransaction(MessageEnvelope $envelope): void
     {
-        $ret = null;
         if ($this->isTransactionRunning()) {
             // We already have a transaction, we are running within a greater
             // transaction, we let the root transaction handle commit and
             // rollback.
-            $ret = $this->processWithoutTransaction($envelope);
+            $this->processWithoutTransaction($envelope);
         } else {
             $transaction = $exception = null;
             try {
                 $transaction = $this->startTransaction();
-                $ret = $this->synchronousProcess($envelope);
+                $this->synchronousProcess($envelope);
                 $transaction->commit();
             } catch (\Throwable $e) {
                 $exception = $e;
@@ -193,43 +197,56 @@ abstract class AbstractDispatcher implements Dispatcher
                 }
             }
         }
-        return $ret;
     }
 
     /**
      * Process without transaction, in most case this means send an asynchronous message
      */
-    private function processWithoutTransaction(MessageEnvelope $envelope): ?Envelope
+    private function processWithoutTransaction(MessageEnvelope $envelope): void
     {
-        $ret = null;
         try {
-            $ret = $this->synchronousProcess($envelope);
+            $this->synchronousProcess($envelope);
             $this->storeEvent($envelope);
         } catch (\Throwable $e) {
             $this->storeEventWithError($envelope, $e);
             throw $e;
         }
-        return $ret;
     }
 
     /**
      * {@inheritdoc}
      */
-    final public function dispatch($message, array $properties = []): ?Envelope
+    final public function dispatchEvent($message, array $properties = []): void
     {
-        return $this->doAsynchronousDispatch(MessageEnvelope::wrap($message, $properties));
+        $this->doAsynchronousEventDispatch(MessageEnvelope::wrap($message, $properties));
     }
 
     /**
      * {@inheritdoc}
      */
-    final public function process($message, array $properties = [], bool $withTransaction = true): ?Envelope
+    final public function dispatchCommand($message, array $properties = []): void
+    {
+        $this->doAsynchronousCommandDispatch(MessageEnvelope::wrap($message, $properties));
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    final public function dispatch($message, array $properties = []): void
+    {
+        $this->doAsynchronousCommandDispatch(MessageEnvelope::wrap($message, $properties));
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    final public function process($message, array $properties = [], bool $withTransaction = true): void
     {
         $envelope = MessageEnvelope::wrap($message, $properties);
         if ($withTransaction) {
-            return $this->processInTransaction($envelope);
+            $this->processInTransaction($envelope);
         } else {
-            return $this->processWithoutTransaction($envelope);
+            $this->processWithoutTransaction($envelope);
         }
     }
 }
