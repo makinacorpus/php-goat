@@ -1,5 +1,5 @@
 {
-    "name" : "makinacorpus/goat-bundle",
+    "name" : "makinacorpus/goat",
     "type": "library",
     "description": "Event store, domain repositories and preference API for PHP, with a Symfony bundle",
     "keywords": ["orm", "postgresql", "mysql", "database", "symfony", "pdo", "preferences", "configuration"],
