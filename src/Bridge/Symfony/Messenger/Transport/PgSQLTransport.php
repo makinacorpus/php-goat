@@ -101,6 +101,8 @@ SQL
                 throw new TransportException('Error while fetching messages', 0, $e);
             }
         }
+
+        return [];
     }
 
     /**
