@@ -16,12 +16,16 @@ use Symfony\Component\Messenger\Stamp\ReceivedStamp;
  */
 final class DispatcherMiddleware implements MiddlewareInterface
 {
+    /** @var bool */
+    private $async = false;
+
+    /** @var Dispatcher */
     private $dispatcher;
 
     /**
      * Default constructor.
      */
-    public function __construct(Dispatcher $dispatcher)
+    public function __construct(Dispatcher $dispatcher, bool $async = false)
     {
         $this->dispatcher = $dispatcher;
     }

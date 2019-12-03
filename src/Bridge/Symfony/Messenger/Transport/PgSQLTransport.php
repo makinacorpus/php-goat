@@ -7,12 +7,13 @@ namespace Goat\Bridge\Symfony\Messenger\Transport;
 use Goat\Runner\Runner;
 use Ramsey\Uuid\Uuid;
 use Symfony\Component\Messenger\Envelope;
+use Symfony\Component\Messenger\Exception\TransportException;
+use Symfony\Component\Messenger\Stamp\TransportMessageIdStamp;
 use Symfony\Component\Messenger\Transport\TransportInterface;
 use Symfony\Component\Messenger\Transport\Serialization\SerializerInterface;
 
 /**
  * @todo implement purging messages
- * @todo this needs a serious rewrite for symfony >=4.3
  */
 final class PgSQLTransport implements TransportInterface
 {
@@ -21,7 +22,6 @@ final class PgSQLTransport implements TransportInterface
     private $options;
     private $runner;
     private $serializer;
-    private $shouldStop = false;
 
     /**
      * Default constructor
@@ -36,16 +36,27 @@ final class PgSQLTransport implements TransportInterface
     }
 
     /**
+     * Mark single message as failed.
+     */
+    private function markAsFailed(string $id)
+    {
+        $this->runner->execute(<<<SQL
+update "message_broker"
+set
+    "has_failed" = true
+where
+    "id" = ?
+SQL
+            , [$id]
+        );
+    }
+
+    /**
      * {@inheritdoc}
      */
-    public function receive(callable $handler): void
+    public function get(): iterable
     {
-        $runner = $this->runner;
-        $loopSleep = $this->options['loop_sleep'] ?? 200000;
-
-        while (!$this->shouldStop) {
-
-            $data = $runner->execute(<<<SQL
+        $data = $this->runner->execute(<<<SQL
 update "message_broker"
 set
     "consumed_at" = now()
@@ -62,24 +73,14 @@ where
     )
 returning "id", "headers", "type", "content_type", "body"
 SQL
-           , [$this->queue])->fetch();
+       , [$this->queue])->fetch();
 
-           if (!$data) {
-                $handler(null);
 
-                \usleep($loopSleep);
-                if (\function_exists('pcntl_signal_dispatch')) {
-                    \pcntl_signal_dispatch();
-                }
-
-                continue;
-            }
-
+       if ($data) {
             try {
                 if (\is_resource($data['body'])) { // Bytea
                     $data['body'] = \stream_get_contents($data['body']);
                 }
-
                 if (isset($data['type'])) {
                     $data['headers']['type'] = $data['type'];
                 }
@@ -87,23 +88,17 @@ SQL
                     $data['headers']['Content-Type'] = $data['content_type'];
                 }
 
-                $handler($this->serializer->decode($data));
+                return [
+                    $this
+                        ->serializer
+                        ->decode($data)
+                        ->with(new TransportMessageIdStamp($data['id']))
+                ];
 
             } catch (\Throwable $e) {
-                $data = $runner->execute(<<<SQL
-update "message_broker"
-set
-    "has_failed" = true
-where
-    "id" = ?
-SQL
-                , [$data['id']]);
+                $this->markAsFailed((string)$data['id']);
 
-                throw $e;
-            } finally {
-                if (\function_exists('pcntl_signal_dispatch')) {
-                    \pcntl_signal_dispatch();
-                }
+                throw new TransportException('Error while fetching messages', 0, $e);
             }
         }
     }
@@ -111,9 +106,23 @@ SQL
     /**
      * {@inheritdoc}
      */
-    public function stop(): void
+    public function ack(Envelope $envelope): void
     {
-        $this->shouldStop = true;
+        // Nothing to do, ACK was atomic in the UPDATE/RETURNING SQL query.
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function reject(Envelope $envelope): void
+    {
+        // God I hate those stamps, message id should be a first class citizen
+        // of the messenger API, not just an arbitrary stamp.
+        // Same goes for content type, message type, and a few other common
+        // properties.
+        if ($stamp = $envelope->last(TransportMessageIdStamp::class)) {
+            $this->markAsFailed((string)$stamp->getId());
+        }
     }
 
     /**
@@ -132,9 +141,9 @@ SQL
            , [
                Uuid::uuid4(),
                $this->queue,
-               $data['headers'],
+               $data['headers'] ?? [],
                $data['headers']['type'] ?? null,
-               $data['headers']['content_type'] ?? null,
+               $data['headers']['content_type'] ?? $data['headers']['content-type'] ?? $data['headers']['Content-Type'] ?? null,
                $data['body'],
            ]
         );

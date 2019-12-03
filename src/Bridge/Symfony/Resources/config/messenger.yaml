@@ -2,5 +2,5 @@ services:
 
     Goat\Bridge\Symfony\Messenger\Transport\PgSQLTransportFactory:
         public: false
-        arguments: ["@goat.runner.default", "@?messenger.transport.serializer", "%kernel.debug%", "%kernel.environment%"]
+        arguments: ["@goat.runner.default", "%kernel.debug%", "%kernel.environment%"]
         tags: [messenger.transport_factory]

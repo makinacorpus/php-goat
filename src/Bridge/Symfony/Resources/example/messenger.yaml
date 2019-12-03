@@ -1,0 +1,33 @@
+#
+# This is the configuration you MUST use for custom dispatcher to work.
+# It bypasses most of the messenger component, I am sorry for this, and
+# in a later version, we may just drop it completely.
+#
+# As of now, we still need it for its console commands.
+#
+framework:
+    messenger:
+        transports:
+            goat_pgsql: "goat://default"
+            sync: "sync://"
+
+        routing:
+            "*": goat_pgsql
+
+        default_bus: messenger.bus.sync
+
+        buses:
+            messenger.bus.async:
+                default_middleware: false
+                # Force applicative to send messages via our custom middleware,
+                # error handling and logging is fully custom.
+                # We still keep the "sync" transport factory that will add the
+                # necessary stamps to the message envelope, so that our own
+                # dispatcher will process message immediately.
+                middleware: [messenger.middleware.send_message, goat.domain.dispatcher_middleware]
+
+            messenger.bus.sync:
+                default_middleware: false
+                # Force applicative to send messages via our custom middleware,
+                # error handling and logging is fully custom.
+                middleware: [messenger.middleware.send_message, goat.domain.dispatcher_middleware]

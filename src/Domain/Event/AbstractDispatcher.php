@@ -26,7 +26,7 @@ abstract class AbstractDispatcher implements Dispatcher
     /**
      * {@inheritdoc}
      */
-    final public function setTransactionHandlers(iterable $transactionHandlers)
+    final public function setTransactionHandlers(iterable $transactionHandlers): void
     {
         if ($this->transactionHandlersSet) {
             throw new \BadMethodCallException("Transactions handlers are already set");

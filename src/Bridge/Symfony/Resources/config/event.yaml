@@ -2,12 +2,12 @@ services:
 
     # Symfony 4.2: this service is not aliased with its interface.
     Symfony\Component\Messenger\Handler\HandlersLocatorInterface:
-        alias: messenger.bus.app.messenger.handlers_locator
+        alias: messenger.bus.sync.messenger.handlers_locator
 
     goat.domain.dispatcher:
         public: false
         class: Goat\Domain\Event\DefaultDispatcher
-        arguments: ['@messenger.bus.app.messenger.handlers_locator', '@messenger.bus.app', '@messenger.bus.async']
+        arguments: ['@messenger.bus.sync.messenger.handlers_locator', '@messenger.bus.sync', '@messenger.bus.async']
         tags: ['container.hot_path']
 
     goat.domain.dispatcher_middleware:

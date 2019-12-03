@@ -20,7 +20,7 @@ interface Dispatcher
      *
      * @internal
      */
-    public function setTransactionHandlers(iterable $transactionHandlers);
+    public function setTransactionHandlers(iterable $transactionHandlers): void;
 
     /**
      * Set event store
