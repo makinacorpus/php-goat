@@ -14,8 +14,8 @@ final class GoatConfiguration implements ConfigurationInterface
      */
     public function getConfigTreeBuilder()
     {
-        $treeBuilder = new TreeBuilder();
-        $rootNode = $treeBuilder->root('goat');
+        $treeBuilder = new TreeBuilder('goat');
+        $rootNode = $treeBuilder->getRootNode();
 
         $rootNode
             ->children()

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Goat\Bridge\Symfony\Twig;
 
+use Twig\TwigFunction;
 use Twig\Extension\AbstractExtension;
 
 /**
@@ -17,7 +18,7 @@ final class ProfilerExtension extends AbstractExtension
     public function getFunctions()
     {
         return [
-            new \Twig_SimpleFunction('goat_format_sql', [$this, 'renderFormattedSql'], ['safe' => ['html']]),
+            new TwigFunction('goat_format_sql', [$this, 'renderFormattedSql'], ['safe' => ['html']]),
         ];
     }
 
