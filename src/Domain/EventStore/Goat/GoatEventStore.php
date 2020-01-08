@@ -225,7 +225,9 @@ final class GoatEventStore extends AbstractEventStore
      */
     public function createSelectQuery(GoatEventQuery $query): SelectQuery
     {
-        $callback = \Closure::bind(function (GoatEventStore $store) {
+        $nameMap = $this->getNameMap();
+
+        $callback = \Closure::bind(function (GoatEventStore $store) use ($nameMap) {
 
             $select = $store
                 ->getRunner()
@@ -237,7 +239,13 @@ final class GoatEventStore extends AbstractEventStore
             $where = $select->getWhere();
 
             if ($this->names) {
-                $where->isIn('event.name', $this->names);
+                $names = \array_map(
+                    static function (string $name) use ($nameMap): string {
+                        return $nameMap->getName($name);
+                    },
+                    (array)$this->names
+                );
+                $where->isIn('event.name', $names);
             }
             if ($this->searchName) {
                 $where->expression(ExpressionLike::iLike('event.name', '%?%', $this->searchName));
