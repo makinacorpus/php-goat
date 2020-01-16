@@ -36,7 +36,7 @@ class GoatDatasourceResult implements \IteratorAggregate, DatasourceResultInterf
     /**
      * {@inheritdoc}
      */
-    public function canStream()
+    public function canStream(): bool
     {
         return true;
     }

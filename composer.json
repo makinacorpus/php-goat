@@ -65,22 +65,24 @@
         "doctrine/dbal": "For query builder usage over a Doctrine PDO connection",
         "doctrine/doctrine-bundle": "For query builder usage over a Doctrine PDO connection",
         "jdorn/sql-formatter": "Formats SQL queries nicely in Symfony profiler plugin",
-        "makinacorpus/amqp-patterns": "Allows pluging the domain's dispatcher on an AMQP broker",
-        "makinacorpus/goat-hydrator": "Brings a graph object hydrator for performant object hydration",
         "makinacorpus/goat-query": "For using PostgreSQL implementations of everything",
+        "ocramius/generated-hydrator": "For using the makinacorpus/goat-hydrator replacement",
         "symfony/form": "For preferences form widget usage",
         "symfony/messenger": "For domain's event store and message publisher usage",
         "symfony/serializer-pack": "For better object serialisation and normalisation within the bus"
     },
     "require-dev" : {
-        "makinacorpus/amqp-patterns": "*",
+        "makinacorpus/calista-core": "^1.0",
         "makinacorpus/goat-query": "^1.0.0-alpha8",
         "phpunit/phpunit" : "7.*",
+        "symfony/config": "^4.4 || ^5.0",
         "symfony/console": "^4.0|^5.0",
         "symfony/dependency-injection": "^4.2|^5.0",
         "symfony/event-dispatcher": "^4.0|^5.0",
         "symfony/form": "^4|^5.0",
+        "symfony/http-kernel": "^4.4 || ^5.0",
         "symfony/messenger": "^4.4|^5.0",
-        "symfony/serializer-pack": "^1.0|^5.0"
+        "symfony/serializer-pack": "^1.0|^5.0",
+        "twig/twig": "^2.5 || ^3.0"
     }
 }
