@@ -1,0 +1,14 @@
+services:
+
+    goat.domain.name_map:
+        public: false
+        class: Goat\Domain\EventStore\DefaultNameMap
+        arguments: [[], []]
+
+    Goat\Domain\EventStore\NameMap:
+        public: false
+        alias: goat.domain.name_map
+
+    Goat\Domain\EventStore\TypeMap:
+        public: false
+        alias: goat.domain.name_map

@@ -127,7 +127,7 @@ abstract class AbstractEventStore implements EventStore
     /**
      * Get or create empty namespace map
      */
-    final protected function getNameMap(): NameMap
+    final private function getNameMap(): NameMap
     {
         return $this->nameMap ?? ($this->nameMap = new DefaultNameMap());
     }

@@ -45,6 +45,8 @@ final class GoatExtension extends Extension
 
         $this->registerRunnerList($container, $config['runner'] ?? []);
 
+        $loader->load('hydrator.yaml'); // Backward compatibility.
+
         if ($domainEnabled) {
             $loader->load('domain.yaml');
             $this->processDomainIntegration($container);
@@ -54,8 +56,9 @@ final class GoatExtension extends Extension
             if ($consoleEnabled) {
                 $loader->load('event-store-console.yaml');
             }
-            $this->processNormalization($container, $config['normalization']['map'] ?? [], $config['normalization']['aliases'] ?? []);
         }
+        $loader->load('normalization.yaml');
+        $this->processNormalization($container, $config['normalization']['map'] ?? [], $config['normalization']['aliases'] ?? []);
         if ($lockServiceEnabled) {
             $loader->load('lock.yaml');
         }

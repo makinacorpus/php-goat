@@ -31,6 +31,7 @@
         "psr-4" : {
             "Goat\\Bridge\\Symfony\\" : "src/Bridge/Symfony/",
             "Goat\\Domain\\" : "src/Domain/",
+            "Goat\\Hydrator\\" : "src/Hydrator/",
             "Goat\\Preferences\\" : "src/Preferences"
         },
         "classmap": [
@@ -52,8 +53,10 @@
         }
     },
     "replace": {
+        "makinacorpus/generated-hydrator": "*",
         "makinacorpus/goat-bundle": "*",
         "makinacorpus/goat-domain": "*",
+        "makinacorpus/goat-hydrator": "*",
         "makinacorpus/goat-preferences": "*"
     },
     "require" : {
