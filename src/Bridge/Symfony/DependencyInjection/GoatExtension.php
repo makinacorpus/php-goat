@@ -6,6 +6,8 @@ namespace Goat\Bridge\Symfony\DependencyInjection;
 
 use Doctrine\DBAL\Connection;
 use Goat\Domain\Repository\RepositoryInterface;
+use Goat\Driver\Configuration;
+use Goat\Driver\ExtPgSQLDriver;
 use Goat\Preferences\Domain\Repository\ArrayPreferencesSchema;
 use Goat\Preferences\Domain\Repository\PreferencesRepository;
 use Goat\Preferences\Domain\Repository\PreferencesSchema;
@@ -114,6 +116,10 @@ final class GoatExtension extends Extension
                 $runnerDefinition = $this->createDoctrineRunner($container, $name, $config);
                 break;
 
+            case 'ext-pgsql':
+                $runnerDefinition = $this->createExtPgSqlRunner($container, $name, $config);
+                break;
+
             default: // Configuration should have handled invalid values
                 throw new InvalidArgumentException(\sprintf(
                     "Could not create the goat.runner.%s runner service: driver '%s' is unsupported",
@@ -191,6 +197,8 @@ final class GoatExtension extends Extension
         }
          */
 
+        $runnerId = "goat.runner.".$name;
+
         $doctrineConnectionServiceId = Connection::class;
         if (isset($config['doctrine_connection'])) {
             $doctrineConnectionServiceId = 'doctrine.dbal.'.$config['doctrine_connection'].'_connection';
@@ -205,7 +213,47 @@ final class GoatExtension extends Extension
             ->addTag('container.hot_path')
         ;
 
-        $container->setDefinition("goat.runner.".$name, $runnerDefinition);
+        $container->setDefinition($runnerId, $runnerDefinition);
+
+        return $runnerDefinition;
+    }
+
+    /**
+     * Create a single ext-pgsql runner
+     */
+    private function createExtPgSqlRunner(ContainerBuilder $container, string $name, array $config): Definition
+    {
+        $configurationId = 'goat.runner.'.$name.'.conf';
+        $driverId = 'goat.runner.'.$name.'.driver';
+        $runnerId = 'goat.runner.'.$name;
+
+        $configurationDefinition = (new Definition())
+            ->setClass(Configuration::class)
+            ->setPublic(false)
+            ->setFactory([Configuration::class, 'fromString'])
+            ->setArguments([$config['url']])
+            ->addTag('container.hot_path')
+        ;
+
+        $driverDefinition = (new Definition())
+            ->setClass(ExtPgSQLDriver::class)
+            ->setPublic(false)
+            ->addMethodCall('setConfiguration', [new Reference($configurationId)])
+            ->addTag('container.hot_path')
+        ;
+
+        $runnerDefinition = (new Definition())
+            ->setClass(Runner::class)
+            ->setPublic(true)
+            ->setFactory([new Reference($driverId), 'getRunner'])
+            ->addTag('container.hot_path')
+        ;
+
+        $container->addDefinitions([
+            $configurationId => $configurationDefinition,
+            $driverId => $driverDefinition,
+            $runnerId => $runnerDefinition,
+        ]);
 
         return $runnerDefinition;
     }
