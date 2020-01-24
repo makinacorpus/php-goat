@@ -498,6 +498,14 @@ class DefaultRepository implements GoatRepositoryInterface
     }
 
     /**
+     * Get prepared statement identifier
+     */
+    protected function getPreparedStatementIdPrefix(): string
+    {
+        return \str_replace('\\', '__', static::class);
+    }
+
+    /**
      * {@inheritdoc}
      */
     public function findOne($id, $raiseErrorOnMissing = true)
@@ -510,7 +518,8 @@ class DefaultRepository implements GoatRepositoryInterface
                         $select->condition($column, $value);
                     }
                     return $select->range(1, 0);
-                }
+                },
+                $this->getPreparedStatementIdPrefix().'_find_one'
             );
         }
 
