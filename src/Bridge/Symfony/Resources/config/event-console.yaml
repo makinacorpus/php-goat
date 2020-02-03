@@ -7,5 +7,5 @@ services:
 
     Goat\Domain\Command\DispatcherPushCommand:
         public: false
-        arguments: ["@goat.domain.dispatcher", "@serializer"]
+        arguments: ["@goat.domain.dispatcher", "@serializer", "@goat.domain.name_map"]
         tags: ["console.command"]

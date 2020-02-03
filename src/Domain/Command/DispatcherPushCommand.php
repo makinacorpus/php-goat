@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Goat\Domain\Command;
 
 use Goat\Domain\Event\Dispatcher;
+use Goat\Domain\EventStore\DefaultNameMap;
+use Goat\Domain\EventStore\NameMap;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -14,19 +16,27 @@ use Symfony\Component\Serializer\SerializerInterface;
 
 final class DispatcherPushCommand extends Command
 {
-    private $dispatcher;
-    private $serializer;
     protected static $defaultName = 'dispatcher:push';
+
+    /** @var Dispatcher */
+    private $dispatcher;
+
+    /** @var SerializerInterface */
+    private $serializer;
+
+    /** @var NameMap */
+    private $nameMap;
 
     /**
      * Default constructor
      */
-    public function __construct(Dispatcher $dispatcher, SerializerInterface $serializer)
+    public function __construct(Dispatcher $dispatcher, SerializerInterface $serializer, ?NameMap $nameMap = null)
     {
         parent::__construct();
 
         $this->dispatcher = $dispatcher;
         $this->serializer = $serializer;
+        $this->nameMap = $nameMap ?? new DefaultNameMap();
     }
 
     /**
@@ -55,10 +65,11 @@ final class DispatcherPushCommand extends Command
         if ($data) {
             $message = $this->serializer->deserialize($data, $type, $format);
         } else {
-            if (!\class_exists($type)) {
-                throw new \InvalidArgumentException(\sprintf("No content was provided, and I cannot instanciate the '%s' class", $type));
+            $className = $this->nameMap->getType($type);
+            if (!\class_exists($className)) {
+                throw new \InvalidArgumentException(\sprintf("No content was provided, and I cannot instanciate the '%s' class", $className));
             }
-            $message = new $type();
+            $message = new $className();
         }
 
         if ($input->getOption('async')) {
