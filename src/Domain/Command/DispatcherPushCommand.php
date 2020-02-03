@@ -68,5 +68,7 @@ final class DispatcherPushCommand extends Command
             $this->dispatcher->process($message);
             $output->writeln(\sprintf("<info>Message '%s' has been processed successfuly</info>", $type));
         }
+
+        return 0;
     }
 }

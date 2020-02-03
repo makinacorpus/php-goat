@@ -126,9 +126,9 @@ EOT
             }
             $affichable = \in_array(WithDescription::class, \class_implements($message->getClass()));
             if ($withDescription) {
-                $table->addRow([$message->getName(), $message->getClass(), $message->getSummary(), $affichable ? "Oui" : '-']);
+                $table->addRow([$message->getName(), $message->getClass(), $message->getSummary(), $affichable ? "Yes" : '-']);
             } else {
-                $table->addRow([$message->getName(), $message->getClass(), $affichable ? "Oui" : '-']);
+                $table->addRow([$message->getName(), $message->getClass(), $affichable ? "Yes" : '-']);
             }
             $count++;
         }
@@ -259,5 +259,7 @@ EOT
                     break;
             }
         }
+
+        return 0;
     }
 }
