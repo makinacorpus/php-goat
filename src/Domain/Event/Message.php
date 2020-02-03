@@ -48,6 +48,96 @@ interface Command extends Message
 }
 
 /**
+ * Formatted event description.
+ */
+class EventDescription
+{
+    /** @var string */
+    private $text;
+
+    /** @var mixed[] */
+    private $variables = [];
+
+    public function __construct(string $text, array $variables = [])
+    {
+        $this->text = $text;
+        $this->variables = $variables;
+    }
+
+    public function getText(): string
+    {
+        return $this->text;
+    }
+
+    public function getVariables(): array
+    {
+        return $this->variables;
+    }
+
+    public function format(): string
+    {
+        return \strtr($this->text, $this->variables);
+    }
+
+    /**
+     * self::format() alias/
+     */
+    public function __toString()
+    {
+        return $this->format();
+    }
+}
+
+/**
+ * Self-decribing event, used for user interface display.
+ */
+interface WithDescription
+{
+    /**
+     * Describe what happens.
+     *
+     * Uses an intermediate text representation with EventDescription class
+     * which allows displaying code to proceed to variable replacement if
+     * necessary. For exemple, it may allow to replace a user identifier
+     * with the user full name.
+     *
+     * How and when replacement will be done is up to each project.
+     *
+     * For use with Symfony translator component, you should adopt the
+     * convention of naming variables using "%" prefix and suffix, for example:
+     *
+     * @code
+     * <?php
+     *
+     * namespace App\Domain\Event;
+     *
+     * use Goat\Domain\Event\EventDescription
+     * use Goat\Domain\Event\WithDescription
+     *
+     * final class FooEvent implements WithDescription
+     * {
+     *     private string $userId;
+     *
+     *     public static function create(string $userId): self
+     *     {
+     *         $ret = new self;
+     *         $ret->userId = $userId;
+     *         return $ret;
+     *     }
+     *
+     *     public function describe(): EventDescription
+     *     {
+     *         return new EventDescription("%user% said "Foo".", [
+     *             "%user%" => $this->userId,
+     *         ]);
+     *     }
+     * }
+     * @endcode
+     */
+    public function describe(): EventDescription;
+}
+
+/**
  * Messages of the same type (ie. class name) implementing this interface cannot
  * run in parallele and will be blocked. Any blocked message will fail and will
  * not be retried.

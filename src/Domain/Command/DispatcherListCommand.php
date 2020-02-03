@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Goat\Domain\Command;
 
-use App\Domain\Event\WithDescription;
+use Goat\Domain\Event\WithDescription;
 use Goat\Domain\EventStore\NameMap;
 use Goat\Domain\Generator\MessageExtractor;
 use Goat\Domain\Generator\MessageInformation;
