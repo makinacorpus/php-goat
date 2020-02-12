@@ -10,6 +10,8 @@ services:
         class: Goat\Domain\EventStore\Goat\GoatEventStore
         # @todo make this configurable, allow table namespace configuration
         arguments: ["@goat.runner.default"]
+        tags:
+            - { name: "monolog.logger", channel: "goat_eventstore" }
         calls:
             - [setNamespaceMap, ["@goat.domain.event_store.namespace_map"]]
             - [setNameMap, ["@goat.domain.name_map"]]

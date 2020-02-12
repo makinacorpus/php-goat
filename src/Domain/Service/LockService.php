@@ -4,17 +4,22 @@ declare(strict_types=1);
 
 namespace Goat\Domain\Service;
 
-use Goat\Runner\Runner;
+use Goat\Domain\DebuggableTrait;
 use Goat\Domain\Event\Error\ParallelExecutionError;
+use Goat\Runner\Runner;
+use Psr\Log\NullLogger;
 
 /**
  * Domain Service that carries knowledge of how to set and release a lock,
  * a semaphore, something that can ensure your stuff is running in one place
- * only
+ * only.
  */
 final class LockService
 {
-    protected $runner;
+    use DebuggableTrait;
+
+    /** @var Runner */
+    private $runner;
 
     /**
      * Default constructor
@@ -22,26 +27,30 @@ final class LockService
     public function __construct(Runner $runner)
     {
         $this->runner = $runner;
+        $this->logger = new NullLogger();
     }
 
     /**
      * Get lock or die
      */
-    public function getLockOrDie(int $unique_id, string $name): void
+    public function getLockOrDie(int $uniqueId, string $name): void
     {
         if (!$this
             ->runner
-            ->execute("SELECT pg_try_advisory_xact_lock(?::bigint, 1)", [$unique_id])
+            ->execute("SELECT pg_try_advisory_xact_lock(?::bigint, 1)", [$uniqueId])
             ->fetchField()
         ) {
+            $this->logger->warning("Lock {id} FAILED log for {name}", ['id' => $uniqueId, 'name' => $name]);
+
             throw new ParallelExecutionError(\sprintf('%s event is already running', $name));
         }
+        $this->logger->debug("Lock {id} ACQUIRED log for {name}", ['id' => $uniqueId, 'name' => $name]);
     }
 
     /**
      * Explicit lock release.
      */
-    public function release(int $unique_id): void
+    public function release(int $uniqueId): void
     {
         // https://vladmihalcea.com/how-do-postgresql-advisory-locks-work/
         //   Ce n'est normalement pas nécessaire, mais je le garde dans un coin.
@@ -49,5 +58,6 @@ final class LockService
         // si jamais il venait l'idée d'utiliser de nouveau la variante sans xact
         // il faudrait alors décommenter cette ligne.
         // $this->runner->perform("select pg_advisory_unlock(?::bigint)", [$unique_id]);
+        $this->logger->debug("Lock {id} RELEASED", ['id' => $uniqueId]);
     }
 }

@@ -70,6 +70,7 @@
         "jdorn/sql-formatter": "Formats SQL queries nicely in Symfony profiler plugin",
         "makinacorpus/goat-query": "For using PostgreSQL implementations of everything",
         "ocramius/generated-hydrator": "For using the makinacorpus/goat-hydrator replacement",
+        "psr-log": "^1.0",
         "symfony/form": "For preferences form widget usage",
         "symfony/messenger": "For domain's event store and message publisher usage",
         "symfony/serializer-pack": "For better object serialisation and normalisation within the bus"

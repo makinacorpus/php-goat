@@ -4,16 +4,37 @@ declare(strict_types=1);
 
 namespace Goat\Domain\Event;
 
+use Goat\Domain\DebuggableTrait;
 use Goat\Domain\EventStore\EventStore;
 use Goat\Domain\Service\LockService;
+use Psr\Log\NullLogger;
 
 abstract class AbstractDispatcher implements Dispatcher
 {
+    use DebuggableTrait;
+
+    /** @var int */
+    private static $commandCount = 0;
+
+    /** @var null|EventStore */
     private $eventStore;
+
+    /** @var null|DispatcherTransaction */
     private $transaction;
+
+    /** @var TransactionHandler[] */
     private $transactionHandlers = [];
+
+    /** @var bool */
     private $transactionHandlersSet = false;
+
+    /** @var null|LockService */
     private $lockService;
+
+    public function __construct()
+    {
+        $this->logger = new NullLogger();
+    }
 
     /**
      * {@inheritdoc}
@@ -56,8 +77,13 @@ abstract class AbstractDispatcher implements Dispatcher
     final protected function startTransaction(): Transaction
     {
         if ($this->isTransactionRunning()) {
+            $this->logger->debug("Dispatcher transaction SKIP already running");
+
             return $this->transaction;
         }
+
+        $this->logger->debug("Dispatcher transaction START");
+
         return $this->transaction = new DispatcherTransaction($this->transactionHandlers);
     }
 
@@ -121,9 +147,7 @@ abstract class AbstractDispatcher implements Dispatcher
                 $id = $message->getAggregateId();
                 $type = $message->getAggregateType();
             }
-            $this->eventStore->store($message, $id, $type, !$success, [
-                'properties' => $envelope->getProperties(),
-            ] + $extra);
+            $this->eventStore->store($message, $id, $type, !$success, ['properties' => $envelope->getProperties()] + $extra);
         }
     }
 
@@ -176,14 +200,24 @@ abstract class AbstractDispatcher implements Dispatcher
             $this->processWithoutTransaction($envelope);
         } else {
             $transaction = $exception = null;
+            $atCommit = false;
             try {
                 $transaction = $this->startTransaction();
                 $this->synchronousProcess($envelope);
+                $atCommit = true;
                 $transaction->commit();
+                $this->logger->debug("Dispatcher transaction COMMIT");
             } catch (\Throwable $e) {
                 $exception = $e;
                 if ($transaction) {
+                    if ($atCommit) {
+                        $this->logger->error("Dispatcher transaction FAIL (at commit), attempting ROLLBACK", ['exception' => $e]);
+                    } else {
+                        $this->logger->error("Dispatcher transaction FAIL (before commit), attempting ROLLBACK", ['exception' => $e]);
+                    }
                     $transaction->rollback($e);
+                } else {
+                    $this->logger->error("Dispatcher transaction FAIL, no pending transaction");
                 }
                 throw $e;
             } finally {
@@ -218,7 +252,13 @@ abstract class AbstractDispatcher implements Dispatcher
      */
     final public function dispatchEvent($message, array $properties = []): void
     {
-        $this->doAsynchronousEventDispatch(MessageEnvelope::wrap($message, $properties));
+        $id = ++self::$commandCount;
+        try {
+            $this->logger->debug("Dispatcher BEGIN {id} DISPATCH event", ['id' => $id, 'message' => $message, 'properties' => $properties]);
+            $this->doAsynchronousEventDispatch(MessageEnvelope::wrap($message, $properties));
+        } finally {
+            $this->logger->debug("Dispatcher END {id} DISPATCH event", ['id' => $id]);
+        }
     }
 
     /**
@@ -226,7 +266,13 @@ abstract class AbstractDispatcher implements Dispatcher
      */
     final public function dispatchCommand($message, array $properties = []): void
     {
-        $this->doAsynchronousCommandDispatch(MessageEnvelope::wrap($message, $properties));
+        $id = ++self::$commandCount;
+        try {
+            $this->logger->debug("Dispatcher BEGIN ({id}) DISPATCH command", ['id' => $id, 'message' => $message, 'properties' => $properties]);
+            $this->doAsynchronousCommandDispatch(MessageEnvelope::wrap($message, $properties));
+        } finally {
+            $this->logger->debug("Dispatcher END ({id}) DISPATCH command", ['id' => $id]);
+        }
     }
 
     /**
@@ -234,7 +280,13 @@ abstract class AbstractDispatcher implements Dispatcher
      */
     final public function dispatch($message, array $properties = []): void
     {
-        $this->doAsynchronousCommandDispatch(MessageEnvelope::wrap($message, $properties));
+        $id = ++self::$commandCount;
+        try {
+            $this->logger->debug("Dispatcher BEGIN ({id}) DISPATCH message", ['id' => $id, 'message' => $message, 'properties' => $properties]);
+            $this->doAsynchronousCommandDispatch(MessageEnvelope::wrap($message, $properties));
+        } finally {
+            $this->logger->debug("Dispatcher END ({id}) DISPATCH message", ['id' => $id]);
+        }
     }
 
     /**
@@ -242,11 +294,19 @@ abstract class AbstractDispatcher implements Dispatcher
      */
     final public function process($message, array $properties = [], bool $withTransaction = true): void
     {
-        $envelope = MessageEnvelope::wrap($message, $properties);
-        if ($withTransaction) {
-            $this->processInTransaction($envelope);
-        } else {
-            $this->processWithoutTransaction($envelope);
+        $id = ++self::$commandCount;
+        try {
+            $this->logger->debug("Dispatcher BEGIN ({id}) PROCESS message", ['id' => $id, 'message' => $message, 'properties' => $properties]);
+
+            $envelope = MessageEnvelope::wrap($message);
+
+            if ($withTransaction) {
+                $this->processInTransaction($envelope);
+            } else {
+                $this->processWithoutTransaction($envelope);
+            }
+        } finally {
+            $this->logger->debug("Dispatcher END ({id}) PROCESS message", ['id' => $id]);
         }
     }
 }
