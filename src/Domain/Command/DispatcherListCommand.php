@@ -148,7 +148,7 @@ EOT
         if ($onlyGroup) {
             $messages = \array_filter(
                 $messages,
-                function (MessageInformation $message) use ($onlyGroup) {
+                static function (MessageInformation $message) use ($onlyGroup) {
                     return \in_array($onlyGroup, $message->getGroups());
                 }
             );
@@ -224,7 +224,7 @@ EOT
 
                 $groupMessages = \array_filter(
                     $messages,
-                    function (MessageInformation $message) use ($group) {
+                    static function (MessageInformation $message) use ($group) {
                         return \in_array($group, $message->getGroups());
                     }
                 );

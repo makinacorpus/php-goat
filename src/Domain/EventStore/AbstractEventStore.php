@@ -4,16 +4,32 @@ declare(strict_types=1);
 
 namespace Goat\Domain\EventStore;
 
+use Goat\Domain\DebuggableTrait;
 use Goat\Domain\Event\BrokenMessage;
+use Psr\Log\NullLogger;
 use Ramsey\Uuid\UuidInterface;
 use Symfony\Component\Serializer\SerializerInterface;
 
 abstract class AbstractEventStore implements EventStore
 {
+    use DebuggableTrait;
+
+    /** @var NameMap */
     private $nameMap;
+
+    /** @var NamespaceMap */
     private $namespaceMap;
+
+    /** @var SerializerInterface */
     private $serializer;
+
+    /** @var null|string */
     private $serializerFormat;
+
+    public function __construct()
+    {
+        $this->logger = new NullLogger();
+    }
 
     /**
      * Mimetype to Symfony serializer type
@@ -114,6 +130,8 @@ abstract class AbstractEventStore implements EventStore
         try {
             return $this->stringToMessage($eventName, $properties, $data);
         } catch (\Throwable $e) {
+            $this->logger->critical("Message could not be hydrated", ['event_name' => $eventName, 'data' => $data, 'properties' => $properties]);
+
             // Whenever a class name change in the current application and
             // the in use current serializer cannot map properly the event
             // name to an existing class, exceptions will raise. We do not
@@ -197,6 +215,9 @@ abstract class AbstractEventStore implements EventStore
         // Compute normalized aggregate type, otherwise the PHP native class
         // or type name would be stored in database, we sure don't want that.
         $aggregateType = $nameMap->getName($aggregateType ?? $event->getAggregateType());
+        if (!$aggregateId) {
+            $aggregateId = $event->getAggregateId();
+        }
 
         // Compute normalized event type.
         if ($eventType = $nameMap->getMessageName($message)) {
@@ -206,9 +227,16 @@ abstract class AbstractEventStore implements EventStore
         // Compute normalized event name.
         $eventName = $nameMap->getName($event->getName());
 
+        $logContext = [
+            'aggregate_id' => (string)$aggregateId,
+            'aggregate_type' => $aggregateType,
+            'event' => $event,
+            'event_name' => $eventName,
+        ];
+
         $callback = \Closure::bind(
-            function (Event $event) use ($failed, $aggregateId, $aggregateType, $eventName, $extra): Event {
-                $event->aggregateId = $aggregateId ?? $event->getAggregateId();
+            static function (Event $event) use ($failed, $aggregateId, $aggregateType, $eventName, $extra): Event {
+                $event->aggregateId = $aggregateId;
                 $event->aggregateType = $aggregateType;
                 $event->errorCode = $extra['error_code'] ?? null;
                 $event->errorMessage = $extra['error_message'] ?? null;
@@ -221,7 +249,16 @@ abstract class AbstractEventStore implements EventStore
             null, Event::class
         );
 
-        return $this->doStore($callback($event));
+        try {
+            $event = $this->doStore($callback($event));
+            $this->logger->debug("Event stored", $logContext);
+        } catch (\Throwable $e) {
+            $this->logger->critical("Event could not be stored", $logContext + ['exception' => $e]);
+
+            throw $e;
+        }
+
+        return $event;
     }
 
     /**
