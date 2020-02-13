@@ -6,6 +6,7 @@ namespace Goat\Bridge\Symfony;
 
 use Goat\Bridge\Symfony\DependencyInjection\GoatExtension;
 use Goat\Bridge\Symfony\DependencyInjection\Compiler\HydratorPass;
+use Goat\Bridge\Symfony\DependencyInjection\Compiler\MonologConfigurationPass;
 use Goat\Bridge\Symfony\DependencyInjection\Compiler\RegisterConverterPass;
 use Goat\Domain\DependencyInjection\Compiler\DomainConfigurationPass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -26,6 +27,7 @@ final class GoatBundle extends Bundle
         if (\class_exists(DomainConfigurationPass::class)) {
             $container->addCompilerPass(new DomainConfigurationPass());
         }
+        $container->addCompilerPass(new MonologConfigurationPass());
     }
 
     /**

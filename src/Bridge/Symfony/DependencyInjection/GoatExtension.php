@@ -14,6 +14,9 @@ use Goat\Preferences\Domain\Repository\PreferencesSchema;
 use Goat\Query\QueryBuilder;
 use Goat\Runner\Runner;
 use Goat\Runner\Metadata\ApcuResultMetadataCache;
+use Monolog\Formatter\LineFormatter;
+use Monolog\Processor\ProcessIdProcessor;
+use Symfony\Bundle\MonologBundle\MonologBundle;
 use Symfony\Bundle\WebProfilerBundle\WebProfilerBundle;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\Console\Command\Command;
@@ -85,6 +88,42 @@ final class GoatExtension extends Extension
         if (\in_array(WebProfilerBundle::class, $container->getParameter('kernel.bundles'))) {
             $loader->load('profiler.yml');
         }
+
+        if (\in_array(MonologBundle::class, $container->getParameter('kernel.bundles'))) {
+            $this->configureMonolog($container, $config['monolog'] ?? []);
+        }
+    }
+
+    /**
+     * Add a few bits of extra monolog configuration
+     */
+    private function configureMonolog(ContainerBuilder $container, array $config): void
+    {
+        $formatterDefinition = new Definition();
+        $formatterDefinition->setClass(LineFormatter::class);
+
+        if ($config['always_log_stacktrace']) {
+            $formatterDefinition->addMethodCall('includeStacktraces');
+        }
+
+        if ($config['log_pid']) {
+            $processorDefinition = new Definition();
+            $processorDefinition->setClass(ProcessIdProcessor::class);
+            $processorDefinition->addTag('monolog.processor');
+            // This is the default, we only added "(%extra.process_id%)".
+            $formatterDefinition->setArgument(0, \str_replace(
+                "%", "%%",
+                "[%datetime%] (%extra.process_id%) %channel%.%level_name%: %message% %context% %extra%\n"
+            ));
+
+            $container->setDefinition('goat.monolog.processor.pid', $processorDefinition);
+        }
+
+        // The magic here is we are going to just replace the default monolog
+        // bundle service for everyone, sorry, but that was the easiest way
+        // not involving user to modify its monolog.yaml file.
+        // @see \Goat\Bridge\Symfony\DependencyInjection\Compiler\MonologConfigurationPass
+        $container->setDefinition('goat.monolog.formatter.line', $formatterDefinition);
     }
 
     /**
