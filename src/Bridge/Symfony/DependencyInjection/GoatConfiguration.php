@@ -19,6 +19,12 @@ final class GoatConfiguration implements ConfigurationInterface
 
         $rootNode
             ->children()
+                ->arrayNode('monolog')
+                    ->children()
+                        ->booleanNode('log_pid')->defaultTrue()->end()
+                        ->booleanNode('always_log_stacktrace')->defaultFalse()->end()
+                    ->end()
+                ->end()
                 ->arrayNode('runner')
                     ->normalizeKeys(true)
                     ->prototype('array')

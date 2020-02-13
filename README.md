@@ -52,3 +52,9 @@ information.
 It should wire everything.
 
 Please see the [README.bundle.md](./README.bundle.md) file for more information.
+
+## Monolog integration
+
+Provide some extra options for monolog.
+
+Please see the [README.monolog.md](./README.monolog.md) file for more information.
