@@ -68,6 +68,19 @@ abstract class AbstractLazyCollection implements \IteratorAggregate, LazyCollect
     }
 
     /**
+     * Sort with given callback.
+     *
+     * @param function(T $a, T $b): int $callback
+     *   Where T is the item type.
+     */
+    final public function sortWith(callable $callback): void
+    {
+        $this->initialize();
+
+        \uasort($this->expanded, $callback);
+    }
+
+    /**
      * {@inheritdoc}
      */
     final public function offsetExists($offset)

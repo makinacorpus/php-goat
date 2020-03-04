@@ -357,7 +357,11 @@ class DefaultRepository implements GoatRepositoryInterface
         }
 
         return function (...$arguments) use ($method): LazyCollection {
-            return \call_user_func([$this, $method], ...$arguments);
+            $collection = \call_user_func([$this, $method], ...$arguments);
+            if ($collection instanceof LazyCollection) {
+                return $collection;
+            }
+            return new DefaultLazyCollection($collection);
         };
     }
 
