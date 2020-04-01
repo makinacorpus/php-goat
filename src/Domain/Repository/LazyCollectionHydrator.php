@@ -62,7 +62,7 @@ final class LazyCollectionHydrator implements HydratorInterface
     {
         if ($callable instanceof \Closure) {
             $ref = new \ReflectionFunction($callable);
-            $returnType = (string)$ref->getReturnType();
+            $returnType = $ref->getReturnType()->getName();
 
             if ($returnType === LazyProperty::class || $returnType === LazyCollection::class) {
                 return false;
