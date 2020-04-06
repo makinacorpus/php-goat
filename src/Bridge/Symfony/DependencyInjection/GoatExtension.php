@@ -102,11 +102,11 @@ final class GoatExtension extends Extension
         $formatterDefinition = new Definition();
         $formatterDefinition->setClass(LineFormatter::class);
 
-        if ($config['always_log_stacktrace']) {
+        if ($config['always_log_stacktrace'] ?? false) {
             $formatterDefinition->addMethodCall('includeStacktraces');
         }
 
-        if ($config['log_pid']) {
+        if ($config['log_pid'] ?? null) {
             $processorDefinition = new Definition();
             $processorDefinition->setClass(ProcessIdProcessor::class);
             $processorDefinition->addTag('monolog.processor');
