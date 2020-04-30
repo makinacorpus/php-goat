@@ -25,6 +25,9 @@ abstract class AbstractDispatcher implements Dispatcher
     /** @var TransactionHandler[] */
     private $transactionHandlers = [];
 
+    /** @var Projector[] */
+    private $projectors = [];
+
     /** @var bool */
     private $transactionHandlersSet = false;
 
@@ -53,6 +56,14 @@ abstract class AbstractDispatcher implements Dispatcher
             throw new \BadMethodCallException("Transactions handlers are already set");
         }
         $this->transactionHandlers = $transactionHandlers;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    final public function setProjectors(iterable $projectors): void
+    {
+        $this->projectors = $projectors;
     }
 
     /**
@@ -93,6 +104,18 @@ abstract class AbstractDispatcher implements Dispatcher
     abstract protected function doSynchronousProcess(MessageEnvelope $envelope): void;
 
     /**
+     * Handle synchronousProcess and Projector
+     */
+    private function handleSynchronousProcess(MessageEnvelope $envelope): void
+    {
+        $this->doSynchronousProcess($envelope);
+
+        foreach($this->projectors as $projector) {
+            $projector->onEvent($envelope->getMessage());
+        }
+    }
+
+    /**
      * Send in bus
      */
     abstract protected function doAsynchronousCommandDispatch(MessageEnvelope $envelope): void;
@@ -111,7 +134,7 @@ abstract class AbstractDispatcher implements Dispatcher
         try {
             $this->lockService->getLockOrDie($lockId, \get_class($envelope->getMessage()));
             $acquired = true;
-            return $this->doSynchronousProcess($envelope);
+            return $this->handleSynchronousProcess($envelope);
         } finally {
             if ($acquired) {
                 $this->lockService->release($lockId);
@@ -131,7 +154,7 @@ abstract class AbstractDispatcher implements Dispatcher
                 return;
             }
         }
-        $this->doSynchronousProcess($envelope);
+        $this->handleSynchronousProcess($envelope);
     }
 
     /**

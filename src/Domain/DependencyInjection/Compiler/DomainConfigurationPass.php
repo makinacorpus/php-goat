@@ -21,6 +21,9 @@ final class DomainConfigurationPass implements CompilerPassInterface
     private $dispatcherId;
 
     /** @var string */
+    private $projectorTag;
+
+    /** @var string */
     private $eventStoreId;
 
     /** @var string */
@@ -40,6 +43,7 @@ final class DomainConfigurationPass implements CompilerPassInterface
      */
     public function __construct(
         string $dispatcherId = 'goat.domain.dispatcher',
+        string $projectorTag = 'goat.domain.dispatcher.projector',
         string $transactionHandlerTag = 'goat.domain.transaction_handler',
         string $eventStoreId = 'goat.domain.event_store',
         string $lockServiceId = 'goat.domain.lock_service',
@@ -47,6 +51,7 @@ final class DomainConfigurationPass implements CompilerPassInterface
         string $loggerId = 'logger')
     {
         $this->dispatcherId = $dispatcherId;
+        $this->projectorTag = $projectorTag;
         $this->eventStoreId = $eventStoreId;
         $this->lockServiceId = $lockServiceId;
         $this->loggerId = $loggerId;
@@ -84,6 +89,9 @@ final class DomainConfigurationPass implements CompilerPassInterface
             $dispatcherDef = $container->getDefinition($this->dispatcherId);
             if ($references = $this->findAndSortTaggedServices($this->transactionHandlerTag, $container)) {
                 $dispatcherDef->addMethodCall('setTransactionHandlers', [$references]);
+            }
+            if ($references = $this->findAndSortTaggedServices($this->projectorTag, $container)) {
+                $dispatcherDef->addMethodCall('setProjectors', [$references]);
             }
             if ($hasEventStore) {
                 $dispatcherDef->addMethodCall('setEventStore', [new Reference($this->eventStoreId)]);

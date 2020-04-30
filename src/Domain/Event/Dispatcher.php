@@ -23,6 +23,13 @@ interface Dispatcher
     public function setTransactionHandlers(iterable $transactionHandlers): void;
 
     /**
+     * Set projectors
+     *
+     * @internal
+     */
+    public function setProjectors(iterable $projectors): void;
+
+    /**
      * Set event store
      */
     public function setEventStore(EventStore $eventStore): void;
