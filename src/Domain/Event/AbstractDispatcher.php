@@ -102,7 +102,7 @@ abstract class AbstractDispatcher implements Dispatcher
     /**
      * Process
      */
-    abstract protected function doSynchronousProcess(MessageEnvelope $envelope): Event;
+    abstract protected function doSynchronousProcess(MessageEnvelope $envelope): void;
 
     /**
      * Handle Projectors
@@ -111,11 +111,11 @@ abstract class AbstractDispatcher implements Dispatcher
     {
         foreach ($this->projectors as $projector) {
             try {
-                $this->logger->debug("Projector {projector} BEGIN PROCESS message", ['projector' => $projector::class, 'message' => $event->getMessage()]);
+                $this->logger->debug("Projector {projector} BEGIN PROCESS message", ['projector' => \get_class($projector), 'message' => $event->getMessage()]);
                 $projector->onEvent($event);
-                $this->logger->debug("Projector {projector} END PROCESS message", ['projector' => $projector::class, 'message' => $event->getMessage()]);
+                $this->logger->debug("Projector {projector} END PROCESS message", ['projector' => \get_class($projector), 'message' => $event->getMessage()]);
             } catch (\Throwable $e) {
-                $this->logger->error("Projector {projector} FAIL", ['projector' => $projector::class, 'exception' => $e]);
+                $this->logger->error("Projector {projector} FAIL", ['projector' => \get_class($projector), 'exception' => $e]);
             }
         }
 
