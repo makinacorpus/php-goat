@@ -178,10 +178,7 @@ abstract class AbstractDispatcher implements Dispatcher
             }
 
             $event = $this->eventStore->store($message, $id, $type, !$success, ['properties' => $envelope->getProperties()] + $extra);
-
-            if ($event->isStored()) {
-                $this->handleProjectors($event);
-            };
+            $this->handleProjectors($event);
         }
     }
 
