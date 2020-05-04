@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Goat\Domain\Event;
 
 use Goat\Domain\DebuggableTrait;
+use Goat\Domain\EventStore\Event;
 use Goat\Domain\EventStore\EventStore;
 use Goat\Domain\Service\LockService;
 use Psr\Log\NullLogger;
@@ -101,18 +102,24 @@ abstract class AbstractDispatcher implements Dispatcher
     /**
      * Process
      */
-    abstract protected function doSynchronousProcess(MessageEnvelope $envelope): void;
+    abstract protected function doSynchronousProcess(MessageEnvelope $envelope): Event;
 
     /**
-     * Handle synchronousProcess and Projector
+     * Handle Prjectors
      */
-    private function handleSynchronousProcess(MessageEnvelope $envelope): void
+    private function handleProjectors(Event $event): void
     {
-        $this->doSynchronousProcess($envelope);
-
         foreach($this->projectors as $projector) {
-            $projector->onEvent($envelope->getMessage());
+
+            try {
+                $this->logger->debug("Projector {projector} BEGIN PROCESS message", ['projector' => $projector::class, 'message' => $event->getMessage()]);
+                $projector->onEvent($event);
+                $this->logger->debug("Projector {projector} END PROCESS message", ['projector' => $projector::class, 'message' => $event->getMessage()]);
+            } catch (\Throwable $e) {
+                $this->logger->error("Projector {projector} FAIL", ['projector' => $projector::class, 'exception' => $e]);
+            }
         }
+
     }
 
     /**
@@ -134,7 +141,7 @@ abstract class AbstractDispatcher implements Dispatcher
         try {
             $this->lockService->getLockOrDie($lockId, \get_class($envelope->getMessage()));
             $acquired = true;
-            return $this->handleSynchronousProcess($envelope);
+            return $this->doSynchronousProcess($envelope);
         } finally {
             if ($acquired) {
                 $this->lockService->release($lockId);
@@ -154,7 +161,7 @@ abstract class AbstractDispatcher implements Dispatcher
                 return;
             }
         }
-        $this->handleSynchronousProcess($envelope);
+        $this->doSynchronousProcess($envelope);
     }
 
     /**
@@ -170,7 +177,12 @@ abstract class AbstractDispatcher implements Dispatcher
                 $id = $message->getAggregateId();
                 $type = $message->getAggregateType();
             }
-            $this->eventStore->store($message, $id, $type, !$success, ['properties' => $envelope->getProperties()] + $extra);
+
+            $extra = ['properties' => $envelope->getProperties()] + $extra;
+
+            if ($event = $this->eventStore->store($message, $id, $type, !$success, $extra)) {
+                $this->handleProjectors($event);
+            };
         }
     }
 
