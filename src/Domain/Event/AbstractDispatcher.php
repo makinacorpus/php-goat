@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Goat\Domain\Event;
 
 use Goat\Domain\DebuggableTrait;
+use Goat\Domain\EventStore\Event;
 use Goat\Domain\EventStore\EventStore;
 use Goat\Domain\Service\LockService;
 use Psr\Log\NullLogger;
@@ -24,6 +25,9 @@ abstract class AbstractDispatcher implements Dispatcher
 
     /** @var TransactionHandler[] */
     private $transactionHandlers = [];
+
+    /** @var Projector[] */
+    private $projectors = [];
 
     /** @var bool */
     private $transactionHandlersSet = false;
@@ -53,6 +57,14 @@ abstract class AbstractDispatcher implements Dispatcher
             throw new \BadMethodCallException("Transactions handlers are already set");
         }
         $this->transactionHandlers = $transactionHandlers;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    final public function setProjectors(iterable $projectors): void
+    {
+        $this->projectors = $projectors;
     }
 
     /**
@@ -90,7 +102,24 @@ abstract class AbstractDispatcher implements Dispatcher
     /**
      * Process
      */
-    abstract protected function doSynchronousProcess(MessageEnvelope $envelope): void;
+    abstract protected function doSynchronousProcess(MessageEnvelope $envelope): Event;
+
+    /**
+     * Handle Projectors
+     */
+    private function handleProjectors(Event $event): void
+    {
+        foreach ($this->projectors as $projector) {
+            try {
+                $this->logger->debug("Projector {projector} BEGIN PROCESS message", ['projector' => $projector::class, 'message' => $event->getMessage()]);
+                $projector->onEvent($event);
+                $this->logger->debug("Projector {projector} END PROCESS message", ['projector' => $projector::class, 'message' => $event->getMessage()]);
+            } catch (\Throwable $e) {
+                $this->logger->error("Projector {projector} FAIL", ['projector' => $projector::class, 'exception' => $e]);
+            }
+        }
+
+    }
 
     /**
      * Send in bus
@@ -147,7 +176,9 @@ abstract class AbstractDispatcher implements Dispatcher
                 $id = $message->getAggregateId();
                 $type = $message->getAggregateType();
             }
-            $this->eventStore->store($message, $id, $type, !$success, ['properties' => $envelope->getProperties()] + $extra);
+
+            $event = $this->eventStore->store($message, $id, $type, !$success, ['properties' => $envelope->getProperties()] + $extra);
+            $this->handleProjectors($event);
         }
     }
 
