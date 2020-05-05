@@ -7,6 +7,7 @@ namespace Goat\Domain\Event;
 use Goat\Domain\DebuggableTrait;
 use Goat\Domain\EventStore\Event;
 use Goat\Domain\EventStore\EventStore;
+use Goat\Domain\Projector\Projector;
 use Goat\Domain\Service\LockService;
 use Psr\Log\NullLogger;
 
