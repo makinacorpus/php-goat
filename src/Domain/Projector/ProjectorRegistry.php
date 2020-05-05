@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Goat\Domain\Projector;
 
-use Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException;
-
 class ProjectorRegistry
 {
     /** @var Projector[] */
@@ -37,7 +35,7 @@ class ProjectorRegistry
         }
 
         if ($throwExceptionOnMissing) {
-            throw new ServiceNotFoundException(\sprintf(
+            throw new \InvalidArgumentException(\sprintf(
                 "No projector can't be found for identifier '%s'",
                 $identifier
             ));
@@ -62,7 +60,7 @@ class ProjectorRegistry
         }
 
         if ($throwExceptionOnMissing) {
-            throw new ServiceNotFoundException(\sprintf(
+            throw new \InvalidArgumentException(\sprintf(
                 "No projector can't be found for className '%s'",
                 $className
             ));
@@ -78,12 +76,12 @@ class ProjectorRegistry
     {
         if ( $projector = $this->findByIdentifier($identifierOrClassName, false)) {
             return $projector;
-        } elseif ($projector = $this->findByIdentifier($identifierOrClassName, false)) {
+        } elseif ($projector = $this->findByClassName($identifierOrClassName, false)) {
             return $projector;
         }
 
         if ($throwExceptionOnMissing) {
-            throw new ServiceNotFoundException(\sprintf(
+            throw new \InvalidArgumentException(\sprintf(
                 "No projector can't be found for identifier or className '%s'",
                 $identifierOrClassName
             ));
@@ -101,7 +99,8 @@ class ProjectorRegistry
         $this->projectors = $projectors;
     }
 
-    private function isInitializedOrDie() {
+    private function isInitializedOrDie()
+    {
         if (null === $this->projectors) {
             throw new \BadMethodCallException("Projector registry has not been initialized yet.");
         }
