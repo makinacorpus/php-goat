@@ -7,16 +7,18 @@ namespace Goat\Domain\Projector;
 class ProjectorRepository
 {
     /** @var Projector[] */
-    private $projectors;
+    private $projectors = [];
 
     /**
      * Find a projector by identifier.
      */
     public function findByIdentifier(string $identifier): ?Projector
     {
-        foreach ($this->projectors as $projector) {
-            if ($identifier === $projector->identifier) {
-                return $projector;
+        if ($this->projectors) {
+            foreach ($this->projectors as $projector) {
+                if ($identifier === $projector->identifier) {
+                    return $projector;
+                }
             }
         }
 
@@ -28,9 +30,11 @@ class ProjectorRepository
      */
     public function findByClassName(string $className): ?Projector
     {
-        foreach ($this->projectors as $projector) {
-            if ($className === $projector::class) {
-                return $projector;
+        if ($this->projectors) {
+            foreach ($this->projectors as $projector) {
+                if ($className === $projector::class) {
+                    return $projector;
+                }
             }
         }
 

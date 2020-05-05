@@ -86,7 +86,7 @@ final class ProjectorPlayCommand extends Command
             return 0;
         }
 
-        $output->writeln(\sprintf("%d events has to be processed", $total));
+        $output->writeln(\sprintf("%d events has(ve) to be processed", $total));
 
         $progress = new ProgressBar($output);
         $progress->setMaxSteps($total);
@@ -104,7 +104,11 @@ final class ProjectorPlayCommand extends Command
         $progress->finish();
         $output->writeln("");
 
-        $output->writeln(\sprintf("%d events(s) has(ve) been correctly process, %d failed.", $total - $failed, $failed));
+        $output->writeln(\sprintf(
+            "%d events(s) has(ve) been correctly process, %d failed.",
+            $total - $failed,
+            $failed
+        ));
 
         return 0;
     }
