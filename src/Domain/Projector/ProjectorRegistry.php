@@ -7,7 +7,7 @@ namespace Goat\Domain\Projector;
 class ProjectorRegistry
 {
     /** @var Projector[] */
-    private $projectors = [];
+    private $projectors;
 
     /**
      * Get all projectors.
@@ -53,7 +53,7 @@ class ProjectorRegistry
 
         if ($this->projectors) {
             foreach ($this->projectors as $projector) {
-                if ($className === $projector::class) {
+                if ($className === \get_class($projector)) {
                     return $projector;
                 }
             }

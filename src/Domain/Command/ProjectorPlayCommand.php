@@ -116,7 +116,7 @@ final class ProjectorPlayCommand extends Command
         if (!$projector instanceof ReplayableProjector) {
             throw new \InvalidArgumentException(\sprintf(
                 "Can't 'reset' Projector : '%s' does not implement %s",
-                $projector::class,
+                \get_class($projector),
                 ReplayableProjector::class
             ));
         }
