@@ -11,5 +11,8 @@ use Goat\Domain\EventStore\Event;
  */
 interface ReplayableProjector extends Projector
 {
+    /**
+     * Delete everything and prepare to replay.
+     */
     public function reset(): void;
 }

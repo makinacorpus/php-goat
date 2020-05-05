@@ -13,9 +13,9 @@ use Goat\Domain\EventStore\Event;
 interface Projector
 {
     /**
-     * @var string identifier of your projector, should be unique.
+     * Get projector identifier, should be unique.
      */
-    public $identifier;
+    public function getIdentifier(): string;
 
     /**
      * This method will be call after a message has been stored.

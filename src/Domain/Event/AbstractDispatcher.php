@@ -7,7 +7,7 @@ namespace Goat\Domain\Event;
 use Goat\Domain\DebuggableTrait;
 use Goat\Domain\EventStore\Event;
 use Goat\Domain\EventStore\EventStore;
-use Goat\Domain\Projector\Projector;
+use Goat\Domain\Projector\ProjectorRegistry;
 use Goat\Domain\Service\LockService;
 use Psr\Log\NullLogger;
 
@@ -24,11 +24,11 @@ abstract class AbstractDispatcher implements Dispatcher
     /** @var null|DispatcherTransaction */
     private $transaction;
 
+    /** @var null|ProjectorRegistry */
+    private $projectorRegistry;
+
     /** @var TransactionHandler[] */
     private $transactionHandlers = [];
-
-    /** @var Projector[] */
-    private $projectors = [];
 
     /** @var bool */
     private $transactionHandlersSet = false;
@@ -63,9 +63,9 @@ abstract class AbstractDispatcher implements Dispatcher
     /**
      * {@inheritdoc}
      */
-    final public function setProjectors(iterable $projectors): void
+    final public function setProjectorRegistry(ProjectorRegistry $projectorRegistry): void
     {
-        $this->projectors = $projectors;
+        $this->projectorRegistry = $projectorRegistry;
     }
 
     /**
@@ -110,7 +110,7 @@ abstract class AbstractDispatcher implements Dispatcher
      */
     private function handleProjectors(Event $event): void
     {
-        foreach ($this->projectors as $projector) {
+        foreach ($this->projectorRegistry->getAll() as $projector) {
             try {
                 $this->logger->debug("Projector {projector} BEGIN PROCESS message", ['projector' => \get_class($projector), 'message' => $event->getMessage()]);
                 $projector->onEvent($event);

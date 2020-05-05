@@ -6,7 +6,7 @@ namespace Goat\Domain\Command;
 
 use Goat\Domain\EventStore\EventStore;
 use Goat\Domain\Projector\Projector;
-use Goat\Domain\Projector\ProjectorRepository;
+use Goat\Domain\Projector\ProjectorRegistry;
 use Goat\Domain\Projector\ReplayableProjector;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\ProgressBar;
@@ -19,8 +19,8 @@ final class ProjectorPlayCommand extends Command
 {
     protected static $defaultName = 'projector:play';
 
-    /** @var ProjectorRepository */
-    private $projectorRepository;
+    /** @var ProjectorRegistry */
+    private $projectorRegistry;
 
     /** @var EventStore */
     private $eventStore;
@@ -28,11 +28,11 @@ final class ProjectorPlayCommand extends Command
     /**
      * Default constructor
      */
-    public function __construct(ProjectorRepository $projectorRepository, EventStore $eventStore)
+    public function __construct(ProjectorRegistry $projectorRegistry, EventStore $eventStore)
     {
         parent::__construct();
 
-        $this->projectorRepository = $projectorRepository;
+        $this->projectorRegistry = $projectorRegistry;
         $this->eventStore = $eventStore;
     }
 
@@ -43,7 +43,7 @@ final class ProjectorPlayCommand extends Command
     {
         $this
             ->setDescription('Play a projector from the last processed event date')
-            ->addArgument('identifier', InputArgument::REQUIRED, 'Projector identifier or className')
+            ->addArgument('projector', InputArgument::REQUIRED, 'Projector identifier or className')
             ->addOption('reset', null, InputOption::VALUE_NONE, 'Reset all projector\'s data and replay it for all events present in EventStore (only available for ReplayableProjector)')
             ->addOption('date', null, InputOption::VALUE_REQUIRED, 'Play projector from a specific date (format Y-m-d)')
         ;
@@ -54,16 +54,13 @@ final class ProjectorPlayCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $identifier = $input->getArgument('identifier');
-
-        if (!$projector = $this->projectorRepository->findByIdentifierOrClassName($identifier)) {
-            throw new \InvalidArgumentException(\sprintf(
-                "No projector can't be found for identifier or className '%s'",
-                $identifier
-            ));
+        if ($input->getOption('reset') and $input->getOption('date')) {
+            throw new \InvalidArgumentException("You can not use both 'reset' and 'date' options, you have to choose one.");
         }
 
-        if($input->getOption('reset')) {
+        $projector = $this->projectorRegistry->findByIdentifierOrClassName($input->getArgument('projector'));
+
+        if ($input->getOption('reset')) {
             $this->handleReset($projector);
         }
 
@@ -96,6 +93,7 @@ final class ProjectorPlayCommand extends Command
             try {
                 $projector->onEvent($event);
             } catch (\Throwable $e) {
+                $output->writeln(\sprintf("<error>%s</error>", $e->getMessage()));
                 $failed++;
             }
             $progress->advance(1);
@@ -134,7 +132,7 @@ final class ProjectorPlayCommand extends Command
             ->failed(false)
         ;
 
-        if($date) {
+        if ($date) {
             $query = $query->fromDate($date);
         }
 
