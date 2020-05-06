@@ -143,7 +143,7 @@ final class GoatEventStore extends AbstractEventStore
             $revision = ((int)$builder
                 ->select($eventRelation)
                 ->columnExpression('max(revision)')
-                ->condition('aggregate_id', $aggregateId)
+                ->where('aggregate_id', $aggregateId)
                 ->execute()
                 ->fetchField()
             ) + 1;
@@ -156,7 +156,7 @@ final class GoatEventStore extends AbstractEventStore
                 $exists = (bool)$builder
                     ->select($indexRelation)
                     ->columnExpression("true")
-                    ->condition('aggregate_id', $aggregateId)
+                    ->where('aggregate_id', $aggregateId)
                     ->execute()
                     ->fetchField()
                 ;

@@ -45,7 +45,7 @@ final class GoatPreferencesRepository implements PreferencesRepository
             ->getQueryBuilder()
             ->select($this->tableName)
             ->columnExpression('true')
-            ->condition('name', $name)
+            ->where('name', $name)
             ->execute()
             ->fetchField()
         ;
@@ -61,7 +61,7 @@ final class GoatPreferencesRepository implements PreferencesRepository
             ->getQueryBuilder()
             ->select($this->tableName)
             ->columns(['value', 'is_serialized'])
-            ->condition('name', $name)
+            ->where('name', $name)
             ->execute()
             ->setHydrator(static function (array $row) {
                 if ($row['is_serialized']) {
@@ -83,7 +83,7 @@ final class GoatPreferencesRepository implements PreferencesRepository
             ->getQueryBuilder()
             ->select($this->tableName)
             ->columns(['name', 'value', 'is_serialized'])
-            ->condition('name', $names)
+            ->where('name', $names)
             ->execute()
             ->setKeyColumn('name')
             ->setHydrator(static function (array $row) {
@@ -105,7 +105,7 @@ final class GoatPreferencesRepository implements PreferencesRepository
             ->getQueryBuilder()
             ->select($this->tableName)
             ->columns(['is_collection', 'is_hashmap', 'type'])
-            ->condition('name', $name)
+            ->where('name', $name)
             ->execute()
             ->setHydrator(function (array $row) {
                 return new DefaultValueType($row['type'], $row['is_collection'], null, $row['is_hashmap']);
@@ -135,7 +135,7 @@ final class GoatPreferencesRepository implements PreferencesRepository
             $exists = $builder
                 ->select($this->tableName)
                 ->columnExpression('true')
-                ->condition('name', $name)
+                ->where('name', $name)
                 ->forUpdate()
                 ->execute()
                 ->fetchField()
@@ -153,7 +153,7 @@ final class GoatPreferencesRepository implements PreferencesRepository
                         'updated_at' => $now,
                         'value' => $value,
                     ])
-                    ->condition('name', $name)
+                    ->where('name', $name)
                     ->execute()
                 ;
             } else {
@@ -184,7 +184,7 @@ final class GoatPreferencesRepository implements PreferencesRepository
             ->runner
             ->getQueryBuilder()
             ->delete($this->tableName)
-            ->condition('name', $name)
+            ->where('name', $name)
             ->execute()
         ;
     }

@@ -101,7 +101,7 @@ final class RepositoryQuery
      */
     public function with($criteria): self
     {
-        $this->select->expression(RepositoryQuery::expandCriteria($criteria));
+        $this->select->whereExpression(RepositoryQuery::expandCriteria($criteria));
 
         return $this;
     }

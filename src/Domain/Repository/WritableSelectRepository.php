@@ -56,7 +56,7 @@ class WritableSelectRepository extends WritableDefaultRepository
             $select->removeAllColumns();
         }
         if ($criteria) {
-            $select->expression(RepositoryQuery::expandCriteria($criteria));
+            $select->whereExpression(RepositoryQuery::expandCriteria($criteria));
         }
 
         return $select;

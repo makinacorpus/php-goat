@@ -162,7 +162,7 @@ class WritableDefaultRepository extends DefaultRepository implements WritableRep
         $update = $this->getRunner()->getQueryBuilder()->update($this->getRelation());
 
         if ($criteria) {
-            $update->expression(RepositoryQuery::expandCriteria($criteria));
+            $update->whereExpression(RepositoryQuery::expandCriteria($criteria));
         }
 
         return $update;
@@ -176,7 +176,7 @@ class WritableDefaultRepository extends DefaultRepository implements WritableRep
         $update = $this->getRunner()->getQueryBuilder()->delete($this->getRelation());
 
         if ($criteria) {
-            $update->expression(RepositoryQuery::expandCriteria($criteria));
+            $update->whereExpression(RepositoryQuery::expandCriteria($criteria));
         }
 
         return $update;

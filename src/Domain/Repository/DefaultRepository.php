@@ -288,7 +288,7 @@ class DefaultRepository implements GoatRepositoryInterface
         }
 
         if ($criteria) {
-            $select->expression(RepositoryQuery::expandCriteria($criteria));
+            $select->where(RepositoryQuery::expandCriteria($criteria));
         }
         if (!$withHydrator) {
             $select->setOption('class', $this->class);
@@ -496,7 +496,7 @@ class DefaultRepository implements GoatRepositoryInterface
             ->columnExpression('1')
         ;
 
-        $select->expression(RepositoryQuery::expandCriteria($criteria));
+        $select->whereExpression(RepositoryQuery::expandCriteria($criteria));
 
         return (bool)$select->range(1)->execute()->fetchField();
     }
@@ -519,7 +519,7 @@ class DefaultRepository implements GoatRepositoryInterface
                 function (QueryBuilder $builder) use ($id) {
                     $select = $this->createSelect();
                     foreach ($this->expandPrimaryKey($id) as $column => $value) {
-                        $select->condition($column, $value);
+                        $select->where($column, $value);
                     }
                     return $select->range(1, 0);
                 },
