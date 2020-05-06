@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Goat\Domain\Event;
 
 use Goat\Domain\EventStore\EventStore;
+use Goat\Domain\Projector\ProjectorRegistry;
 use Goat\Domain\Service\LockService;
 
 /**
@@ -23,13 +24,6 @@ interface Dispatcher
     public function setTransactionHandlers(iterable $transactionHandlers): void;
 
     /**
-     * Set projectors
-     *
-     * @internal
-     */
-    public function setProjectors(iterable $projectors): void;
-
-    /**
      * Set event store
      */
     public function setEventStore(EventStore $eventStore): void;
@@ -38,6 +32,11 @@ interface Dispatcher
      * Set Locking Service
      */
     public function setLockService(LockService $lockService): void;
+
+    /**
+     * Set ProjectorRegistry
+     */
+    public function setProjectorRegistry(ProjectorRegistry $projectorRegistry): void;
 
     /**
      * Dispatch event asynchronously (via the bus).

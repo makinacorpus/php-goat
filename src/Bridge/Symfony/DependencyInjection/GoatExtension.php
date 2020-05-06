@@ -72,6 +72,7 @@ final class GoatExtension extends Extension
         }
         if ($messengerEnabled && $domainEnabled) {
             $loader->load('event.yaml');
+            $loader->load('projector.yaml');
             if ($consoleEnabled) {
                 $loader->load('event-console.yaml');
             }

@@ -24,6 +24,9 @@ final class DomainConfigurationPass implements CompilerPassInterface
     private $projectorTag;
 
     /** @var string */
+    private $projectorRegistryId;
+
+    /** @var string */
     private $eventStoreId;
 
     /** @var string */
@@ -43,7 +46,8 @@ final class DomainConfigurationPass implements CompilerPassInterface
      */
     public function __construct(
         string $dispatcherId = 'goat.domain.dispatcher',
-        string $projectorTag = 'goat.domain.dispatcher.projector',
+        string $projectorTag = 'goat.domain.projector',
+        string $projectorRegistryId = 'goat.domain.projector_registry',
         string $transactionHandlerTag = 'goat.domain.transaction_handler',
         string $eventStoreId = 'goat.domain.event_store',
         string $lockServiceId = 'goat.domain.lock_service',
@@ -52,6 +56,7 @@ final class DomainConfigurationPass implements CompilerPassInterface
     {
         $this->dispatcherId = $dispatcherId;
         $this->projectorTag = $projectorTag;
+        $this->projectorRegistryId = $projectorRegistryId;
         $this->eventStoreId = $eventStoreId;
         $this->lockServiceId = $lockServiceId;
         $this->loggerId = $loggerId;
@@ -68,6 +73,7 @@ final class DomainConfigurationPass implements CompilerPassInterface
         $hasDispatcher = $container->has($this->dispatcherId);
         $hasEventStore = $container->has($this->eventStoreId);
         $hasLockService = $container->has($this->lockServiceId);
+        $hasProjectorRegistry =  $container->has($this->projectorRegistryId);
         $isDebug = $container->getParameter('kernel.debug');
 
         if ($hasEventStore) {
@@ -85,13 +91,20 @@ final class DomainConfigurationPass implements CompilerPassInterface
             }
         }
 
+        if ($hasProjectorRegistry) {
+            $projectorRegistryDef = $container->getDefinition($this->projectorRegistryId);
+            if ($references = $this->findAndSortTaggedServices($this->projectorTag, $container)) {
+                $projectorRegistryDef->addMethodCall('setProjectors', [$references]);
+            }
+        }
+
         if ($hasDispatcher) {
             $dispatcherDef = $container->getDefinition($this->dispatcherId);
             if ($references = $this->findAndSortTaggedServices($this->transactionHandlerTag, $container)) {
                 $dispatcherDef->addMethodCall('setTransactionHandlers', [$references]);
             }
-            if ($references = $this->findAndSortTaggedServices($this->projectorTag, $container)) {
-                $dispatcherDef->addMethodCall('setProjectors', [$references]);
+            if ($hasProjectorRegistry) {
+                $dispatcherDef->addMethodCall('setProjectorRegistry', [$projectorRegistryDef]);
             }
             if ($hasEventStore) {
                 $dispatcherDef->addMethodCall('setEventStore', [new Reference($this->eventStoreId)]);

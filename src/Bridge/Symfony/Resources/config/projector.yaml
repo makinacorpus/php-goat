@@ -1,0 +1,10 @@
+services:
+
+    goat.domain.projector_registry:
+        public: false
+        class: Goat\Domain\Projector\ProjectorRegistry
+
+    Goat\Domain\Command\ProjectorPlayCommand:
+        public: false
+        arguments: ["@goat.domain.projector_registry", "@goat.domain.event_store"]
+        tags: ["console.command"]
