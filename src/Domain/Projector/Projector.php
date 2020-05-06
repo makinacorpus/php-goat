@@ -20,7 +20,7 @@ interface Projector
     /**
      * This method will be call after a message has been stored.
      */
-    public function onEvent(Event $event);
+    public function onEvent(Event $event): void;
 
     /**
      * Get last processed event date.
