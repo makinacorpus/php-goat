@@ -75,6 +75,7 @@ final class GoatExtension extends Extension
             $loader->load('projector.yaml');
             if ($consoleEnabled) {
                 $loader->load('event-console.yaml');
+                $loader->load('projector-console.yaml');
             }
         }
 
