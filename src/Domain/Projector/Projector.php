@@ -28,4 +28,12 @@ interface Projector
      * @return ?\DateTimeInterface Null if Projector has never been processed
      */
     public function getLastProcessedEventDate(): ?\DateTimeInterface;
+
+    /**
+     * Get handled events name list.
+     *
+     * @return null|string[]
+     *   Returned event names can be either event names or PHP class names.
+     */
+    public function getHandledEvents(): ?array;
 }

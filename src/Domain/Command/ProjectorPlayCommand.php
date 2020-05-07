@@ -75,7 +75,7 @@ final class ProjectorPlayCommand extends Command
             $date = $projector->getLastProcessedEventDate();
         }
 
-        $events = $this->findEventsToProcess($date);
+        $events = $this->findEventsToProcess($projector, $date);
 
         if (!$total = \count($events)) {
             $output->writeln('there is no event to process for this projector.');
@@ -86,6 +86,7 @@ final class ProjectorPlayCommand extends Command
         $output->writeln(\sprintf("%d events has(ve) to be processed", $total));
 
         $progress = new ProgressBar($output);
+        $progress->setFormat('debug');
         $progress->setMaxSteps($total);
 
         $failed = 0;
@@ -124,13 +125,18 @@ final class ProjectorPlayCommand extends Command
         $projector->reset();
     }
 
-    private function findEventsToProcess(?\DateTimeInterface $date): ?iterable
+    private function findEventsToProcess(Projector $projector, ?\DateTimeInterface $date): ?iterable
     {
         $query =  $this
             ->eventStore
             ->query()
             ->failed(false)
         ;
+
+        $handledEvents = $projector->getHandledEvents();
+        if (null !== $handledEvents) {
+            $query->withName($handledEvents);
+        }
 
         if ($date) {
             $query = $query->fromDate($date);
