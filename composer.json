@@ -62,7 +62,7 @@
     "require" : {
         "php" : ">=7.2",
         "psr/log": "^1.0",
-        "ramsey/uuid": "^3.8"
+        "ramsey/uuid": "^3.8 || ^4"
     },
     "suggest" : {
         "doctrine/dbal": "For query builder usage over a Doctrine PDO connection",
