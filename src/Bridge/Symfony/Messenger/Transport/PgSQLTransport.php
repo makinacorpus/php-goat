@@ -72,7 +72,7 @@ where
         limit 1 offset 0
     )
     and "consumed_at" is null
-returning "id", "headers", "type", "content_type", "body"
+returning "id", "headers", "type", "content_type", "body"::bytea
 SQL
        , [$this->queue])->fetch();
 
