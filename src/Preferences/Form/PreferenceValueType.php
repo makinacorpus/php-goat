@@ -156,7 +156,7 @@ final class PreferenceValueType extends AbstractType
                 // This can return null.
                 return $this->schema->getType($name)->getLabel();
             },
-            'required' => null,
+            'required' => false,
             'name' => null,
         ]);
     }
