@@ -59,7 +59,7 @@ final class PreferenceValueType extends AbstractType
         $default = $schema->getDefault();
         $current = $this->repository->get($name) ?? $default;
 
-        $options = $this->buildSingleValueTypeOptions($schema, $current);
+        $options = $this->buildSingleValueTypeOptions($schema, $options, $current);
 
         if ($schema->isCollection()) {
             throw new \InvalidArgumentException("collection value are not supported yet");
@@ -80,10 +80,10 @@ final class PreferenceValueType extends AbstractType
         }
 
         $builder->addModelTransformer(new CallbackTransformer(
-            function ($value) {
+            static function ($value) {
                 return ['value' => $value];
             },
-            function ($value) use ($default) {
+            static function ($value) use ($default) {
                 if (($value = $value['value']) === $default) {
                     return null;
                 }
@@ -95,14 +95,21 @@ final class PreferenceValueType extends AbstractType
     /**
      * Build form type for value, return suitable input for CollectionType
      */
-    private function buildSingleValueTypeOptions(ValueSchema $schema, $default = null): array
+    private function buildSingleValueTypeOptions(ValueSchema $schema, array $options, $default = null): array
     {
-        $defaultEntryOptions = [
+        $defaultEntryOptions = ($options['entry_options'] ?? []) + [
             'attr' => ['novalidate' => 'novalidate', 'maxlength' => '500'],
             'data' => $default,
             'label' => $schema->getDescription(),
             'required' => false,
         ];
+
+        if (isset($options['entry_type'])) {
+            return [
+                'entry_type' => $options['entry_type'],
+                'entry_options' => $defaultEntryOptions,
+            ];
+        }
 
         switch ($schema->getNativeType()) {
 
@@ -146,6 +153,8 @@ final class PreferenceValueType extends AbstractType
     {
         $resolver->setDefaults([
             'groups' => [Constraint::DEFAULT_GROUP],
+            'entry_type' => null, // FormType class name.
+            'entry_options' => null, // FormType specific options.
             'help' => null,
             'label' => function (Options $options) {
                 $name = $options['name'];
