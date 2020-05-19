@@ -1,9 +1,0 @@
-services:
-
-    goat.hydrator_map:
-        public: false
-        class: Goat\Hydrator\DefaultHydratorMap
-        tags: ['container.hot_path']
-
-    Goat\Hydrator\HydratorMap:
-        alias: goat.hydrator_map

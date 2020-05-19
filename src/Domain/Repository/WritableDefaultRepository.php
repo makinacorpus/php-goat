@@ -60,16 +60,6 @@ class WritableDefaultRepository extends DefaultRepository implements WritableRep
     /**
      * {@inheritdoc}
      */
-    public function createFrom($entity, array $values = [])
-    {
-        $values += $this->extractValues($entity);
-
-        return $this->create($values);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public function delete($id, bool $raiseErrorOnMissing = false)
     {
         $query = $this
@@ -142,16 +132,6 @@ class WritableDefaultRepository extends DefaultRepository implements WritableRep
         }
 
         return $result->fetch();
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function updateFrom($id, $entity, array $values = [])
-    {
-        $values += $this->extractValues($entity);
-
-        return $this->update($id, $values);
     }
 
     /**

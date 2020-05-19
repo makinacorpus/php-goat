@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Goat\Domain\Repository;
 
-use Goat\Hydrator\HydratorInterface;
 use Goat\Query\DeleteQuery;
 use Goat\Query\Expression;
 use Goat\Query\ExpressionColumn;
@@ -20,6 +19,8 @@ use Goat\Query\UpsertQueryQuery;
 use Goat\Query\UpsertValuesQuery;
 use Goat\Runner\ResultIterator;
 use Goat\Runner\Runner;
+use Goat\Driver\Runner\AbstractRunner;
+use Goat\Runner\Hydrator\HydratorRegistry;
 
 /**
  * Table repository is a simple model implementation that works on an arbitrary
@@ -32,7 +33,6 @@ class DefaultRepository implements GoatRepositoryInterface
     private $preparedFindOneQuery;
     private $primaryKey = [];
     private $relation;
-    private $supportsHydration;
     protected $runner;
 
     /**
@@ -222,7 +222,7 @@ class DefaultRepository implements GoatRepositoryInterface
      */
     public final function getClassName(): string
     {
-        return $this->class;
+        return $this->class ?? ($this->class = $this->defineClass());
     }
 
     /**
@@ -231,14 +231,6 @@ class DefaultRepository implements GoatRepositoryInterface
     public function getRelation(): ExpressionRelation
     {
         return clone $this->relation;
-    }
-
-    /**
-     * Does this instance supports object hydration
-     */
-    final protected function supportsHydration(): bool
-    {
-        return $this->supportsHydration ?? ($this->supportsHydration = \method_exists($this->runner, 'getHydratorMap'));
     }
 
     /**
@@ -303,12 +295,7 @@ class DefaultRepository implements GoatRepositoryInterface
             $query->returning(new ExpressionColumn('*', $relationAlias));
         }
 
-        if ($this->supportsHydration()) {
-            $query->setOption('hydrator', $this->getHydratorWithLazyProperties());
-        } else {
-            $query->setOption('class', $this->class);
-        }
-
+        $query->setOption('hydrator', $this->getHydratorWithLazyProperties());
         $query->setOption('types', $this->defineSelectColumnsTypes());
     }
 
@@ -342,12 +329,7 @@ class DefaultRepository implements GoatRepositoryInterface
             $select->column(new ExpressionColumn('*', $relationAlias));
         }
 
-        if ($this->supportsHydration()) {
-            $select->setOption('hydrator', $this->getHydratorWithLazyProperties());
-        } else {
-            $select->setOption('class', $this->class);
-        }
-
+        $select->setOption('hydrator', $this->getHydratorWithLazyProperties());
         $select->setOption('types', $this->defineSelectColumnsTypes());
     }
 
@@ -452,7 +434,7 @@ class DefaultRepository implements GoatRepositoryInterface
     /**
      * Create hydrator with lazy properties hydration
      */
-    final protected function getHydratorWithLazyProperties(): HydratorInterface
+    final protected function getHydratorWithLazyProperties(): callable
     {
         $hydrator = $this->getHydrator();
 
@@ -492,10 +474,24 @@ class DefaultRepository implements GoatRepositoryInterface
     /**
      * Create raw values hydrator
      */
-    final public function getHydrator(): HydratorInterface
+    final public function getHydrator(): callable
     {
-        if ($this->supportsHydration()) {
-            return $this->runner->getHydratorMap()->get($this->class);
+        $runner = $this->runner;
+
+        if ($runner instanceof AbstractRunner) {
+            $scopeStealer = \Closure::bind(
+                function () {
+                    return $this->getHydratorRegistry();
+                },
+                $runner,
+                AbstractRunner::class
+            );
+
+            $hydratorRegistry = $scopeStealer();
+
+            if ($hydratorRegistry instanceof HydratorRegistry) {
+                return $hydratorRegistry->getHydrator($this->getClassName());
+            }
         }
 
         throw new \InvalidArgumentException("Cannot hydrate or extract instance date without an hydrator");
@@ -506,15 +502,7 @@ class DefaultRepository implements GoatRepositoryInterface
      */
     public function createInstance(array $values)
     {
-        return $this->getHydrator()->createAndHydrateInstance($values);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function createInstanceFrom($entity)
-    {
-        return $this->createInstance($this->extractValues($entity));
+        return $this->getHydrator()($values);
     }
 
     /**
@@ -531,27 +519,6 @@ class DefaultRepository implements GoatRepositoryInterface
     protected function reduceValuesToColumns(array $values): array
     {
         return $this->reduceValues($values, $this->getColumns());
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function extractValues($entity, bool $withPrimaryKey = false): array
-    {
-        $hydrator = $this->getHydrator();
-        $values = $hydrator->extractValues($entity);
-
-        if (!$withPrimaryKey) {
-            foreach ($this->getPrimaryKey() as $column) {
-                unset($values[$column]);
-            }
-        }
-
-        if ($columns = $this->defineColumns()) {
-            $values = \array_intersect_key($values, \array_flip($columns));
-        }
-
-        return $values;
     }
 
     /**

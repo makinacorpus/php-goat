@@ -28,24 +28,6 @@ interface WritableRepositoryInterface extends RepositoryInterface
     public function create(array $values);
 
     /**
-     * Update one entity from another instance values, ideal for form with mapping
-     *
-     * @todo handle gracefully null values
-     *
-     * @param mixed $entity
-     *   The entity to duplicate for fields
-     *
-     * @return mixed
-     *   The created entity
-     * @param mixed[] $values
-     *   Additional values to override the provided entity ones
-     *
-     * @throws EntityNotFoundError
-     *   If the entity does not exists
-     */
-    public function createFrom($entity, array $values = []);
-
-    /**
      * Update one entity with values
      *
      * @param int|string|int[]|string[] $id
@@ -76,26 +58,6 @@ interface WritableRepositoryInterface extends RepositoryInterface
      *   If the entity does not exists
      */
     public function update($id, array $values);
-
-    /**
-     * Update one entity from another instance values, ideal for form with mapping
-     *
-     * @todo handle gracefully null values
-     *
-     * @param int|string|int[]|string[] $id
-     *   Primary key
-     * @param mixed $entity
-     *   The entity to duplicate for fields
-     * @param mixed[] $values
-     *   Additional values to override the provided entity ones
-     *
-     * @return mixed
-     *   The updated entity
-     *
-     * @throws EntityNotFoundError
-     *   If the entity does not exists
-     */
-    public function updateFrom($id, $entity, array $values = []);
 
     /**
      * Create update query

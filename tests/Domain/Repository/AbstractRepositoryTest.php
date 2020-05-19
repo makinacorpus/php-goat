@@ -12,19 +12,20 @@ use Goat\Query\QueryError;
 use Goat\Query\Where;
 use Goat\Runner\Runner;
 use Goat\Runner\Testing\DatabaseAwareQueryTest;
+use Goat\Runner\Testing\TestDriverFactory;
 
 abstract class AbstractRepositoryTest extends DatabaseAwareQueryTest
 {
-    private $idAdmin;
-    private $idJean;
+    const ID_ADMIN = 1;
+    const ID_JEAN = 2;
 
     /**
      * {@inheritdoc}
      */
-    protected function createTestSchema(Runner $runner)
+    protected function createTestData(Runner $runner, ?string $schema): void
     {
         $runner->execute("
-            create temporary table some_entity (
+            create table some_entity (
                 id serial primary key,
                 id_user integer default null,
                 status integer default 1,
@@ -34,57 +35,39 @@ abstract class AbstractRepositoryTest extends DatabaseAwareQueryTest
             )
         ");
         $runner->execute("
-            create temporary table users (
-                id serial primary key,
+            create table users (
+                id integer primary key,
                 name varchar(255)
             )
         ");
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    protected function createTestData(Runner $runner)
-    {
-        $runner
-            ->getQueryBuilder()
-            ->insertValues('users')
-            ->columns(['name'])
-            ->values(["admin"])
-            ->values(["jean"])
-            ->execute()
-        ;
-
-        $idList = $runner
-            ->getQueryBuilder()
-            ->select('users')
-            ->column('id')
-            ->orderBy('name')
-            ->execute()
-            ->fetchColumn()
-        ;
-
-        $this->idAdmin = $idList[0];
-        $this->idJean = $idList[1];
 
         $runner
             ->getQueryBuilder()
-            ->insertValues('some_entity')
+            ->insert('users')
+            ->columns(['id', 'name'])
+            ->values([self::ID_ADMIN, "admin"])
+            ->values([self::ID_JEAN, "jean"])
+            ->execute()
+        ;
+
+        $runner
+            ->getQueryBuilder()
+            ->insert('some_entity')
             ->columns(['foo', 'status', 'bar', 'id_user', 'baz'])
-            ->values([2,  1, 'foo', $this->idAdmin, new \DateTime()])
-            ->values([3,  1, 'bar', $this->idJean, new \DateTime('now +1 day')])
-            ->values([5,  1, 'baz', $this->idAdmin, new \DateTime('now -2 days')])
-            ->values([7,  1, 'foo', $this->idAdmin, new \DateTime('now -6 hours')])
-            ->values([11, 1, 'foo', $this->idJean, new \DateTime()])
-            ->values([13, 0, 'bar', $this->idJean, new \DateTime('now -3 months')])
-            ->values([17, 0, 'bar', $this->idAdmin, new \DateTime('now -3 years')])
-            ->values([19, 0, 'baz', $this->idAdmin, new \DateTime()])
-            ->values([23, 0, 'baz', $this->idJean, new \DateTime('now +7 years')])
-            ->values([29, 1, 'foo', $this->idJean, new \DateTime('now +2 months')])
-            ->values([31, 0, 'foo', $this->idJean, new \DateTime('now +17 hours')])
-            ->values([37, 2, 'foo', $this->idAdmin, new \DateTime('now -128 hours')])
-            ->values([41, 2, 'bar', $this->idJean, new \DateTime('now -8 days')])
-            ->values([43, 2, 'bar', $this->idAdmin, new \DateTime('now -6 minutes')])
+            ->values([2,  1, 'foo', self::ID_ADMIN, new \DateTime()])
+            ->values([3,  1, 'bar', self::ID_JEAN, new \DateTime('now +1 day')])
+            ->values([5,  1, 'baz', self::ID_ADMIN, new \DateTime('now -2 days')])
+            ->values([7,  1, 'foo', self::ID_ADMIN, new \DateTime('now -6 hours')])
+            ->values([11, 1, 'foo', self::ID_JEAN, new \DateTime()])
+            ->values([13, 0, 'bar', self::ID_JEAN, new \DateTime('now -3 months')])
+            ->values([17, 0, 'bar', self::ID_ADMIN, new \DateTime('now -3 years')])
+            ->values([19, 0, 'baz', self::ID_ADMIN, new \DateTime()])
+            ->values([23, 0, 'baz', self::ID_JEAN, new \DateTime('now +7 years')])
+            ->values([29, 1, 'foo', self::ID_JEAN, new \DateTime('now +2 months')])
+            ->values([31, 0, 'foo', self::ID_JEAN, new \DateTime('now +17 hours')])
+            ->values([37, 2, 'foo', self::ID_ADMIN, new \DateTime('now -128 hours')])
+            ->values([41, 2, 'bar', self::ID_JEAN, new \DateTime('now -8 days')])
+            ->values([43, 2, 'bar', self::ID_ADMIN, new \DateTime('now -6 minutes')])
             ->execute()
         ;
     }
@@ -125,11 +108,11 @@ abstract class AbstractRepositoryTest extends DatabaseAwareQueryTest
     /**
      * Tests various utility methods
      *
-     * @dataProvider getRunners
+     * @dataProvider runnerDataProvider
      */
-    public function testUtilityMethods(Runner $runner)
+    public function testUtilityMethods(TestDriverFactory $factory)
     {
-        $this->prepare($runner);
+        $runner = $factory->getRunner();
 
         $repository = $this->createRepository($runner, DomainModelObject::class, ['t.id']);
         $relation = $repository->getRelation();
@@ -149,11 +132,12 @@ abstract class AbstractRepositoryTest extends DatabaseAwareQueryTest
     /**
      * Tests find by primary key(s) feature
      *
-     * @dataProvider getRunners
+     * @dataProvider runnerDataProvider
      */
-    public function testFind(Runner $runner)
+    public function testFind(TestDriverFactory $factory)
     {
-        $this->prepare($runner);
+        $runner = $factory->getRunner();
+
         $repository = $this->createRepository($runner, DomainModelObject::class, ['t.id']);
 
         foreach ([1, [1]] as $id) {
@@ -192,16 +176,17 @@ abstract class AbstractRepositoryTest extends DatabaseAwareQueryTest
     /**
      * Tests find by primary key(s) feature
      *
-     * @dataProvider getRunners
+     * @dataProvider runnerDataProvider
      */
-    public function testFindFirst(Runner $runner)
+    public function testFindFirst(TestDriverFactory $factory)
     {
-        $this->prepare($runner);
+        $runner = $factory->getRunner();
+
         $repository = $this->createRepository($runner, DomainModelObject::class, ['t.id']);
 
-        $item1 = $repository->findFirst(['id_user' => $this->idAdmin]);
+        $item1 = $repository->findFirst(['id_user' => self::ID_ADMIN]);
         $this->assertInstanceOf(DomainModelObject::class, $item1);
-        $this->assertSame($item1->id_user, $this->idAdmin);
+        $this->assertSame($item1->id_user, self::ID_ADMIN);
 
         $item2 = $repository->findFirst(['id_user' => -1], false);
         $this->assertNull($item2);
@@ -220,11 +205,12 @@ abstract class AbstractRepositoryTest extends DatabaseAwareQueryTest
     /**
      * Tests find by primary key(s) feature when primary key has more than one column
      *
-     * @dataProvider getRunners
+     * @dataProvider runnerDataProvider
      */
-    public function testFindMultiple(Runner $runner)
+    public function testFindMultiple(TestDriverFactory $factory)
     {
-        $this->prepare($runner);
+        $runner = $factory->getRunner();
+
         $repository = $this->createRepository($runner, DomainModelObject::class, ['foo', 'status']);
 
         $item1 = $repository->findOne([2, 1]);
@@ -245,42 +231,43 @@ abstract class AbstractRepositoryTest extends DatabaseAwareQueryTest
     /**
      * Tests find by criteria
      *
-     * @dataProvider getRunners
+     * @dataProvider runnerDataProvider
      */
-    public function testFindByCriteria(Runner $runner)
+    public function testFindByCriteria(TestDriverFactory $factory)
     {
+        $runner = $factory->getRunner();
+
         $supportsJoin = $this->supportsJoin();
-        $this->prepare($runner);
         $repository = $this->createRepository($runner, DomainModelObject::class, ['id']);
 
         // Most simple condition ever
-        $result = $repository->query(['id_user' => $this->idAdmin])->execute();
+        $result = $repository->query(['id_user' => self::ID_ADMIN])->execute();
         $this->assertCount(7, $result);
         foreach ($result as $item) {
             $this->assertTrue($item instanceof DomainModelObject);
-            $this->assertSame($this->idAdmin, $item->id_user);
+            $this->assertSame(self::ID_ADMIN, $item->id_user);
             if ($supportsJoin) {
                 $this->assertSame("admin", $item->name);
             }
         }
 
         // Using a single expression
-        $result = $repository->query(new ExpressionRaw('id_user = ?', [$this->idAdmin]))->execute();
+        $result = $repository->query(new ExpressionRaw('id_user = ?', [self::ID_ADMIN]))->execute();
         $this->assertCount(7, $result);
         foreach ($result as $item) {
             $this->assertTrue($item instanceof DomainModelObject);
-            $this->assertSame($this->idAdmin, $item->id_user);
+            $this->assertSame(self::ID_ADMIN, $item->id_user);
             if ($supportsJoin) {
                 $this->assertSame("admin", $item->name);
             }
         }
 
         // Using a Where instance
-        $result = $repository->query((new Where())->condition('id_user', $this->idAdmin))->execute();
+        $result = $repository->query((new Where())->condition('id_user', self::ID_ADMIN))->execute();
         $this->assertCount(7, $result);
         foreach ($result as $item) {
             $this->assertTrue($item instanceof DomainModelObject);
-            $this->assertSame($this->idAdmin, $item->id_user);
+            $this->assertSame(self::ID_ADMIN, $item->id_user);
             if ($supportsJoin) {
                 $this->assertSame("admin", $item->name);
             }
@@ -289,7 +276,7 @@ abstract class AbstractRepositoryTest extends DatabaseAwareQueryTest
         // More than one condition
         $result = $repository
             ->query([
-                'id_user' => $this->idJean,
+                'id_user' => self::ID_JEAN,
                 new ExpressionRaw('baz < ?', [new \DateTime("now -1 second")])
             ])
             ->execute()
@@ -297,7 +284,7 @@ abstract class AbstractRepositoryTest extends DatabaseAwareQueryTest
         $this->assertCount(2, $result);
         foreach ($result as $item) {
             $this->assertTrue($item instanceof DomainModelObject);
-            $this->assertSame($this->idJean, $item->id_user);
+            $this->assertSame(self::ID_JEAN, $item->id_user);
             if ($supportsJoin) {
                 $this->assertSame("jean", $item->name);
             }
@@ -315,17 +302,18 @@ abstract class AbstractRepositoryTest extends DatabaseAwareQueryTest
     /**
      * Tests pagination
      *
-     * @dataProvider getRunners
+     * @dataProvider runnerDataProvider
      */
-    public function testPaginate(Runner $runner)
+    public function testPaginate(TestDriverFactory $factory)
     {
+        $runner = $factory->getRunner();
+
         $supportsJoin = $this->supportsJoin();
-        $this->prepare($runner);
         $repository = $this->createRepository($runner, DomainModelObject::class, ['id']);
 
         // Most simple condition ever
         $result = $repository
-            ->query(['id_user' => $this->idAdmin])
+            ->query(['id_user' => self::ID_ADMIN])
             ->paginate()
             ->setLimit(3)
             ->setPage(2)
@@ -335,7 +323,7 @@ abstract class AbstractRepositoryTest extends DatabaseAwareQueryTest
         $this->assertCount(3, $result);
         foreach ($result as $item) {
             $this->assertTrue($item instanceof DomainModelObject);
-            $this->assertSame($this->idAdmin, $item->id_user);
+            $this->assertSame(self::ID_ADMIN, $item->id_user);
             if ($supportsJoin) {
                 $this->assertSame("admin", $item->name);
             }
@@ -343,13 +331,13 @@ abstract class AbstractRepositoryTest extends DatabaseAwareQueryTest
 
         // Using a single expression
         $result = $repository
-            ->query(new ExpressionRaw('id_user = ?', [$this->idAdmin]))
+            ->query(new ExpressionRaw('id_user = ?', [self::ID_ADMIN]))
             ->paginate()
         ;
         $this->assertCount(7, $result);
         foreach ($result as $item) {
             $this->assertTrue($item instanceof DomainModelObject);
-            $this->assertSame($this->idAdmin, $item->id_user);
+            $this->assertSame(self::ID_ADMIN, $item->id_user);
             if ($supportsJoin) {
                 $this->assertSame("admin", $item->name);
             }
@@ -357,7 +345,7 @@ abstract class AbstractRepositoryTest extends DatabaseAwareQueryTest
 
         // Using a Where instance
         $result = $repository
-            ->query((new Where())->condition('id_user', $this->idAdmin))
+            ->query((new Where())->condition('id_user', self::ID_ADMIN))
             ->paginate()
             ->setLimit(6)
             ->setPage(1)
@@ -369,7 +357,7 @@ abstract class AbstractRepositoryTest extends DatabaseAwareQueryTest
         $this->assertCount(6, $result);
         foreach ($result as $item) {
             $this->assertTrue($item instanceof DomainModelObject);
-            $this->assertSame($this->idAdmin, $item->id_user);
+            $this->assertSame(self::ID_ADMIN, $item->id_user);
             if ($supportsJoin) {
                 $this->assertSame("admin", $item->name);
             }
@@ -378,7 +366,7 @@ abstract class AbstractRepositoryTest extends DatabaseAwareQueryTest
         // More than one condition
         $result = $repository
             ->query([
-                'id_user' => $this->idJean,
+                'id_user' => self::ID_JEAN,
                 new ExpressionRaw('baz < ?', [new \DateTime("now -1 second")])
             ])
             ->paginate()
@@ -392,27 +380,21 @@ abstract class AbstractRepositoryTest extends DatabaseAwareQueryTest
         $this->assertCount(2, $result);
         foreach ($result as $item) {
             $this->assertTrue($item instanceof DomainModelObject);
-            $this->assertSame($this->idJean, $item->id_user);
+            $this->assertSame(self::ID_JEAN, $item->id_user);
             if ($supportsJoin) {
                 $this->assertSame("jean", $item->name);
             }
             $this->assertLessThan(new \DateTime("now -1 second"), $item->baz);
         }
-
-        // Assert that user can be stupid sometime
-        try {
-            $repository->findBy('oh you you you');
-            $this->fail();
-        } catch (QueryError $e) {
-        }
     }
 
     /**
-     * @dataProvider getRunners
+     * @dataProvider runnerDataProvider
      */
-    public function testCreate(Runner $runner)
+    public function testCreate(TestDriverFactory $factory)
     {
-        $this->prepare($runner);
+        $runner = $factory->getRunner();
+
         $repository = $this->createWritableRepository($runner, DomainModelObject::class, ['id']);
 
         if (!$runner->supportsReturning()) {
@@ -442,11 +424,14 @@ abstract class AbstractRepositoryTest extends DatabaseAwareQueryTest
     }
 
     /**
-     * @dataProvider getRunners
+     * @dataProvider runnerDataProvider
      */
-    public function testCreateFrom(Runner $runner)
+    public function testCreateFrom(TestDriverFactory $factory)
     {
-        $this->prepare($runner);
+        $runner = $factory->getRunner();
+
+        $this->markTestIncomplete("Cannot use hydrator directly.");
+
         $repository = $this->createWritableRepository($runner, DomainModelObject::class, ['id']);
 
         if (!$runner->supportsReturning()) {
@@ -472,11 +457,12 @@ abstract class AbstractRepositoryTest extends DatabaseAwareQueryTest
     }
 
     /**
-     * @dataProvider getRunners
+     * @dataProvider runnerDataProvider
      */
-    public function testUpdate(Runner $runner)
+    public function testUpdate(TestDriverFactory $factory)
     {
-        $this->prepare($runner);
+        $runner = $factory->getRunner();
+
         $repository = $this->createWritableRepository($runner, DomainModelObject::class, ['id']);
 
         if (!$runner->supportsReturning()) {
@@ -499,11 +485,12 @@ abstract class AbstractRepositoryTest extends DatabaseAwareQueryTest
     }
 
     /**
-     * @dataProvider getRunners
+     * @dataProvider runnerDataProvider
      */
-    public function testUpdateFrom(Runner $runner)
+    public function testUpdateFrom(TestDriverFactory $factory)
     {
-        $this->prepare($runner);
+        $runner = $factory->getRunner();
+
         $repository = $this->createWritableRepository($runner, DomainModelObject::class, ['id']);
 
         if (!$runner->supportsReturning()) {
@@ -549,11 +536,12 @@ abstract class AbstractRepositoryTest extends DatabaseAwareQueryTest
     }
 
     /**
-     * @dataProvider getRunners
+     * @dataProvider runnerDataProvider
      */
-    public function testDelete(Runner $runner)
+    public function testDelete(TestDriverFactory $factory)
     {
-        $this->prepare($runner);
+        $runner = $factory->getRunner();
+
         $repository = $this->createWritableRepository($runner, DomainModelObject::class, ['id']);
 
         if (!$runner->supportsReturning()) {

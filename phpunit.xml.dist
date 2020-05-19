@@ -30,12 +30,12 @@
 
     <php>
         <ini name="error_reporting" value="-1" />
+        <env name="ENABLE_APCU" value="1" />
         <env name="ENABLE_EXT_PGSQL" value="1" />
         <env name="ENABLE_PDO" value="1" />
         <env name="ENABLE_SECURITY" value="0" />
-        <env name="PGSQL_HOSTNAME" value="localhost" />
-        <env name="PGSQL_DATABASE" value="gtd" />
-        <env name="PGSQL_PASSWORD" value="gtd" />
-        <env name="PGSQL_USERNAME" value="gtd" />
+        <env name="MYSQL_57_URI" value="mysql://username:password@127.0.0.1:3306/database?server_version=5.7" />
+        <env name="MYSQL_80_URI" value="mysql://username:password@127.0.0.1:3306/database?server_version=8" />
+        <env name="PGSQL_95_URI" value="pgsql://username:password@127.0.0.1:5432/database" />
     </php>
 </phpunit>

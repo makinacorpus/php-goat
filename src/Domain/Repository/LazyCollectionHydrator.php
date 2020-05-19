@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace Goat\Domain\Repository;
 
-use Goat\Hydrator\HydratorInterface;
-
-final class LazyCollectionHydrator implements HydratorInterface
+final class LazyCollectionHydrator
 {
     private $nested;
     private $primaryKey;
@@ -15,7 +13,7 @@ final class LazyCollectionHydrator implements HydratorInterface
     /**
      * Default constructor
      */
-    public function __construct(HydratorInterface $nested, array $properties, array $primaryKey)
+    public function __construct(callable $nested, array $properties, array $primaryKey)
     {
         if (!$primaryKey) {
             throw new \InvalidArgumentException("We cannot call lazy collection hydrators without a primary key");
@@ -62,7 +60,10 @@ final class LazyCollectionHydrator implements HydratorInterface
     {
         if ($callable instanceof \Closure) {
             $ref = new \ReflectionFunction($callable);
-            $returnType = $ref->getReturnType()->getName();
+            $returnType = null;
+            if ($refType= $ref->getReturnType()) {
+                $returnType = $refType->getName();
+            }
 
             if ($returnType === LazyProperty::class || $returnType === LazyCollection::class) {
                 return false;
@@ -116,31 +117,10 @@ final class LazyCollectionHydrator implements HydratorInterface
     }
 
     /**
-     * {@inheritdoc}
+     * Create and hydrate object.
      */
-    public function createAndHydrateInstance(array $values, $constructor = HydratorInterface::CONSTRUCTOR_LATE)
+    public function __invoke(array $values)
     {
-        return $this->nested->createAndHydrateInstance($this->expand($values), $constructor);
-    }
-
-    /**
-     * {@inheritdoc}
-     *
-     * @codeCoverageIgnore
-     */
-    public function hydrateObject(array $values, $object)
-    {
-        return $this->nested->hydrateObject($this->expand($values), $object);
-    }
-
-    /**
-     * {@inheritdoc}
-     *
-     * @codeCoverageIgnore
-     */
-    public function extractValues($object)
-    {
-        // @todo would it make any sense to expand all iterators?
-        return $this->nested->extractValues($object);
+        return \call_user_func($this->nested, $this->expand($values));
     }
 }

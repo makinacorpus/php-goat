@@ -6,26 +6,14 @@ namespace Goat\Domain\Tests\Repository;
 
 use Goat\Domain\Repository\DefaultLazyCollection;
 use Goat\Domain\Repository\LazyCollectionHydrator;
-use Goat\Hydrator\HydratorInterface;
 use PHPUnit\Framework\TestCase;
 
 final class LazyCollectionHydratorTest extends TestCase
 {
-    private function createMockNestedHydrator(): HydratorInterface
+    private function createMockNestedHydrator(): callable
     {
-        return new class () implements HydratorInterface {
-
-            public function createAndHydrateInstance(array $values, $constructor = HydratorInterface::CONSTRUCTOR_LATE) {
-                return $values;
-            }
-
-            public function hydrateObject(array $values, $object) {
-                return $values + $object;
-            }
-
-            public function extractValues($object) {
-                return (array)$object;
-            }
+        return static function ($object) {
+            return (array)$object;
         };
     }
 
@@ -41,7 +29,7 @@ final class LazyCollectionHydratorTest extends TestCase
             ['id']
         );
 
-        $values = $hydrator->createAndHydrateInstance(['id' => 12]);
+        $values = $hydrator(['id' => 12]);
 
         $this->assertSame($callable, $values['foo']);
         $this->assertSame([7, 11, 17], \iterator_to_array($values['foo']));
@@ -61,7 +49,7 @@ final class LazyCollectionHydratorTest extends TestCase
             ['id']
         );
 
-        $values = $hydrator->createAndHydrateInstance(['id' => 12]);
+        $values = $hydrator(['id' => 12]);
 
         $this->assertInstanceOf(MockLazyCollection::class, $values['foo']);
         $this->assertSame([7, 11, 17], \iterator_to_array($values['foo']));
@@ -81,7 +69,7 @@ final class LazyCollectionHydratorTest extends TestCase
             ['id']
         );
 
-        $values = $hydrator->createAndHydrateInstance(['id' => 12]);
+        $values = $hydrator(['id' => 12]);
 
         $this->assertInstanceOf(DefaultLazyCollection::class, $values['foo']);
         $this->assertSame([7, 11, 17], \iterator_to_array($values['foo']));
@@ -111,7 +99,7 @@ final class LazyCollectionHydratorTest extends TestCase
             ['id', 'type']
         );
 
-        $values = $hydrator->createAndHydrateInstance(['baz' => 'test', 'three' => 'oups', 'id' => 12, 'type' => 'cake']);
+        $values = $hydrator(['baz' => 'test', 'three' => 'oups', 'id' => 12, 'type' => 'cake']);
 
         $this->assertSame('test', $values['baz'], "Hydrator passes values");
         $this->assertSame('oups', $values['three'], "Hydrator does not overwrite existing properties");
