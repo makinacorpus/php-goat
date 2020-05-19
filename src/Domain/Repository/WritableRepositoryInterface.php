@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Goat\Domain\Repository;
 
 use Goat\Query\DeleteQuery;
-use Goat\Query\InsertQueryQuery;
+use Goat\Query\InsertQuery;
 use Goat\Query\InsertValuesQuery;
 use Goat\Query\UpdateQuery;
 
@@ -85,15 +85,6 @@ interface WritableRepositoryInterface extends RepositoryInterface
 
     /**
      * Create insert query with values
-     *
-     * @return InsertValuesQuery
      */
-    public function createInsertValues(): InsertValuesQuery;
-
-    /**
-     * Create insert query from query
-     *
-     * @return InsertQueryQuery
-     */
-    public function createInsertQuery(): InsertQueryQuery;
+    public function createInsert(): InsertQuery;
 }

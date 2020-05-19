@@ -21,6 +21,7 @@ use Goat\Runner\ResultIterator;
 use Goat\Runner\Runner;
 use Goat\Driver\Runner\AbstractRunner;
 use Goat\Runner\Hydrator\HydratorRegistry;
+use Goat\Query\MergeQuery;
 
 /**
  * Table repository is a simple model implementation that works on an arbitrary
@@ -253,6 +254,7 @@ class DefaultRepository implements GoatRepositoryInterface
             !$query instanceof InsertValuesQuery &&
             !$query instanceof UpsertQueryQuery &&
             !$query instanceof UpsertValuesQuery &&
+            !$query instanceof MergeQuery &&
             !$query instanceof DeleteQuery &&
             !$query instanceof UpdateQuery
         ) {

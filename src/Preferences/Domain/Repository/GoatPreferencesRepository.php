@@ -158,7 +158,7 @@ final class GoatPreferencesRepository implements PreferencesRepository
                 ;
             } else {
                 $builder
-                    ->insertValues($this->tableName)
+                    ->insert($this->tableName)
                     ->values([
                         'created_at' => $now,
                         'is_collection' => $type->isCollection(),

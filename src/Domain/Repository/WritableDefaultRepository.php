@@ -5,10 +5,9 @@ declare(strict_types=1);
 namespace Goat\Domain\Repository;
 
 use Goat\Query\DeleteQuery;
-use Goat\Query\InsertQueryQuery;
-use Goat\Query\InsertValuesQuery;
-use Goat\Query\UpdateQuery;
+use Goat\Query\InsertQuery;
 use Goat\Query\Query;
+use Goat\Query\UpdateQuery;
 
 /**
  * Default implementation for the writable repository
@@ -38,7 +37,7 @@ class WritableDefaultRepository extends DefaultRepository implements WritableRep
     public function create(array $values)
     {
         $query = $this
-            ->createInsertValues()
+            ->createInsert()
             ->values($values)
         ;
 
@@ -165,16 +164,8 @@ class WritableDefaultRepository extends DefaultRepository implements WritableRep
     /**
      * {@inheritdoc}
      */
-    public function createInsertValues(): InsertValuesQuery
+    public function createInsert(): InsertQuery
     {
-        return $this->getRunner()->getQueryBuilder()->insertValues($this->getRelation());
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function createInsertQuery(): InsertQueryQuery
-    {
-        return $this->getRunner()->getQueryBuilder()->insertQuery($this->getRelation());
+        return $this->getRunner()->getQueryBuilder()->insert($this->getRelation());
     }
 }
