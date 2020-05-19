@@ -5,12 +5,19 @@ declare(strict_types=1);
 namespace Goat\Domain\Repository;
 
 use Goat\Hydrator\HydratorInterface;
+use Goat\Query\DeleteQuery;
 use Goat\Query\Expression;
 use Goat\Query\ExpressionColumn;
 use Goat\Query\ExpressionRelation;
+use Goat\Query\InsertQueryQuery;
+use Goat\Query\InsertValuesQuery;
+use Goat\Query\Query;
 use Goat\Query\QueryBuilder;
 use Goat\Query\QueryError;
 use Goat\Query\SelectQuery;
+use Goat\Query\UpdateQuery;
+use Goat\Query\UpsertQueryQuery;
+use Goat\Query\UpsertValuesQuery;
 use Goat\Runner\ResultIterator;
 use Goat\Runner\Runner;
 
@@ -248,6 +255,63 @@ class DefaultRepository implements GoatRepositoryInterface
         return new ExpressionColumn($column);
     }
 
+    private final function checkIsEligibleToReturning(Query $query): void
+    {
+        if (!$query instanceof InsertQueryQuery &&
+            !$query instanceof InsertValuesQuery &&
+            !$query instanceof UpsertQueryQuery &&
+            !$query instanceof UpsertValuesQuery &&
+            !$query instanceof DeleteQuery &&
+            !$query instanceof UpdateQuery
+        ) {
+            throw new QueryError("Query cannot hold a RETURNING clause.");
+        }
+    }
+
+    /**
+     * Append given columns to returning
+     */
+    private final function appendColumnsToReturning(Query $query, iterable $columns, string $relationAlias): void
+    {
+        $this->checkIsEligibleToReturning($query);
+
+        foreach ($columns as $alias => $column) {
+            $columnExpr = $this->normalizeColumn($column, $relationAlias);
+            if (\is_int($alias)) {
+                $query->returning($columnExpr);
+            } else {
+                $query->returning($columnExpr, $alias);
+            }
+        }
+    }
+
+    /**
+     * Add relation columns to select.
+     */
+    protected function configureQueryForHydrationViaReturning(Query $query): void
+    {
+        $this->checkIsEligibleToReturning($query);
+
+        // @todo Some queries don't support aliasing.
+        $relationAlias = ($relation = $this->getRelation())->getAlias() ?? $relation->getName();
+
+        if ($columns = $this->defineSelectColumns()) {
+            $this->appendColumnsToReturning($query, $columns, $relationAlias);
+        } else if ($columns = $this->getColumns()) {
+            $this->appendColumnsToReturning($query, $columns, $relationAlias);
+        } else {
+            $query->returning(new ExpressionColumn('*', $relationAlias));
+        }
+
+        if ($this->supportsHydration()) {
+            $query->setOption('hydrator', $this->getHydratorWithLazyProperties());
+        } else {
+            $query->setOption('class', $this->class);
+        }
+
+        $query->setOption('types', $this->defineSelectColumnsTypes());
+    }
+
     /**
      * Append given columns to select
      */
@@ -264,37 +328,43 @@ class DefaultRepository implements GoatRepositoryInterface
     }
 
     /**
+     * Add relation columns to select.
+     */
+    protected function configureQueryForHydrationViaSelect(SelectQuery $select): void
+    {
+        $relationAlias = ($relation = $this->getRelation())->getAlias() ?? $relation->getName();
+
+        if ($columns = $this->defineSelectColumns()) {
+            $this->appendColumnsToSelect($select, $columns, $relationAlias);
+        } else if ($columns = $this->getColumns()) {
+            $this->appendColumnsToSelect($select, $columns, $relationAlias);
+        } else {
+            $select->column(new ExpressionColumn('*', $relationAlias));
+        }
+
+        if ($this->supportsHydration()) {
+            $select->setOption('hydrator', $this->getHydratorWithLazyProperties());
+        } else {
+            $select->setOption('class', $this->class);
+        }
+
+        $select->setOption('types', $this->defineSelectColumnsTypes());
+    }
+
+    /**
      * {@inheritdoc}
      */
     public function createSelect($criteria = null, bool $withColumns = true): SelectQuery
     {
         $select = $this->getRunner()->getQueryBuilder()->select($this->relation);
-        $withHydrator = false;
 
         if ($withColumns) {
-            $relationAlias = ($relation = $this->getRelation())->getAlias() ?? $relation->getName();
-
-            if ($columns = $this->defineSelectColumns()) {
-                $this->appendColumnsToSelect($select, $columns, $relationAlias);
-            } else if ($columns = $this->getColumns()) {
-                $this->appendColumnsToSelect($select, $columns, $relationAlias);
-            } else {
-                $select->column(new ExpressionColumn('*', $relationAlias));
-            }
-
-            if ($withHydrator = $this->supportsHydration()) {
-                $select->setOption('hydrator', $this->getHydratorWithLazyProperties());
-            }
+            $this->configureQueryForHydrationViaSelect($select);
         }
 
         if ($criteria) {
             $select->where(RepositoryQuery::expandCriteria($criteria));
         }
-        if (!$withHydrator) {
-            $select->setOption('class', $this->class);
-        }
-
-        $select->setOption('types', $this->defineSelectColumnsTypes());
 
         return $select;
     }
