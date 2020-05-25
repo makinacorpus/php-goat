@@ -19,11 +19,8 @@ final class ProjectorPlayCommand extends Command
 {
     protected static $defaultName = 'projector:play';
 
-    /** @var ProjectorRegistry */
-    private $projectorRegistry;
-
-    /** @var EventStore */
-    private $eventStore;
+    private ProjectorRegistry $projectorRegistry;
+    private EventStore $eventStore;
 
     /**
      * Default constructor
@@ -42,7 +39,7 @@ final class ProjectorPlayCommand extends Command
     protected function configure()
     {
         $this
-            ->setDescription('Play a projector from the last processed event date')
+            ->setDescription('Play a projector from the last processed event date.')
             ->addArgument('projector', InputArgument::REQUIRED, 'Projector identifier or className')
             ->addOption('reset', null, InputOption::VALUE_NONE, 'Reset all projector\'s data and replay it for all events present in EventStore (only available for ReplayableProjector)')
             ->addOption('date', null, InputOption::VALUE_REQUIRED, 'Play projector from a specific date (format Y-m-d)')

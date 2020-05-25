@@ -7,7 +7,7 @@ namespace Goat\Domain\Projector;
 class ProjectorRegistry
 {
     /** @var Projector[] */
-    private $projectors;
+    private ?iterable $projectors = null;
 
     /**
      * Get all projectors.
@@ -20,9 +20,21 @@ class ProjectorRegistry
     }
 
     /**
+     * Get all runtime-enabled projectors.
+     */
+    public function getEnabled(): iterable
+    {
+        foreach ($this->getAll() as $projector) {
+            if (!$projector instanceof NoRuntimeProjector) {
+                yield $projector;
+            }
+        }
+    }
+
+    /**
      * Find a projector by identifier.
      */
-    public function findByIdentifier(string $identifier, bool $throwExceptionOnMissing = true): ?Projector
+    protected function findByIdentifier(string $identifier, bool $throwExceptionOnMissing = true): ?Projector
     {
         $this->isInitializedOrDie();
 
@@ -47,7 +59,7 @@ class ProjectorRegistry
     /**
      * Find a projector by class name.
      */
-    public function findByClassName(string $className, bool $throwExceptionOnMissing = true): ?Projector
+    protected function findByClassName(string $className, bool $throwExceptionOnMissing = true): ?Projector
     {
         $this->isInitializedOrDie();
 

@@ -110,7 +110,7 @@ abstract class AbstractDispatcher implements Dispatcher
      */
     private function handleProjectors(Event $event): void
     {
-        foreach ($this->projectorRegistry->getAll() as $projector) {
+        foreach ($this->projectorRegistry->getEnabled() as $projector) {
             try {
                 $this->logger->debug("Projector {projector} BEGIN PROCESS message", ['projector' => \get_class($projector), 'message' => $event->getMessage()]);
                 $projector->onEvent($event);
@@ -119,7 +119,6 @@ abstract class AbstractDispatcher implements Dispatcher
                 $this->logger->error("Projector {projector} FAIL", ['projector' => \get_class($projector), 'exception' => $e]);
             }
         }
-
     }
 
     /**
