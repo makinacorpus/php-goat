@@ -95,6 +95,9 @@ final class DomainConfigurationPass implements CompilerPassInterface
             $projectorRegistryDef = $container->getDefinition($this->projectorRegistryId);
             if ($references = $this->findAndSortTaggedServices($this->projectorTag, $container)) {
                 $projectorRegistryDef->addMethodCall('setProjectors', [$references]);
+            } else {
+                // Avoid it to crash.
+                $projectorRegistryDef->addMethodCall('setProjectors', [[]]);
             }
         }
 
