@@ -12,7 +12,7 @@ use Goat\Domain\Event\Error\DispatcherError;
 use Goat\Domain\Event\Error\DispatcherRetryableError;
 use Goat\Domain\Projector\ProjectorRegistry;
 use Goat\Domain\Service\LockService;
-use Goat\Query\QueryError;
+use Goat\Driver\Error\TransactionError;
 use Psr\Log\NullLogger;
 
 abstract class AbstractDispatcher implements Dispatcher
@@ -193,7 +193,7 @@ abstract class AbstractDispatcher implements Dispatcher
             // specialized the exception, just rethrow it.
             $this->logger->warning("Failure is already specialized as a dispatcher error.", ['exception' => $e]);
             throw $e;
-        } catch (QueryError $e) {
+        } catch (TransactionError $e) {
             // Error is related to database transaction, just mark it for
             // re-queue.
             $this->logger->debug("Failure is retryable (from exception).", ['exception' => $e]);
