@@ -6,6 +6,7 @@ namespace Goat\Domain\EventStore;
 
 use Goat\Domain\DebuggableTrait;
 use Goat\Domain\Event\BrokenMessage;
+use Goat\Domain\Serializer\MimeTypeConverter;
 use Psr\Log\NullLogger;
 use Ramsey\Uuid\UuidInterface;
 use Symfony\Component\Serializer\SerializerInterface;
@@ -22,35 +23,6 @@ abstract class AbstractEventStore implements EventStore
     public function __construct()
     {
         $this->logger = new NullLogger();
-    }
-
-    /**
-     * Mimetype to Symfony serializer type
-     */
-    protected function mimetypeToSerializer(string $mimetype)
-    {
-        if (false !== \stripos($mimetype, 'json')) {
-            return 'json';
-        }
-        if (false !== \stripos($mimetype, 'xml')) {
-            return 'xml';
-        }
-        return $mimetype;
-    }
-
-    /**
-     * Symfony serializer to mime type.
-     */
-    protected function serializerToMimetype(string $type)
-    {
-        switch ($type) {
-            case 'json':
-                return 'application/json';
-            case 'xml':
-                return 'application/xml';
-            default:
-                return $type;
-        }
     }
 
     /**
@@ -85,7 +57,7 @@ abstract class AbstractEventStore implements EventStore
     {
         return $this->getSerializer()->serialize(
             $event->getMessage(),
-            $this->mimetypeToSerializer($this->getSerializationFormat())
+            MimeTypeConverter::mimetypeToSerializer($this->getSerializationFormat())
         );
     }
 
@@ -107,7 +79,7 @@ abstract class AbstractEventStore implements EventStore
         return $this->serializer->deserialize(
             \is_resource($data) ? \stream_get_contents($data) : $data,
             $properties[Property::MESSAGE_TYPE] ?? $eventName,
-            $this->mimetypeToSerializer(
+            MimeTypeConverter::mimetypeToSerializer(
                 $properties[Property::CONTENT_TYPE] ?? $defaultFormat
             )
         );
