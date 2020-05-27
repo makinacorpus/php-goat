@@ -1,13 +1,27 @@
-create table "message_broker" (
-    "id" uuid not null,
-    "queue" varchar(500) not null default 'default',
-    "created_at" timestamp not null default now(),
-    "consumed_at" timestamp default null,
-    "has_failed" bool default false,
-    "headers" jsonb not null default '{}'::jsonb,
-    "type" text default null,
-    "content_type" default null,
-    "body" bytea not null,
-    primary key ("id")
+CREATE TABLE "message_broker" (
+    "id" uuid NOT NULL,
+    "queue" varchar(500) NOT NULL DEFAULT 'default',
+    "created_at" timestamp NOT NULL DEFAULT now(),
+    "consumed_at" timestamp DEFAULT NULL,
+    "has_failed" bool DEFAULT false,
+    "headers" jsonb NOT NULL DEFAULT '{}'::jsonb,
+    "type" text DEFAULT NULL,
+    "content_type" DEFAULT NULL,
+    "body" bytea NOT NULL,
+    "retry_count" bigint DEFAULT 0,
+    "retry_at" timetamp DEFAULT NULL,
+    PRIMARY KEY ("id")
+);
+
+CREATE TABLE "message_broker_dead_letters" (
+    "id" uuid NOT NULL,
+    "queue" varchar(500) NOT NULL DEFAULT 'default',
+    "created_at" timestamp NOT NULL DEFAULT now(),
+    "consumed_at" timestamp DEFAULT NULL,
+    "headers" jsonb NOT NULL DEFAULT '{}'::jsonb,
+    "type" text DEFAULT NULL,
+    "content_type" DEFAULT NULL,
+    "body" bytea NOT NULL,
+    PRIMARY KEY ("id")
 );
 

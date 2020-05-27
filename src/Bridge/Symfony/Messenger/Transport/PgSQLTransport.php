@@ -40,13 +40,14 @@ final class PgSQLTransport implements TransportInterface
      */
     private function markAsFailed(string $id)
     {
-        $this->runner->execute(<<<SQL
-update "message_broker"
-set
-    "has_failed" = true
-where
-    "id" = ?
-SQL
+        $this->runner->execute(
+            <<<SQL
+            UPDATE "message_broker"
+            SET
+                "has_failed" = true
+            WHERE
+                "id" = ?
+            SQL
             , [$id]
         );
     }
@@ -56,24 +57,30 @@ SQL
      */
     public function get(): iterable
     {
-        $data = $this->runner->execute(<<<SQL
-update "message_broker"
-set
-    "consumed_at" = now()
-where
-    "id" in (
-        select "id"
-        from "message_broker"
-        where
-            "queue" = ?::string
-            and "consumed_at" is null
-        order by
-            "created_at" asc
-        limit 1 offset 0
-    )
-    and "consumed_at" is null
-returning "id", "headers", "type", "content_type", "body"::bytea
-SQL
+        $data = $this->runner->execute(
+            <<<SQL
+            UPDATE "message_broker"
+            SET
+                "consumed_at" = now()
+            WHERE
+                "id" IN (
+                    SELECT "id"
+                    FROM "message_broker"
+                    WHERE
+                        "queue" = ?::string
+                        AND "consumed_at" is null
+                    ORDER BY
+                        "created_at" ASC
+                    LIMIT 1 OFFSET 0
+                )
+                AND "consumed_at" IS NULL
+            RETURNING
+                "id",
+                "headers",
+                "type",
+                "content_type",
+                "body"::bytea
+            SQL
        , [$this->queue])->fetch();
 
        if ($data) {
@@ -133,12 +140,13 @@ SQL
     {
         $data = $this->serializer->encode($envelope);
 
-        $this->runner->execute(<<<SQL
-insert into "message_broker"
-    (id, queue, headers, type, content_type, body)
-values
-    (?::uuid, ?::string, ?::json, ?, ?, ?::bytea)
-SQL
+        $this->runner->execute(
+            <<<SQL
+            INSERT INTO "message_broker"
+                (id, queue, headers, type, content_type, body)
+            VALUES
+                (?::uuid, ?::string, ?::json, ?, ?, ?::bytea)
+            SQL
            , [
                Uuid::uuid4(),
                $this->queue,
