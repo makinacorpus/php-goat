@@ -27,14 +27,12 @@ use Symfony\Component\Messenger\Stamp\HandledStamp;
  */
 abstract class AbstractDirectDispatcher extends AbstractDispatcher
 {
-    /** @var HandlersLocatorInterface */
-    private $handlersLocator;
+    private HandlersLocatorInterface $handlersLocator;
 
-    /**
-     * Default constructor
-     */
     public function __construct(HandlersLocatorInterface $handlersLocator)
     {
+        parent::__construct();
+
         $this->handlersLocator = $handlersLocator;
     }
 

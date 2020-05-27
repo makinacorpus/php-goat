@@ -94,7 +94,6 @@ SQL
                         ->decode($data)
                         ->with(new TransportMessageIdStamp($data['id']))
                 ];
-
             } catch (\Throwable $e) {
                 $this->markAsFailed((string)$data['id']);
 

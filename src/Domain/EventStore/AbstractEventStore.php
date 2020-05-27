@@ -14,17 +14,10 @@ abstract class AbstractEventStore implements EventStore
 {
     use DebuggableTrait;
 
-    /** @var NameMap */
-    private $nameMap;
-
-    /** @var NamespaceMap */
-    private $namespaceMap;
-
-    /** @var SerializerInterface */
-    private $serializer;
-
-    /** @var null|string */
-    private $serializerFormat;
+    private NameMap $nameMap;
+    private NamespaceMap $namespaceMap;
+    private SerializerInterface $serializer;
+    private ?string $serializerFormat = null;
 
     public function __construct()
     {

@@ -24,22 +24,39 @@ abstract class AbstractRepositoryTest extends DatabaseAwareQueryTest
      */
     protected function createTestData(Runner $runner, ?string $schema): void
     {
-        $runner->execute("
-            create table some_entity (
-                id serial primary key,
-                id_user integer default null,
-                status integer default 1,
-                foo integer not null,
+        $runner->execute(
+            <<<SQL
+            DROP TABLE IF EXISTS some_entity
+            SQL
+        );
+
+        $runner->execute(
+            <<<SQL
+            CREATE TABLE some_entity (
+                id serial PRIMARY KEY,
+                id_user integer DEFAULT NULL,
+                status integer DEFAULT 1,
+                foo integer NOT NULL,
                 bar varchar(255),
-                baz timestamp not null
+                baz timestamp NOT NULL
             )
-        ");
-        $runner->execute("
-            create table users (
-                id integer primary key,
+            SQL
+        );
+
+        $runner->execute(
+            <<<SQL
+            DROP TABLE IF EXISTS users
+            SQL
+        );
+
+        $runner->execute(
+            <<<SQL
+            CREATE TABLE users (
+                id integer PRIMARY KEY,
                 name varchar(255)
             )
-        ");
+            SQL
+        );
 
         $runner
             ->getQueryBuilder()

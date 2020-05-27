@@ -30,6 +30,19 @@ interface Message
 }
 
 /**
+ * Message can be retried in case of failure.
+ *
+ * Set this interface on messages that you know for sure failures are due to
+ * context, such as transactions or (un)availability of an third party.
+ *
+ * When then fail, those messages will be re-queued and re-dispatched later
+ * no matter which kind of exception they raise.
+ */
+interface RetryableMessage
+{
+}
+
+/**
  * Event is a message that advertise a state change: it happened.
  * It can be consumed by any number of consummers, it should not
  * trigger system state changes, it may or may be not consummed.
@@ -275,9 +288,9 @@ final class BrokenMessage implements Message
  */
 final class MessageEnvelope
 {
-    private $asynchronous = false;
-    private $message;
-    private $properties = [];
+    private bool $asynchronous = false;
+    private array $properties = [];
+    private object $message;
 
     /**
      * Default constructor
@@ -308,7 +321,10 @@ final class MessageEnvelope
 
         $ret = new self;
         $ret->message = $message;
-        $ret->properties = $properties;
+
+        foreach ($properties as $key => $value) {
+            $ret->properties[$key] = (string)$value;
+        }
 
         return $ret;
     }
@@ -318,10 +334,21 @@ final class MessageEnvelope
      */
     public function withProperties(array $properties): self
     {
+        $ret = clone $this;
+
         foreach ($properties as $key => $value) {
-            $this->properties[$key] = $value;
+            $ret->properties[$key] = (string)$value;
         }
-        return $this;
+
+        return $ret;
+    }
+
+    /**
+     * Get property value.
+     */
+    public function getProperty(string $name, ?string $default = null): ?string
+    {
+        return $this->properties[$name] ?? $default;
     }
 
     /**
@@ -352,11 +379,9 @@ final class MessageEnvelope
     }
 
     /**
-     * Get internal message
-     *
-     * @return object
+     * Get internal message.
      */
-    public function getMessage()
+    public function getMessage(): object
     {
         return $this->message;
     }

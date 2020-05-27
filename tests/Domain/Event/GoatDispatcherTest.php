@@ -6,18 +6,21 @@ namespace Goat\Domain\Tests\Event;
 
 use Goat\Domain\Event\MessageEnvelope;
 use Goat\Domain\EventStore\Event;
+use Goat\Domain\Event\Error\DispatcherError;
 use Goat\Domain\Tests\EventStore\AbstractEventStoreTest;
-use Goat\Runner\Runner;
+use Goat\Runner\Testing\TestDriverFactory;
 use Symfony\Component\Messenger\Envelope;
 
 final class GoatDispatcherTest extends AbstractEventStoreTest
 {
     /**
-     * @dataProvider getRunners
+     * @dataProvider runnerDataProvider
      */
-    public function testStoreOnSuccessInTransaction(Runner $runner)
+    public function testStoreOnSuccessInTransaction(TestDriverFactory $factory)
     {
-        $eventStore = $this->createEventStore($runner);
+        $runner = $factory->getRunner();
+
+        $eventStore = $this->createEventStore($runner, $factory->getSchema());
 
         $dispatcher = new MockDispatcher(
             function (MessageEnvelope $message) {
@@ -30,24 +33,26 @@ final class GoatDispatcherTest extends AbstractEventStoreTest
         $dispatcher->setEventStore($eventStore);
 
         $id = $this->createUuid();
-        $this->assertNull($this->findLastEventOf($eventStore, $id));
+        self::assertNull($this->findLastEventOf($eventStore, $id));
 
         $dispatcher->process(new MockMessage($id));
 
-        $this->assertCount(1, $this->findEventOf($eventStore, $id));
-        $this->assertInstanceOf(Event::class, $event = $this->findLastEventOf($eventStore, $id));
-        $this->assertFalse($event->hasFailed());
-        $this->assertNull($event->getErrorCode());
-        $this->assertNull($event->getErrorMessage());
-        $this->assertNull($event->getErrorTrace());
+        self::assertCount(1, $this->findEventOf($eventStore, $id));
+        self::assertInstanceOf(Event::class, $event = $this->findLastEventOf($eventStore, $id));
+        self::assertFalse($event->hasFailed());
+        self::assertNull($event->getErrorCode());
+        self::assertNull($event->getErrorMessage());
+        self::assertNull($event->getErrorTrace());
     }
 
     /**
-     * @dataProvider getRunners
+     * @dataProvider runnerDataProvider
      */
-    public function testStoreOnSuccess(Runner $runner)
+    public function testStoreOnSuccess(TestDriverFactory $factory)
     {
-        $eventStore = $this->createEventStore($runner);
+        $runner = $factory->getRunner();
+
+        $eventStore = $this->createEventStore($runner, $factory->getSchema());
 
         $dispatcher = new MockDispatcher(
             function (MessageEnvelope $message) {
@@ -60,24 +65,26 @@ final class GoatDispatcherTest extends AbstractEventStoreTest
         $dispatcher->setEventStore($eventStore);
 
         $id = $this->createUuid();
-        $this->assertNull($this->findLastEventOf($eventStore, $id));
+        self::assertNull($this->findLastEventOf($eventStore, $id));
 
         $dispatcher->process(new MockMessage($id));
 
-        $this->assertCount(1, $this->findEventOf($eventStore, $id));
-        $this->assertInstanceOf(Event::class, $event = $this->findLastEventOf($eventStore, $id));
-        $this->assertFalse($event->hasFailed());
-        $this->assertNull($event->getErrorCode());
-        $this->assertNull($event->getErrorMessage());
-        $this->assertNull($event->getErrorTrace());
+        self::assertCount(1, $this->findEventOf($eventStore, $id));
+        self::assertInstanceOf(Event::class, $event = $this->findLastEventOf($eventStore, $id));
+        self::assertFalse($event->hasFailed());
+        self::assertNull($event->getErrorCode());
+        self::assertNull($event->getErrorMessage());
+        self::assertNull($event->getErrorTrace());
     }
 
     /**
-     * @dataProvider getRunners
+     * @dataProvider runnerDataProvider
      */
-    public function testStoreWithErrorInTransaction(Runner $runner)
+    public function testStoreWithErrorInTransaction(TestDriverFactory $factory)
     {
-        $eventStore = $this->createEventStore($runner);
+        $runner = $factory->getRunner();
+
+        $eventStore = $this->createEventStore($runner, $factory->getSchema());
 
         $dispatcher = new MockDispatcher(
             function (MessageEnvelope $message) {
@@ -90,35 +97,29 @@ final class GoatDispatcherTest extends AbstractEventStoreTest
         $dispatcher->setEventStore($eventStore);
 
         $id = $this->createUuid();
-        $this->assertNull($this->findLastEventOf($eventStore, $id));
+        self::assertNull($this->findLastEventOf($eventStore, $id));
 
         try {
             $dispatcher->process(new MockMessage($id));
-            $this->fail("Exceptions must be re-thrown");
-        } catch (\Exception $e) {
-            $this->assertCount(1, $this->findEventOf($eventStore, $id));
-            $this->assertInstanceOf(Event::class, $event = $this->findLastEventOf($eventStore, $id));
-            $this->assertTrue($event->hasFailed());
-            $this->assertSame(12, $event->getErrorCode());
-            $this->assertSame("This is a failure", $event->getErrorMessage());
-            $this->assertNotEmpty($event->getErrorTrace());
+            self::fail("Exceptions must be re-thrown");
+        } catch (DispatcherError $e) {
+            self::assertCount(1, $this->findEventOf($eventStore, $id));
+            self::assertInstanceOf(Event::class, $event = $this->findLastEventOf($eventStore, $id));
+            self::assertTrue($event->hasFailed());
+            self::assertSame(12, $event->getErrorCode());
+            self::assertSame("This is a failure", $event->getErrorMessage());
+            self::assertNotEmpty($event->getErrorTrace());
         }
     }
 
     /**
-     * @dataProvider getRunners
+     * @dataProvider runnerDataProvider
      */
-    public function testStoreWithErrorInTransactionWithFailedRollback(Runner $runner)
+    public function testStoreWithError(TestDriverFactory $factory)
     {
-        $this->markTestIncomplete("One must mock the goat transaction handler");
-    }
+        $runner = $factory->getRunner();
 
-    /**
-     * @dataProvider getRunners
-     */
-    public function testStoreWithError(Runner $runner)
-    {
-        $eventStore = $this->createEventStore($runner);
+        $eventStore = $this->createEventStore($runner, $factory->getSchema());
 
         $dispatcher = new MockDispatcher(
             function (MessageEnvelope $message) {
@@ -131,18 +132,18 @@ final class GoatDispatcherTest extends AbstractEventStoreTest
         $dispatcher->setEventStore($eventStore);
 
         $id = $this->createUuid();
-        $this->assertNull($this->findLastEventOf($eventStore, $id));
+        self::assertNull($this->findLastEventOf($eventStore, $id));
 
         try {
             $dispatcher->process(new MockMessage($id));
-            $this->fail("Exceptions must be re-thrown");
+            self::fail("Exceptions must be re-thrown");
         } catch (\Exception $e) {
-            $this->assertCount(1, $this->findEventOf($eventStore, $id));
-            $this->assertInstanceOf(Event::class, $event = $this->findLastEventOf($eventStore, $id));
-            $this->assertTrue($event->hasFailed());
-            $this->assertSame(12, $event->getErrorCode());
-            $this->assertSame("This is a failure", $event->getErrorMessage());
-            $this->assertNotEmpty($event->getErrorTrace());
+            self::assertCount(1, $this->findEventOf($eventStore, $id));
+            self::assertInstanceOf(Event::class, $event = $this->findLastEventOf($eventStore, $id));
+            self::assertTrue($event->hasFailed());
+            self::assertSame(12, $event->getErrorCode());
+            self::assertSame("This is a failure", $event->getErrorMessage());
+            self::assertNotEmpty($event->getErrorTrace());
         }
     }
 }

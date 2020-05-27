@@ -7,34 +7,27 @@ namespace Goat\Domain\Event;
 use Goat\Domain\DebuggableTrait;
 use Goat\Domain\EventStore\Event;
 use Goat\Domain\EventStore\EventStore;
+use Goat\Domain\Event\Error\DispatcherError;
+use Goat\Domain\Event\Error\DispatcherRetryableError;
 use Goat\Domain\Projector\ProjectorRegistry;
 use Goat\Domain\Service\LockService;
+use Goat\Query\QueryError;
 use Psr\Log\NullLogger;
 
 abstract class AbstractDispatcher implements Dispatcher
 {
     use DebuggableTrait;
 
-    /** @var int */
-    private static $commandCount = 0;
+    private static int $commandCount = 0;
 
-    /** @var null|EventStore */
-    private $eventStore;
+    private ?EventStore $eventStore = null;
+    private ?DispatcherTransaction $transaction = null;
+    private ?ProjectorRegistry $projectorRegistry = null;
+    private ?LockService $lockService = null;
+    private iterable $transactionHandlers = [];
+    private bool $transactionHandlersSet = false;
 
-    /** @var null|DispatcherTransaction */
-    private $transaction;
-
-    /** @var null|ProjectorRegistry */
-    private $projectorRegistry;
-
-    /** @var TransactionHandler[] */
-    private $transactionHandlers = [];
-
-    /** @var bool */
-    private $transactionHandlersSet = false;
-
-    /** @var null|LockService */
-    private $lockService;
+    private int $confRetryMax = 4;
 
     public function __construct()
     {
@@ -101,6 +94,37 @@ abstract class AbstractDispatcher implements Dispatcher
     }
 
     /**
+     * Requeue message if possible.
+     *
+     * Envelope contains all retry-related properties.
+     */
+    protected function doRequeue(MessageEnvelope $envelope): void
+    {
+    }
+
+    /**
+     * Requeue message if possible.
+     */
+    private function requeue(MessageEnvelope $envelope): void
+    {
+        $count = (int)$envelope->getProperty(Event::PROP_RETRY_COUNT, "0");
+        $delay = (int)$envelope->getProperty(Event::PROP_RETRY_MAX, "100");
+        $max = (int)$envelope->getProperty(Event::PROP_RETRY_MAX, (string)$this->confRetryMax);
+
+        if ($count >= $max) {
+            // @todo cannot proceed.
+            return;
+        }
+
+        // Arbitrary delai. Yes, very arbitrary.
+        $this->doRequeue($envelope->withProperties([
+            Event::PROP_RETRY_COUNT => $count + 1,
+            Event::PROP_RETRY_MAX => $max,
+            Event::PROP_RETRY_DELAI => $delay * ($count + 1),
+        ]));
+    }
+
+    /**
      * Process
      */
     abstract protected function doSynchronousProcess(MessageEnvelope $envelope): void;
@@ -110,13 +134,15 @@ abstract class AbstractDispatcher implements Dispatcher
      */
     private function handleProjectors(Event $event): void
     {
-        foreach ($this->projectorRegistry->getEnabled() as $projector) {
-            try {
-                $this->logger->debug("Projector {projector} BEGIN PROCESS message", ['projector' => \get_class($projector), 'message' => $event->getMessage()]);
-                $projector->onEvent($event);
-                $this->logger->debug("Projector {projector} END PROCESS message", ['projector' => \get_class($projector), 'message' => $event->getMessage()]);
-            } catch (\Throwable $e) {
-                $this->logger->error("Projector {projector} FAIL", ['projector' => \get_class($projector), 'exception' => $e]);
+        if ($this->projectorRegistry) {
+            foreach ($this->projectorRegistry->getEnabled() as $projector) {
+                try {
+                    $this->logger->debug("Projector {projector} BEGIN PROCESS message", ['projector' => \get_class($projector), 'message' => $event->getMessage()]);
+                    $projector->onEvent($event);
+                    $this->logger->debug("Projector {projector} END PROCESS message", ['projector' => \get_class($projector), 'message' => $event->getMessage()]);
+                } catch (\Throwable $e) {
+                    $this->logger->error("Projector {projector} FAIL", ['projector' => \get_class($projector), 'exception' => $e]);
+                }
             }
         }
     }
@@ -153,14 +179,34 @@ abstract class AbstractDispatcher implements Dispatcher
      */
     private function synchronousProcess(MessageEnvelope $envelope): void
     {
-        if ($this->lockService) {
-            $message = $envelope->getMessage();
-            if ($message instanceof UnparallelizableMessage) {
-                $this->processWithLock($envelope, $message->getUniqueIntIdentifier());
-                return;
+        try {
+            if ($this->lockService) {
+                $message = $envelope->getMessage();
+                if ($message instanceof UnparallelizableMessage) {
+                    $this->processWithLock($envelope, $message->getUniqueIntIdentifier());
+                    return;
+                }
             }
+            $this->doSynchronousProcess($envelope);
+        } catch (DispatcherError $e) {
+            // This should not happen, but the handler might already have
+            // specialized the exception, just rethrow it.
+            $this->logger->warning("Failure is already specialized as a dispatcher error.", ['exception' => $e]);
+            throw $e;
+        } catch (QueryError $e) {
+            // Error is related to database transaction, just mark it for
+            // re-queue.
+            $this->logger->debug("Failure is retryable (from exception).", ['exception' => $e]);
+            throw DispatcherRetryableError::fromException($e);
+        } catch (\Throwable $e) {
+            // Generic error, attempt to specialize exception by reading
+            // message type information.
+            if ($envelope->getMessage() instanceof RetryableMessage) {
+                $this->logger->debug("Failure is retryable (from message).", ['exception' => $e]);
+                throw DispatcherRetryableError::fromException($e);
+            }
+            throw DispatcherError::fromException($e);
         }
-        $this->doSynchronousProcess($envelope);
     }
 
     /**
@@ -256,7 +302,13 @@ abstract class AbstractDispatcher implements Dispatcher
                 // during rollback, case in which we still need to store event
                 // no matter what happens.
                 if ($exception) {
-                    $this->storeEventWithError($envelope, $exception);
+                    // Attempt requeue of message, in case of error.
+                    if ($exception instanceof DispatcherRetryableError) {
+                        $this->requeue($envelope);
+                        $this->storeEventWithError($envelope->withProperties([Event::PROP_RETRY_COUNT => "0"]), $exception);
+                    } else {
+                        $this->storeEventWithError($envelope, $exception);
+                    }
                 } else {
                     $this->storeEvent($envelope);
                 }

@@ -81,11 +81,11 @@ SQL
      *
      * Override this for your own event store.
      */
-    protected function createEventStore(Runner $runner): EventStore
+    protected function createEventStore(Runner $runner, string $schema): EventStore
     {
-        $this->prepare($runner);
+        $this->createTestSchema($runner);
 
-        $store = new GoatEventStore($runner);
+        $store = new GoatEventStore($runner, $schema);
         $store->setSerializer($this->createSerializer());
 
         return $store;

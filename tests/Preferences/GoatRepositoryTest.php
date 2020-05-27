@@ -26,8 +26,8 @@ final class GoatRepositoryTest extends DatabaseAwareQueryTest
      */
     protected function getRepositories(): iterable
     {
-        foreach ($this->getRunners() as $data) {
-            yield new GoatPreferencesRepository(\reset($data));
+        foreach ($this->runnerDataProvider() as $args) {
+            yield new GoatPreferencesRepository(\reset($args)->getRunner());
         }
     }
 }

@@ -9,11 +9,8 @@ use Symfony\Component\Messenger\Handler\HandlersLocatorInterface;
 
 final class DefaultDispatcher extends AbstractDirectDispatcher
 {
-    /** @var MessageBusInterface */
-    private $asyncBus;
-
-    /** @var MessageBusInterface */
-    private $eventBus;
+    private MessageBusInterface $asyncBus;
+    private MessageBusInterface $eventBus;
 
     /**
      * Default constructor

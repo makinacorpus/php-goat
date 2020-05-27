@@ -6,35 +6,64 @@ namespace Goat\Domain\Tests\Event;
 
 use Goat\Domain\Event\AbstractDispatcher;
 use Goat\Domain\Event\MessageEnvelope;
-use Symfony\Component\Messenger\Envelope;
 
 class MockDispatcher extends AbstractDispatcher
 {
+    /** @var callable */
     private $asyncProcessCallback;
+    /** @var callable */
     private $processCallback;
+    /** @var null|callable */
+    private $requeueCallback;
 
     /**
      * Default constructor
      */
-    public function __construct(callable $processCallback, callable $asyncProcessCallback)
-    {
+    public function __construct(
+        callable $processCallback,
+        callable $asyncProcessCallback,
+        ?callable $requeueCallback = null
+    ) {
+        parent::__construct();
+
         $this->asyncProcessCallback = $asyncProcessCallback;
         $this->processCallback = $processCallback;
+        $this->requeueCallback = $requeueCallback;
+    }
+
+    /**
+     * Requeue message if possible.
+     *
+     * Envelope contains all retry-related properties.
+     */
+    protected function doRequeue(MessageEnvelope $envelope): void
+    {
+        if ($this->requeueCallback) {
+            \call_user_func($this->requeueCallback, $envelope);
+        }
     }
 
     /**
      * {@inheritdoc}
      */
-    protected function doSynchronousProcess(MessageEnvelope $envelope): Envelope
+    protected function doSynchronousProcess(MessageEnvelope $envelope): void
     {
-        return \call_user_func($this->processCallback, $envelope);
+        \call_user_func($this->processCallback, $envelope);
     }
 
     /**
      * {@inheritdoc}
      */
-    protected function doAsynchronousDispatch(MessageEnvelope $envelope): Envelope
+    protected function doAsynchronousCommandDispatch(MessageEnvelope $envelope): void
     {
-        return \call_user_func($this->asyncProcessCallback, $envelope);
+        \call_user_func($this->asyncProcessCallback, $envelope);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    protected function doAsynchronousEventDispatch(MessageEnvelope $envelope): void
+    {
+        \call_user_func($this->asyncProcessCallback, $envelope);
     }
 }

@@ -16,7 +16,10 @@ final class Event
 {
     const DEFAULT_CONTENT_ENCODING = 'UTF-8';
     const DEFAULT_CONTENT_TYPE = 'application/json';
+
+    const TYPE_DEFAULT = 'none';
     const NAMESPACE_DEFAULT = 'default';
+
     const PROP_APP_ID = 'app-id';
     const PROP_CONTENT_ENCODING = 'content-encoding';
     const PROP_CONTENT_TYPE = 'content-type';
@@ -25,7 +28,15 @@ final class Event
     const PROP_REPLY_TO = 'reply-to';
     const PROP_SUBJECT = 'subject';
     const PROP_USER_ID = 'user-id';
-    const TYPE_DEFAULT = 'none';
+
+    /** Current number of retry count. */
+    const PROP_RETRY_COUNT = 'x-retry-count';
+
+    /** Retry after at least <VALUE> milliseconds. */
+    const PROP_RETRY_DELAI = 'x-retry-delai';
+
+    /** Maximum number of retries (AMQP would use a TTL instead). */
+    const PROP_RETRY_MAX = 'x-retry-max';
 
     private $aggregateId;
     private $aggregateRoot;
@@ -316,11 +327,19 @@ final class Event
     }
 
     /**
-     * Get single property value if exists
+     * Get property value.
      */
-    public function getProperty(string $name): ?string
+    public function getProperty(string $name, ?string $default = null): ?string
     {
-        return $this->properties[$name] ?? null;
+        return $this->properties[$name] ?? $default;
+    }
+
+    /**
+     * Does the given property is set
+     */
+    public function hasProperty(string $name): bool
+    {
+        return isset($this->properties[$name]);
     }
 
     /**

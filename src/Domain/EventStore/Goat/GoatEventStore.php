@@ -32,6 +32,8 @@ final class GoatEventStore extends AbstractEventStore
      */
     public function __construct(Runner $runner, string $schema = 'public')
     {
+        parent::__construct();
+
         $this->indexTable = 'event_index';
         $this->runner = $runner;
         $this->schema = $schema;
