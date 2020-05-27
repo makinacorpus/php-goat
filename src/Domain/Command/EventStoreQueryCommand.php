@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Goat\Domain\Command;
 
-use Goat\Domain\EventStore\Event;
 use Goat\Domain\EventStore\EventStore;
+use Goat\Domain\EventStore\Property;
 use Goat\Domain\EventStore\Exchange\EventExporter;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\Table;
@@ -41,7 +41,7 @@ final class EventStoreQueryCommand extends Command
             ->addOption('aggregate-type', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'Aggregate type(s)')
             ->addOption('all', null, InputOption::VALUE_NONE, 'Include all event, including failed ones, superseed --all')
             ->addOption('failed', null, InputOption::VALUE_NONE, 'Display only rollbacked events, excluded when not specified')
-            ->addOption('namespace', null, InputOption::VALUE_REQUIRED, 'Query a single namespace', Event::NAMESPACE_DEFAULT)
+            ->addOption('namespace', null, InputOption::VALUE_REQUIRED, 'Query a single namespace', Property::DEFAULT_NAMESPACE)
             ->addOption('output-format', null, InputOption::VALUE_REQUIRED, "Outputs result with the given format, use 'binary' for later import")
             ->addOption('reverse', null, InputOption::VALUE_NONE, 'Query in descending order, all other filters will be reversed as well')
             ->addOption('start-date', null, InputOption::VALUE_REQUIRED, 'Start at given date/time, can be any string that new DateTime("...") will understand')
@@ -104,8 +104,8 @@ final class EventStoreQueryCommand extends Command
         $aggregateType = $input->getOption('aggregate-type');
 
         $namespace = $input->getOption('namespace');
-        if (Event::NAMESPACE_DEFAULT !== $namespace) {
-            $output->writeln('<comment>--namespace option is not supported yet, falling back to default</comment>');
+        if (Property::DEFAULT_NAMESPACE !== $namespace) {
+            $output->writeln('<comment>--namespaceNAMESPACE_ option is not supported yet, falling back to default</comment>');
         }
 
         $dateStart = $this->normalizeDate($input, $output, "start-date");

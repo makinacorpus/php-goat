@@ -7,6 +7,7 @@ namespace Goat\Domain\Event;
 use Goat\Domain\DebuggableTrait;
 use Goat\Domain\EventStore\Event;
 use Goat\Domain\EventStore\EventStore;
+use Goat\Domain\EventStore\Property;
 use Goat\Domain\Event\Error\DispatcherError;
 use Goat\Domain\Event\Error\DispatcherRetryableError;
 use Goat\Domain\Projector\ProjectorRegistry;
@@ -107,20 +108,19 @@ abstract class AbstractDispatcher implements Dispatcher
      */
     private function requeue(MessageEnvelope $envelope): void
     {
-        $count = (int)$envelope->getProperty(Event::PROP_RETRY_COUNT, "0");
-        $delay = (int)$envelope->getProperty(Event::PROP_RETRY_MAX, "100");
-        $max = (int)$envelope->getProperty(Event::PROP_RETRY_MAX, (string)$this->confRetryMax);
+        $count = (int)$envelope->getProperty(Property::RETRY_COUNT, "0");
+        $delay = (int)$envelope->getProperty(Property::RETRY_MAX, "100");
+        $max = (int)$envelope->getProperty(Property::RETRY_MAX, (string)$this->confRetryMax);
 
         if ($count >= $max) {
-            // @todo cannot proceed.
             return;
         }
 
         // Arbitrary delai. Yes, very arbitrary.
         $this->doRequeue($envelope->withProperties([
-            Event::PROP_RETRY_COUNT => $count + 1,
-            Event::PROP_RETRY_MAX => $max,
-            Event::PROP_RETRY_DELAI => $delay * ($count + 1),
+            Property::RETRY_COUNT => $count + 1,
+            Property::RETRY_MAX => $max,
+            Property::RETRY_DELAI => $delay * ($count + 1),
         ]));
     }
 
@@ -305,7 +305,7 @@ abstract class AbstractDispatcher implements Dispatcher
                     // Attempt requeue of message, in case of error.
                     if ($exception instanceof DispatcherRetryableError) {
                         $this->requeue($envelope);
-                        $this->storeEventWithError($envelope->withProperties([Event::PROP_RETRY_COUNT => "0"]), $exception);
+                        $this->storeEventWithError($envelope->withProperties([Property::RETRY_COUNT => "0"]), $exception);
                     } else {
                         $this->storeEventWithError($envelope, $exception);
                     }

@@ -6,6 +6,7 @@ namespace Goat\Domain\Event;
 
 use Goat\Domain\EventStore\DefaultNameMap;
 use Goat\Domain\EventStore\NameMap;
+use Goat\Domain\EventStore\Property;
 use MakinaCorpus\AMQP\Patterns\PatternFactory;
 use MakinaCorpus\AMQP\Patterns\Publisher;
 use MakinaCorpus\AMQP\Patterns\Routing\DefaultRouteMap;
@@ -107,7 +108,7 @@ final class AmqpDispatcher extends AbstractDirectDispatcher
         $route = $this->routingMap->getRouteFor($name);
         $contentType = $route->getContentType();
 
-        $properties = $envelope->getAmqpProperties();
+        $properties = Property::toAmqpProperties($envelope->getProperties());
         $properties['type'] = $name;
         $properties['content_type'] = $contentType;
 

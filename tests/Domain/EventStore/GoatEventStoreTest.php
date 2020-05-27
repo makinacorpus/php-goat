@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Goat\Domain\Tests\EventStore;
 
 use Goat\Domain\EventStore\Event;
+use Goat\Domain\EventStore\Property;
 use Goat\Runner\Testing\TestDriverFactory;
 
 final class GoatDispatcherTest extends AbstractEventStoreTest
@@ -33,7 +34,7 @@ final class GoatDispatcherTest extends AbstractEventStoreTest
             $this->assertSame('some_type', $event->getAggregateType());
 
             $this->assertSame('application/json', $event->getMessageContentType());
-            $this->assertSame(MockMessage1::class, $event->getProperty(Event::PROP_MESSAGE_TYPE));
+            $this->assertSame(MockMessage1::class, $event->getProperty(Property::MESSAGE_TYPE));
 
             $loadedMessage = $event->getMessage();
             \assert($loadedMessage instanceof MockMessage1);

@@ -14,44 +14,111 @@ use Ramsey\Uuid\UuidInterface;
  */
 final class Event
 {
+    use WithPropertiesTrait;
+
+    /**
+     * @deprecated
+     * @see Property
+     */
     const DEFAULT_CONTENT_ENCODING = 'UTF-8';
+
+    /**
+     * @deprecated
+     * @see Property
+     */
     const DEFAULT_CONTENT_TYPE = 'application/json';
 
+    /**
+     * @deprecated
+     * @see Property
+     */
     const TYPE_DEFAULT = 'none';
+
+    /**
+     * @deprecated
+     * @see Property
+     */
     const NAMESPACE_DEFAULT = 'default';
 
+    /**
+     * @deprecated
+     * @see Property
+     */
     const PROP_APP_ID = 'app-id';
+
+    /**
+     * @deprecated
+     * @see Property
+     */
     const PROP_CONTENT_ENCODING = 'content-encoding';
+
+    /**
+     * @deprecated
+     * @see Property
+     */
     const PROP_CONTENT_TYPE = 'content-type';
+
+    /**
+     * @deprecated
+     * @see Property
+     */
     const PROP_MESSAGE_ID = 'message-id';
+
+    /**
+     * @deprecated
+     * @see Property
+     */
     const PROP_MESSAGE_TYPE = 'type';
+
+    /**
+     * @deprecated
+     * @see Property
+     */
     const PROP_REPLY_TO = 'reply-to';
+
+    /**
+     * @deprecated
+     * @see Property
+     */
     const PROP_SUBJECT = 'subject';
+
+    /**
+     * @deprecated
+     * @see Property
+     */
     const PROP_USER_ID = 'user-id';
 
-    /** Current number of retry count. */
+    /**
+     * @deprecated
+     * @see Property
+     */
     const PROP_RETRY_COUNT = 'x-retry-count';
 
-    /** Retry after at least <VALUE> milliseconds. */
+    /**
+     * @deprecated
+     * @see Property
+     */
     const PROP_RETRY_DELAI = 'x-retry-delai';
 
-    /** Maximum number of retries (AMQP would use a TTL instead). */
+    /**
+     * @deprecated
+     * @see Property
+     */
     const PROP_RETRY_MAX = 'x-retry-max';
 
-    private $aggregateId;
-    private $aggregateRoot;
-    private $aggregateType;
-    private $createdAt;
+    private ?UuidInterface $aggregateId = null;
+    private ?UuidInterface $aggregateRoot = null;
+    private ?string $aggregateType = null;
+    private ?\DateTimeInterface $createdAt = null;
     private $data;
-    private $errorCode;
-    private $errorMessage;
-    private $errorTrace;
-    private $hasFailed = false;
-    private $name;
-    private $namespace;
-    private $position = 0;
-    private $properties = [];
-    private $revision = 0;
+    private ?int $errorCode = null;
+    private ?string $errorMessage = null;
+    private ?string $errorTrace = null;
+    private bool $hasFailed = false;
+    private string $name;
+    private ?string $namespace = null;
+    private int $position = 0;
+    private int $revision = 0;
 
     /**
      * Normalize name to a camel cased method name
@@ -80,96 +147,6 @@ final class Event
         }
         $ret->data = $message;
         $ret->name = $name ?? \get_class($message);
-
-        return $ret;
-    }
-
-    /**
-     * Convert custom properties to AMQP properties.
-     */
-    public static function toAmqpProperties(array $properties): array
-    {
-        $ret = [];
-
-        foreach ($properties as $key => $value) {
-            switch ($key) {
-
-                case self::PROP_APP_ID:
-                case self::PROP_CONTENT_ENCODING:
-                case self::PROP_CONTENT_TYPE:
-                case self::PROP_MESSAGE_ID:
-                case self::PROP_MESSAGE_TYPE:
-                case self::PROP_REPLY_TO:
-                case self::PROP_SUBJECT:
-                case self::PROP_USER_ID:
-                    $ret[\str_replace('-', '_', $key)] = $value;
-                    break;
-
-                // @todo should we handle those?
-                //   They've been copied from php-amqplib.
-                case 'delivery_mode':
-                case 'priority':
-                case 'correlation_id':
-                case 'expiration':
-                case 'timestamp':
-                case 'cluster_id':
-                    $ret[$key] = $key;
-                    break;
-
-                default:
-                    $ret['application_headers'][$key] = $value;
-                    break;
-            }
-        }
-
-        return $ret;
-    }
-
-    /**
-     * convert AMQP properties to custom properties.
-     */
-    public static function fromAmqpProperties(array $properties): array
-    {
-        $ret = [];
-
-        foreach ($properties as $key => $value) {
-            switch ($key) {
-
-                case 'app_id':
-                case 'content_encoding':
-                case 'content_type':
-                case 'message_id':
-                case 'type':
-                case 'reply_to':
-                case 'subject':
-                case 'user_id':
-                    $ret[\str_replace('_', '-', $key)] = $value;
-                    break;
-
-                case 'application_headers':
-                    if (\is_array($value)) {
-                        foreach ($value as $name => $headerValue) {
-                            $ret[$name] = $headerValue;
-                        }
-                    }
-                    break;
-
-                // @todo should we handle those?
-                //   They've been copied from php-amqplib.
-                case 'delivery_mode':
-                case 'priority':
-                case 'correlation_id':
-                case 'expiration':
-                case 'timestamp':
-                case 'cluster_id':
-                    $ret[$key] = $key;
-                    break;
-
-                default:
-                    $ret[$key] = $value;
-                    break;
-            }
-        }
 
         return $ret;
     }
@@ -255,54 +232,6 @@ final class Event
     }
 
     /**
-     * Get message identifier property
-     */
-    public function getMessageId(): ?string
-    {
-        return $this->getProperty(self::PROP_MESSAGE_ID);
-    }
-
-    /**
-     * Get application identifier property
-     */
-    public function getMessageAppId(): ?string
-    {
-        return $this->getProperty(self::PROP_APP_ID);
-    }
-
-    /**
-     * Get the content encoding property
-     */
-    public function getMessageContentEncoding(): ?string
-    {
-        return $this->getProperty(self::PROP_CONTENT_ENCODING) ?? self::DEFAULT_CONTENT_ENCODING;
-    }
-
-    /**
-     * Get the content type property
-     */
-    public function getMessageContentType(): ?string
-    {
-        return $this->getProperty(self::PROP_CONTENT_TYPE) ?? self::DEFAULT_CONTENT_TYPE;
-    }
-
-    /**
-     * Get the subject property
-     */
-    public function getMessageSubject(): ?string
-    {
-        return $this->getProperty(self::PROP_SUBJECT);
-    }
-
-    /**
-     * Get the user identifier property
-     */
-    public function getMessageUserId(): ?string
-    {
-        return $this->getProperty(self::PROP_USER_ID);
-    }
-
-    /**
      * In case of failure, get error code
      */
     public function getErrorCode(): ?int
@@ -324,30 +253,6 @@ final class Event
     public function getErrorTrace(): ?string
     {
         return $this->errorTrace;
-    }
-
-    /**
-     * Get property value.
-     */
-    public function getProperty(string $name, ?string $default = null): ?string
-    {
-        return $this->properties[$name] ?? $default;
-    }
-
-    /**
-     * Does the given property is set
-     */
-    public function hasProperty(string $name): bool
-    {
-        return isset($this->properties[$name]);
-    }
-
-    /**
-     * Get properties
-     */
-    public function getProperties(): array
-    {
-        return $this->properties;
     }
 
     /**

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Goat\Domain\EventStore\Exchange;
 
-use Goat\Domain\EventStore\Event;
 use Goat\Domain\EventStore\EventStream;
+use Goat\Domain\EventStore\Property;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Serializer\Encoder\XmlEncoder;
 
@@ -32,7 +32,7 @@ final class EventExporter
     public function exportAs(EventStream $stream, $fileOrResource, ?string $format = null, bool $breakOnInvalidEvent = true)
     {
         $wasResource = false;
-        $format = $format ?? Event::DEFAULT_CONTENT_TYPE;
+        $format = $format ?? Property::DEFAULT_CONTENT_TYPE;
         $handle = null;
 
         if (\is_resource($fileOrResource)) {

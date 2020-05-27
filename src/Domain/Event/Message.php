@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Goat\Domain\Event;
 
-use Goat\Domain\EventStore\Event as StoredEvent;
 use Ramsey\Uuid\Uuid;
 use Ramsey\Uuid\UuidInterface;
 
@@ -248,10 +247,8 @@ final class BrokenMessage implements Message
     /**
      * Default constructor
      */
-    public function __construct(
-        ?string $aggregateType = null, ?UuidInterface $aggregateId = null,
-        $data = null, ?string $dataClass = null
-    ) {
+    public function __construct(?string $aggregateType = null, ?UuidInterface $aggregateId = null, $data = null, ?string $dataClass = null)
+    {
         $this->aggregateId = $aggregateId;
         $this->aggregateType = $aggregateType;
         $this->data = $data;
@@ -280,109 +277,5 @@ final class BrokenMessage implements Message
     public function getOriginalDataClass(): ?string
     {
         return $this->dataClass;
-    }
-}
-
-/**
- * Default event implementation, just extend this class.
- */
-final class MessageEnvelope
-{
-    private bool $asynchronous = false;
-    private array $properties = [];
-    private object $message;
-
-    /**
-     * Default constructor
-     */
-    private function __construct()
-    {
-    }
-
-    /**
-     * Create instance from message
-     */
-    public static function wrap($message, array $properties = [])
-    {
-        if (!\is_object($message)) {
-            throw new \TypeError(sprintf('Invalid argument provided to "%s()": expected object, but got %s.', __METHOD__, \gettype($message)));
-        }
-
-        if ($message instanceof self) {
-            if (!$message->hasProperty(StoredEvent::PROP_MESSAGE_ID)) {
-                $properties[StoredEvent::PROP_MESSAGE_ID] = (string)Uuid::uuid4();
-            }
-            return $message->withProperties($properties);
-        }
-
-        if (!isset($properties[StoredEvent::PROP_MESSAGE_ID])) {
-            $properties[StoredEvent::PROP_MESSAGE_ID] = (string)Uuid::uuid4();
-        }
-
-        $ret = new self;
-        $ret->message = $message;
-
-        foreach ($properties as $key => $value) {
-            $ret->properties[$key] = (string)$value;
-        }
-
-        return $ret;
-    }
-
-    /**
-     * Override properties
-     */
-    public function withProperties(array $properties): self
-    {
-        $ret = clone $this;
-
-        foreach ($properties as $key => $value) {
-            $ret->properties[$key] = (string)$value;
-        }
-
-        return $ret;
-    }
-
-    /**
-     * Get property value.
-     */
-    public function getProperty(string $name, ?string $default = null): ?string
-    {
-        return $this->properties[$name] ?? $default;
-    }
-
-    /**
-     * Does the given property is set
-     */
-    public function hasProperty(string $name): bool
-    {
-        return isset($this->properties[$name]);
-    }
-
-    /**
-     * Get properties
-     */
-    public function getProperties(): array
-    {
-        return $this->properties;
-    }
-
-    /**
-     * Get properties compatible with AMQP
-     */
-    public function getAmqpProperties(): array
-    {
-        if ($this->properties) {
-            return StoredEvent::toAmqpProperties($this->properties);
-        }
-        return [];
-    }
-
-    /**
-     * Get internal message.
-     */
-    public function getMessage(): object
-    {
-        return $this->message;
     }
 }

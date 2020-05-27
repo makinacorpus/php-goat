@@ -62,14 +62,14 @@ abstract class AbstractEventStore implements EventStore
         $message = $event->getMessage();
 
         if (\is_object($message)) {
-            $properties[Event::PROP_CONTENT_TYPE] = $this->getSerializationFormat();
-            if (empty($properties[Event::PROP_MESSAGE_TYPE])) {
-                $properties[Event::PROP_MESSAGE_TYPE] =  \get_class($message);
+            $properties[Property::CONTENT_TYPE] = $this->getSerializationFormat();
+            if (empty($properties[Property::MESSAGE_TYPE])) {
+                $properties[Property::MESSAGE_TYPE] =  \get_class($message);
             }
         } else {
-            $properties[Event::PROP_CONTENT_TYPE] = 'text/plain';
-            if (empty($properties[Event::PROP_MESSAGE_TYPE])) {
-                $properties[Event::PROP_MESSAGE_TYPE] =  \gettype($message);
+            $properties[Property::CONTENT_TYPE] = 'text/plain';
+            if (empty($properties[Property::MESSAGE_TYPE])) {
+                $properties[Property::MESSAGE_TYPE] =  \gettype($message);
             }
         }
 
@@ -98,7 +98,7 @@ abstract class AbstractEventStore implements EventStore
     {
         $defaultFormat = $this->getSerializationFormat();
 
-        if ('string' === ($properties[Event::PROP_CONTENT_TYPE] ?? $defaultFormat)) {
+        if ('string' === ($properties[Property::CONTENT_TYPE] ?? $defaultFormat)) {
             // @todo denormalize scalar values using PROP_MESSAGE_TYPE
             //   as PHP native type to denormalize.
             return $data;
@@ -106,9 +106,9 @@ abstract class AbstractEventStore implements EventStore
 
         return $this->serializer->deserialize(
             \is_resource($data) ? \stream_get_contents($data) : $data,
-            $properties[Event::PROP_MESSAGE_TYPE] ?? $eventName,
+            $properties[Property::MESSAGE_TYPE] ?? $eventName,
             $this->mimetypeToSerializer(
-                $properties[Event::PROP_CONTENT_TYPE] ?? $defaultFormat
+                $properties[Property::CONTENT_TYPE] ?? $defaultFormat
             )
         );
     }
@@ -180,7 +180,7 @@ abstract class AbstractEventStore implements EventStore
      */
     final protected function getSerializationFormat(): string
     {
-        return $this->serializerFormat ?? Event::DEFAULT_CONTENT_TYPE;
+        return $this->serializerFormat ?? Property::DEFAULT_CONTENT_TYPE;
     }
 
     /**

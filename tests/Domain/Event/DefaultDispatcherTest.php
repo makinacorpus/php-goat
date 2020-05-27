@@ -6,6 +6,7 @@ namespace Goat\Domain\Tests\Event;
 
 use Goat\Domain\Event\MessageEnvelope;
 use Goat\Domain\EventStore\Event;
+use Goat\Domain\EventStore\Property;
 use Goat\Domain\Event\Error\DispatcherError;
 use Goat\Domain\Event\Error\DispatcherRetryableError;
 use Goat\Domain\Tests\EventStore\AbstractEventStoreTest;
@@ -71,9 +72,9 @@ final class DefaultDispatcherTest extends AbstractEventStoreTest
         \assert($envelope instanceof MessageEnvelope);
 
         self::assertSame($sentMessage, $envelope->getMessage());
-        self::assertSame("1", $envelope->getProperty(Event::PROP_RETRY_COUNT));
-        self::assertSame("100", $envelope->getProperty(Event::PROP_RETRY_DELAI));
-        self::assertSame("4", $envelope->getProperty(Event::PROP_RETRY_MAX));
+        self::assertSame("1", $envelope->getProperty(Property::RETRY_COUNT));
+        self::assertSame("100", $envelope->getProperty(Property::RETRY_DELAI));
+        self::assertSame("4", $envelope->getProperty(Property::RETRY_MAX));
     }
 
     public function testProcessAttempsRetryOnRetryableMessage(): void
@@ -101,9 +102,9 @@ final class DefaultDispatcherTest extends AbstractEventStoreTest
         \assert($envelope instanceof MessageEnvelope);
 
         self::assertSame($sentMessage, $envelope->getMessage());
-        self::assertSame("1", $envelope->getProperty(Event::PROP_RETRY_COUNT));
-        self::assertSame("100", $envelope->getProperty(Event::PROP_RETRY_DELAI));
-        self::assertSame("4", $envelope->getProperty(Event::PROP_RETRY_MAX));
+        self::assertSame("1", $envelope->getProperty(Property::RETRY_COUNT));
+        self::assertSame("100", $envelope->getProperty(Property::RETRY_DELAI));
+        self::assertSame("4", $envelope->getProperty(Property::RETRY_MAX));
     }
 
     public function testProcessDoesNotAttemptRetryWhenMaxReached(): void
@@ -119,8 +120,8 @@ final class DefaultDispatcherTest extends AbstractEventStoreTest
         );
 
         $sentEnvelope = MessageEnvelope::wrap(new MockRetryableMessage(), [
-            Event::PROP_RETRY_MAX => 4,
-            Event::PROP_RETRY_COUNT => 4,
+            Property::RETRY_MAX => 4,
+            Property::RETRY_COUNT => 4,
         ]);
 
         try {
@@ -160,9 +161,9 @@ final class DefaultDispatcherTest extends AbstractEventStoreTest
         \assert($envelope instanceof Event);
 
         self::assertSame($sentMessage, $envelope->getMessage());
-        self::assertTrue($envelope->hasProperty(Event::PROP_RETRY_COUNT));
-        self::assertSame("0", $envelope->getProperty(Event::PROP_RETRY_COUNT));
-        self::assertFalse($envelope->hasProperty(Event::PROP_RETRY_DELAI));
-        self::assertFalse($envelope->hasProperty(Event::PROP_RETRY_MAX));
+        self::assertTrue($envelope->hasProperty(Property::RETRY_COUNT));
+        self::assertSame("0", $envelope->getProperty(Property::RETRY_COUNT));
+        self::assertFalse($envelope->hasProperty(Property::RETRY_DELAI));
+        self::assertFalse($envelope->hasProperty(Property::RETRY_MAX));
     }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Goat\Domain\Event;
 
+use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Messenger\Handler\HandlersLocatorInterface;
 

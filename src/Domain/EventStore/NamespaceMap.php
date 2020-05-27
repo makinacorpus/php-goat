@@ -28,6 +28,6 @@ final class NamespaceMap
      */
     public function getNamespace(string $aggregateType): string
     {
-        return $this->map[$aggregateType] ?? Event::NAMESPACE_DEFAULT;
+        return $this->map[$aggregateType] ?? Property::DEFAULT_NAMESPACE;
     }
 }
