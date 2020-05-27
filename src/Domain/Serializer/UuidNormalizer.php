@@ -53,6 +53,10 @@ final class UuidNormalizer implements NormalizerInterface, DenormalizerInterface
      */
     public function denormalize($data, $class, $format = null, array $context = [])
     {
+        if ('' === $data || null === $data) {
+            return null;
+        }
+
         return Uuid::fromString($data);
     }
 }
