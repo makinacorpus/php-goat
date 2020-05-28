@@ -84,12 +84,12 @@ abstract class AbstractDispatcher implements Dispatcher
     final protected function startTransaction(): Transaction
     {
         if ($this->isTransactionRunning()) {
-            $this->logger->debug("Dispatcher transaction SKIP already running");
+            $this->logger->debug("Dispatcher TRANSACTION SKIP (already running)");
 
             return $this->transaction;
         }
 
-        $this->logger->debug("Dispatcher transaction START");
+        $this->logger->debug("Dispatcher TRANSACTION START");
 
         return $this->transaction = new DispatcherTransaction($this->transactionHandlers);
     }
@@ -101,6 +101,7 @@ abstract class AbstractDispatcher implements Dispatcher
      */
     protected function doRequeue(MessageEnvelope $envelope): void
     {
+        $this->logger->warning("Dispatcher re-queue is not implemented, skipping retry");
     }
 
     /**
@@ -306,10 +307,13 @@ abstract class AbstractDispatcher implements Dispatcher
                     if ($exception instanceof DispatcherRetryableError) {
                         try {
                             $this->requeue($envelope);
+                        } catch (\Throwable $e) {
+                            $this->logger->error("Dispatcher re-queue FAIL", ['exception' => $e]);
                         } finally {
                             // Same explaination as just upper, the requeue call
                             // could raise exceptions, and hide ours, we MUST
                             // store the event, or we will lose history.
+                            $this->logger->debug("Dispatcher re-queue storing event with retry information");
                             $this->storeEventWithError($envelope->withProperties([Property::RETRY_COUNT => "0"]), $exception);
                         }
                     } else {
