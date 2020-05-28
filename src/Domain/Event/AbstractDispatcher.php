@@ -19,6 +19,9 @@ abstract class AbstractDispatcher implements Dispatcher
 {
     use DebuggableTrait;
 
+    const PROP_DURATION = 'x-goat-duration';
+    const PROP_TIME_START = 'x-goat-time-start';
+
     private static int $commandCount = 0;
 
     private ?EventStore $eventStore = null;
@@ -33,6 +36,14 @@ abstract class AbstractDispatcher implements Dispatcher
     public function __construct()
     {
         $this->logger = new NullLogger();
+    }
+
+    /**
+     * Convert nano seconds to milliseconds and round the result.
+     */
+    protected static function nsecToMsec(float $nsec): int
+    {
+        return (int) ($nsec / 1e+6);
     }
 
     /**
@@ -249,6 +260,14 @@ abstract class AbstractDispatcher implements Dispatcher
      */
     private function doStoreEventWith(MessageEnvelope $envelope, bool $success = true, array $extra = []): void
     {
+        if ($envelope->hasProperty(self::PROP_TIME_START)) {
+            $start = (int)$envelope->getProperty(self::PROP_TIME_START);
+            $envelope = $envelope->withProperties([
+                self::PROP_TIME_START => null,
+                self::PROP_DURATION => self::nsecToMsec(\hrtime(true) - $start) . ' ms',
+            ]);
+        }
+
         if ($this->eventStore) {
             $id = $type = null;
             if (($message = $envelope->getMessage()) instanceof Message) {
@@ -424,7 +443,8 @@ abstract class AbstractDispatcher implements Dispatcher
         try {
             $this->logger->debug("Dispatcher BEGIN ({id}) PROCESS message", ['id' => $id, 'message' => $message, 'properties' => $properties]);
 
-            $envelope = MessageEnvelope::wrap($message);
+            $properties[self::PROP_TIME_START] = \hrtime(true);
+            $envelope = MessageEnvelope::wrap($message, $properties);
 
             if ($withTransaction) {
                 $this->processInTransaction($envelope);
