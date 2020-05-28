@@ -49,7 +49,11 @@ final class MessageEnvelope
         $ret->message = $message;
 
         foreach ($properties as $key => $value) {
-            $ret->properties[$key] = (string)$value;
+            if (null === $value || '' === $value) {
+                unset($ret->properties[$key]);
+            } else {
+                $ret->properties[$key] = (string)$value;
+            }
         }
 
         return $ret;
@@ -63,7 +67,11 @@ final class MessageEnvelope
         $ret = clone $this;
 
         foreach ($properties as $key => $value) {
-            $ret->properties[$key] = (string)$value;
+            if (null === $value || '' === $value) {
+                unset($ret->properties[$key]);
+            } else {
+                $ret->properties[$key] = (string)$value;
+            }
         }
 
         return $ret;

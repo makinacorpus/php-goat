@@ -32,6 +32,14 @@ final class DefaultDispatcher extends AbstractDirectDispatcher
     /**
      * {@inheritdoc}
      */
+    protected function doReject(MessageEnvelope $envelope): void
+    {
+        $this->messageBroker->reject($envelope);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     protected function doAsynchronousCommandDispatch(MessageEnvelope $envelope): void
     {
         $this->messageBroker->dispatch($envelope);

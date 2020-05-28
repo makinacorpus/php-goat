@@ -127,24 +127,49 @@ abstract class AbstractDispatcher implements Dispatcher
 
     /**
      * Requeue message if possible.
+     *
+     * Returns the updated envelope in case headers were changed.
      */
-    private function requeue(MessageEnvelope $envelope): void
+    private function requeue(MessageEnvelope $envelope): MessageEnvelope
     {
         $count = (int)$envelope->getProperty(Property::RETRY_COUNT, "0");
         $delay = (int)$envelope->getProperty(Property::RETRY_MAX, "100");
         $max = (int)$envelope->getProperty(Property::RETRY_MAX, (string)$this->confRetryMax);
 
         if ($count >= $max) {
-            $this->doReject($envelope);
-            return;
+            return $this->doReject($envelope);
         }
 
-        // Arbitrary delai. Yes, very arbitrary.
-        $this->doRequeue($envelope->withProperties([
+        $envelope = $envelope->withProperties([
             Property::RETRY_COUNT => $count + 1,
             Property::RETRY_MAX => $max,
             Property::RETRY_DELAI => $delay * ($count + 1),
-        ]));
+        ]);
+
+        // Arbitrary delai. Yes, very arbitrary.
+        $this->doRequeue($envelope);
+
+        return $envelope;
+    }
+
+    /**
+     * Reject message.
+     *
+     * Returns the updated envelope in case headers were changed.
+     */
+    private function reject(MessageEnvelope $envelope): MessageEnvelope
+    {
+        // Rest all routing information, so that the broker will not take
+        // those into account if some were remaining.
+        $envelope = $envelope->withProperties([
+            Property::RETRY_COUNT => null,
+            Property::RETRY_MAX => null,
+            Property::RETRY_DELAI => null,
+        ]);
+
+        $this->doReject($envelope);
+
+        return $envelope;
     }
 
     /**
@@ -311,19 +336,20 @@ abstract class AbstractDispatcher implements Dispatcher
                 // no matter what happens.
                 if ($exception) {
                     // Attempt requeue of message, in case of error.
-                    if ($exception instanceof DispatcherRetryableError) {
-                        try {
-                            $this->requeue($envelope);
-                        } catch (\Throwable $e) {
-                            $this->logger->error("Dispatcher re-queue FAIL", ['exception' => $e]);
-                        } finally {
-                            // Same explaination as just upper, the requeue call
-                            // could raise exceptions, and hide ours, we MUST
-                            // store the event, or we will lose history.
-                            $this->logger->debug("Dispatcher re-queue storing event with retry information");
-                            $this->storeEventWithError($envelope->withProperties([Property::RETRY_COUNT => "0"]), $exception);
+                    try {
+                        if ($exception instanceof DispatcherRetryableError) {
+                            $envelope = $this->requeue($envelope);
+                            $this->logger->debug("Dispatcher requeue");
+                        } else {
+                            $envelope = $this->reject($envelope);
+                            $this->logger->debug("Dispatcher reject");
                         }
-                    } else {
+                    } catch (\Throwable $e) {
+                        $this->logger->error("Dispatcher re-queue FAIL", ['exception' => $e]);
+                    } finally {
+                        // Same explaination as just upper, the requeue call
+                        // could raise exceptions, and hide ours, we MUST
+                        // store the event, or we will lose history.
                         $this->storeEventWithError($envelope, $exception);
                     }
                 } else {

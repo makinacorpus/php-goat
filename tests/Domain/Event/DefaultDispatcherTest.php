@@ -162,8 +162,8 @@ final class DefaultDispatcherTest extends AbstractEventStoreTest
 
         self::assertSame($sentMessage, $envelope->getMessage());
         self::assertTrue($envelope->hasProperty(Property::RETRY_COUNT));
-        self::assertSame("0", $envelope->getProperty(Property::RETRY_COUNT));
-        self::assertFalse($envelope->hasProperty(Property::RETRY_DELAI));
-        self::assertFalse($envelope->hasProperty(Property::RETRY_MAX));
+        self::assertSame("1", $envelope->getProperty(Property::RETRY_COUNT));
+        self::assertTrue($envelope->hasProperty(Property::RETRY_DELAI));
+        self::assertTrue($envelope->hasProperty(Property::RETRY_MAX));
     }
 }
