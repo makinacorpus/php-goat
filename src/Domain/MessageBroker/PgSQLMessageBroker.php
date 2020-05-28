@@ -99,7 +99,8 @@ final class PgSQLMessageBroker implements MessageBroker, LoggerAwareInterface
                 // For symfony/messenger compatibility.
                 $data['headers']['Content-Type'] = $contentType;
 
-                // For debugging purpose mostly.
+                // Set some other meta information into the envelope for users.
+                $data['headers'][Property::MESSAGE_ID] = $data['id']->toString();
                 $data['headers']['x-serial'] = (string)$data['serial'];
 
                 if ($contentType && $type) {

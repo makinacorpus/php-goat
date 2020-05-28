@@ -81,7 +81,7 @@ final class MessageBrokerTransport implements TransportInterface
     {
         return Envelope::wrap(
             $this->keepCustomEnvelope ? $envelope : $envelope->getMessage(),
-            $this->toSymfonyStamps($envelope)
+            self::toSymfonyStamps($envelope)
         );
     }
 
@@ -92,7 +92,7 @@ final class MessageBrokerTransport implements TransportInterface
     {
         return MessageEnvelope::wrap(
             $envelope->getMessage(),
-            $this->fromSymfonyStamps($envelope->all())
+            self::fromSymfonyStamps(...$envelope->all())
         );
     }
 
@@ -102,7 +102,7 @@ final class MessageBrokerTransport implements TransportInterface
      * @todo Actually symfony/messenger stamps can have duplicates.
      *   I don't know how to solve this.
      */
-    private function toSymfonyStamps(MessageEnvelope $envelope): array
+    public static function toSymfonyStamps(MessageEnvelope $envelope): array
     {
         $ret = [];
 
@@ -194,7 +194,7 @@ final class MessageBrokerTransport implements TransportInterface
      * @todo Actually symfony/messenger stamps can have duplicates.
      *   I don't know how to solve this.
      */
-    private function fromSymfonyStamps(StampInterface ... $stamps): array
+    public static function fromSymfonyStamps(StampInterface ... $stamps): array
     {
         $ret = [];
 

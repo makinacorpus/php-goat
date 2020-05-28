@@ -9,3 +9,8 @@ services:
         public: false
         arguments: ["@goat.domain.dispatcher", "@serializer", "@goat.domain.name_map"]
         tags: ["console.command"]
+
+    Goat\Domain\Command\MessageBrokerFixV2Command:
+        public: false
+        arguments: ["@goat.runner.default", "@serializer", "@goat.domain.name_map"]
+        tags: ["console.command"]
