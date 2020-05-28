@@ -102,8 +102,6 @@ final class PgSQLMessageBroker implements MessageBroker, LoggerAwareInterface
                     // Content type in database is authoritative.
                     $contentType = $data['headers'][Property::CONTENT_TYPE] =  $data['content_type'];
                 }
-                // For symfony/messenger compatibility.
-                $data['headers']['Content-Type'] = $contentType;
 
                 // Restore necessary properties on which we are authoritative.
                 $data['headers'][Property::MESSAGE_ID] = $data['id']->toString();
