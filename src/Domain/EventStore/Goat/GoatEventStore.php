@@ -114,7 +114,10 @@ final class GoatEventStore extends AbstractEventStore
     }
 
     /**
-     * Store event and return the updated instance (clone of the previous)
+     * Store event and return the updated instance (clone of the previous).
+     *
+     * This whole method could be speed up by writing a nice stored procedure
+     * for it, it would fit right here. We have 2 queries at best, 3 at worst.
      */
     protected function doStore(Event $event): Event
     {
@@ -133,53 +136,69 @@ final class GoatEventStore extends AbstractEventStore
         $transaction = null;
 
         try {
-            // REPEATABLE_READ transaction level allows for fantom read, for our
-            // business the only risk is that 2 concurrent process will try to
-            // create a new revision for the same aggregate at the exact same
-            // time: this would lead to one of the transactions failing.
-            // It's probabilistically a very low risk, and it cannot possibly
-            // lead to incoherent data in database: worst case scenario is that
-            // the user will experience a single error and will be able to retry.
-            $transaction = $this->runner->beginTransaction(Transaction::REPEATABLE_READ);
+            // REPEATABLE READ transaction level turns out to be extra-isolated
+            // in PostgreSQL, whereas it is level 3 of transaction isolation,
+            // it is the legacy implementation of level 4 SERIALIZABLE, which
+            // is today even more precautionous with data.
+            //
+            // The only real risk we have here, is to end up with more than one
+            // transactions at once inserting revisions for the same business
+            // object, in a scenario were you would have multiple bus consumers
+            // in parallel for example.
+            //
+            // To avoid crashes, the only viable solution we have is:
+            //
+            //   1. SELECT ... FOR UPDATE to really be sure at least one
+            //      transaction will force the others to wait for the other
+            //      until it finishes,
+            //
+            //   2. implement a retry algorithm at the dispatcher level to
+            //      replay the failed transaction.
+            //
+            // Considering this, any malfunction leading to incoherent data is
+            // is impossible in this scenario at the application level.
 
-            $revision = ((int)$builder
+            $transaction = $this
+                ->runner
+                ->beginTransaction(Transaction::REPEATABLE_READ)
+            ;
+
+            $exists = (bool)$builder
                 ->select($eventRelation)
-                ->columnExpression('max(revision)')
+                ->columnExpression('true')
                 ->where('aggregate_id', $aggregateId)
+                ->forUpdate()
                 ->execute()
                 ->fetchField()
-            ) + 1;
+            ;
+
+            $revisionQuery = $builder
+                ->select($eventRelation)
+                ->columnExpression('COALESCE(max(revision) + 1, 1)')
+                ->where('aggregate_id', $aggregateId)
+            ;
 
             // Ensure item exists in database, any revision identifier that
             // goes over 1 tells us that the item already exists, since there
             // are database constraints that enforces it.
-            if (1 === $revision) {
-
-                $exists = (bool)$builder
-                    ->select($indexRelation)
-                    ->columnExpression("true")
-                    ->where('aggregate_id', $aggregateId)
+            if (!$exists) {
+                $builder
+                    ->merge($indexRelation)
+                    ->setKey(['aggregate_id'])
+                    ->onConflictIgnore()
+                    ->values([
+                        'aggregate_id' => $aggregateId,
+                        'aggregate_root' => $event->getAggregateRoot(),
+                        'aggregate_type' => $aggregateType,
+                        'created_at' => $createdAt,
+                        'namespace' => $namespace,
+                    ])
                     ->execute()
-                    ->fetchField()
                 ;
-
-                if (!$exists) {
-                    $builder
-                        ->insertValues($indexRelation)
-                        ->values([
-                            'aggregate_id' => $aggregateId,
-                            'aggregate_root' => $event->getAggregateRoot(),
-                            'aggregate_type' => $aggregateType,
-                            'created_at' => $createdAt,
-                            'namespace' => $namespace,
-                        ])
-                        ->execute()
-                    ;
-                }
             }
 
-            $position = $builder
-                ->insertValues($eventRelation)
+            $return = $builder
+                ->insert($eventRelation)
                 ->values([
                     'aggregate_id' => $aggregateId,
                     'created_at' => $createdAt,
@@ -190,12 +209,16 @@ final class GoatEventStore extends AbstractEventStore
                     'has_failed' => $event->hasFailed(),
                     'name' => $event->getName(),
                     'properties' => ExpressionValue::create($properties = $this->computeProperties($event), 'jsonb'),
-                    'revision' => $revision,
+                    'revision' => $revisionQuery,
                 ])
                 ->returning('position')
+                ->returning('revision')
                 ->execute()
-                ->fetchField()
+                ->fetch()
             ;
+
+            $position = $return['position'];
+            $revision = $return['revision'];
 
             $transaction->commit();
 

@@ -63,7 +63,7 @@
         "php" : ">=7.2",
         "psr/log": "^1.0",
         "ramsey/uuid": "^3.8 || ^4",
-        "makinacorpus/goat-query": "^2.1.0"
+        "makinacorpus/goat-query": "^2.1.1"
     },
     "suggest" : {
         "doctrine/dbal": "For query builder usage over a Doctrine PDO connection",
