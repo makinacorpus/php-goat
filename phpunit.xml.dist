@@ -10,6 +10,9 @@
     convertWarningsToExceptions="true"
 >
     <testsuites>
+        <testsuite name="BridgeSymfony">
+            <directory>./tests/Bridge/Symfony</directory>
+        </testsuite>
         <testsuite name="Domain">
             <directory>./tests/Domain</directory>
         </testsuite>

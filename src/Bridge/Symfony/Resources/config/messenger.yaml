@@ -2,7 +2,5 @@ services:
 
     Goat\Bridge\Symfony\Messenger\Transport\PgSQLTransportFactory:
         public: false
-        arguments: ["@goat.runner.default", "?@logger", "%kernel.debug%", "%kernel.environment%"]
-        tags: 
-            - { name: "monolog.logger", channel: "goat_dispatcher" }
-            - { name: "messenger.transport_factory" }
+        arguments: ["@goat.domain.message_broker"]
+        tags: [{ name: "messenger.transport_factory" }]

@@ -8,9 +8,7 @@ services:
         public: false
         class: Goat\Domain\Event\DefaultDispatcher
         arguments: ['@messenger.bus.sync.messenger.handlers_locator', '@messenger.bus.sync', '@messenger.bus.async']
-        tags:
-            - { name: "container.hot_path" }
-            - { name: "monolog.logger", channel: "goat_dispatcher" }
+        tags: [{ name: "monolog.logger", channel: "goat_dispatcher" }]
 
     goat.domain.dispatcher_middleware:
         public: false
@@ -21,9 +19,7 @@ services:
         public: false
         class: Goat\Domain\Event\GoatTransactionHandler
         arguments: ['@goat.runner.default']
-        tags:
-            - { name: "goat.domain.transaction_handler" }
-            - { name: "container.hot_path" }
+        tags: [{ name: "goat.domain.transaction_handler" }]
 
     Goat\Domain\Event\Dispatcher:
         public: true

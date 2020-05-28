@@ -1,9 +1,35 @@
 services:
 
-    # @todo autoconfigure this from user configuration
+    # @todo
+    #   - Autoconfigure this from user configuration
     goat.domain.event_store.namespace_map:
         public: false
         class: Goat\Domain\EventStore\NamespaceMap
+
+    # By arbitrarily injecting the message broker here, we loose the messenger
+    # configuration and routing flexibility: we cannot have multiple queues
+    # and multiple transports in parallel. But nevertheless, as of today, we
+    # do not need it, so let's just force a single bus/queue interface.
+    # You also cannot choose the SQL connection, this will come later.
+    # 'default' in name refers to the queue, not the service being the default.
+    # @todo
+    #    - As said below, later implement a registry for allow more than one
+    #      service to co-exist, one for each queue.
+    goat.domain.message_broker.default:
+        public: false
+        class: Goat\Domain\MessageBroker\PgSQLMessageBroker
+        arguments: ["@goat.runner.default", "%kernel.debug%"]
+        tags: [{ name: "monolog.logger", channel: "goat_dispatcher" }]
+
+    # Give a generic identifier for message broker.
+    # @todo
+    #   - Later allow a registry as facade, for allowing more than one to
+    #     exists and fetch them on a per-queue basis.
+    goat.domain.message_broker:
+        alias: goat.domain.message_broker.default
+
+    Goat\Domain\MessageBroker\MessageBroker:
+        alias: goat.domain.message_broker
 
     goat.domain.event_store:
         public: false

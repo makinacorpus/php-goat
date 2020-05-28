@@ -2,29 +2,21 @@
 
 namespace Goat\Bridge\Symfony\Messenger\Transport;
 
-use Goat\Domain\MessageBroker\PgSQLMessageBroker;
-use Goat\Runner\Runner;
+use Goat\Domain\MessageBroker\MessageBroker;
 use Symfony\Component\Messenger\Transport\TransportFactoryInterface;
 use Symfony\Component\Messenger\Transport\TransportInterface;
 use Symfony\Component\Messenger\Transport\Serialization\SerializerInterface as MessengerSerializer;
-use Symfony\Component\Serializer\SerializerInterface;
 
 final class PgSQLTransportFactory implements TransportFactoryInterface
 {
-    private bool $debug;
-    private string $environment;
-    private Runner $runner;
-    private SerializerInterface $serializer;
+    private MessageBroker $messageBroker;
 
     /**
      * Default constructor
      */
-    public function __construct(Runner $runner, SerializerInterface $serializer, bool $debug = false, ?string $environment = null)
+    public function __construct(MessageBroker $messageBroker)
     {
-        $this->debug = (bool)$debug;
-        $this->environment = $environment;
-        $this->runner = $runner;
-        $this->serializer = $serializer;
+        $this->messageBroker = $messageBroker;
     }
 
     /**
@@ -36,14 +28,9 @@ final class PgSQLTransportFactory implements TransportFactoryInterface
         //   This will completely ignore messenger configuration, such as DSN
         //   and other stuff like that, moreover, it also will completely ignore
         //   the messenger own serializer (which we do NOT want to use anyway).
-        return new MessageBrokerTransport(
-            new PgSQLMessageBroker(
-                $this->runner,
-                $this->serializer,
-                $options,
-                $this->debug
-            )
-        );
+        // @todo
+        //   Allow controlling the $keepCustomEnvelope using $options config.
+        return new MessageBrokerTransport($this->messageBroker, $options);
     }
 
     /**

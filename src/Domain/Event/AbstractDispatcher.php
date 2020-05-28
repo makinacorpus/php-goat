@@ -104,6 +104,21 @@ abstract class AbstractDispatcher implements Dispatcher
     }
 
     /**
+     * Process.
+     */
+    abstract protected function doSynchronousProcess(MessageEnvelope $envelope): void;
+
+    /**
+     * Send in bus
+     */
+    abstract protected function doAsynchronousCommandDispatch(MessageEnvelope $envelope): void;
+
+    /**
+     * Send in bus
+     */
+    abstract protected function doAsynchronousEventDispatch(MessageEnvelope $envelope): void;
+
+    /**
      * Requeue message if possible.
      */
     private function requeue(MessageEnvelope $envelope): void
@@ -125,11 +140,6 @@ abstract class AbstractDispatcher implements Dispatcher
     }
 
     /**
-     * Process
-     */
-    abstract protected function doSynchronousProcess(MessageEnvelope $envelope): void;
-
-    /**
      * Handle Projectors
      */
     private function handleProjectors(Event $event): void
@@ -146,16 +156,6 @@ abstract class AbstractDispatcher implements Dispatcher
             }
         }
     }
-
-    /**
-     * Send in bus
-     */
-    abstract protected function doAsynchronousCommandDispatch(MessageEnvelope $envelope): void;
-
-    /**
-     * Send in bus
-     */
-    abstract protected function doAsynchronousEventDispatch(MessageEnvelope $envelope): void;
 
     /**
      * Process message with a semaphore
@@ -231,7 +231,7 @@ abstract class AbstractDispatcher implements Dispatcher
     /**
      * Normalize exception trace
      */
-    private function normalizeExceptionTrace(\Throwable $exception)
+    private function normalizeExceptionTrace(\Throwable $exception): string
     {
         $output = '';
         do {
@@ -258,7 +258,7 @@ abstract class AbstractDispatcher implements Dispatcher
     }
 
     /**
-     * Store event
+     * Store event.
      */
     private function storeEvent(MessageEnvelope $envelope): void
     {
@@ -266,7 +266,7 @@ abstract class AbstractDispatcher implements Dispatcher
     }
 
     /**
-     * Process synchronously with a transaction
+     * Process synchronously with a transaction.
      */
     private function processInTransaction(MessageEnvelope $envelope): void
     {
@@ -304,8 +304,14 @@ abstract class AbstractDispatcher implements Dispatcher
                 if ($exception) {
                     // Attempt requeue of message, in case of error.
                     if ($exception instanceof DispatcherRetryableError) {
-                        $this->requeue($envelope);
-                        $this->storeEventWithError($envelope->withProperties([Property::RETRY_COUNT => "0"]), $exception);
+                        try {
+                            $this->requeue($envelope);
+                        } finally {
+                            // Same explaination as just upper, the requeue call
+                            // could raise exceptions, and hide ours, we MUST
+                            // store the event, or we will lose history.
+                            $this->storeEventWithError($envelope->withProperties([Property::RETRY_COUNT => "0"]), $exception);
+                        }
                     } else {
                         $this->storeEventWithError($envelope, $exception);
                     }
@@ -317,7 +323,7 @@ abstract class AbstractDispatcher implements Dispatcher
     }
 
     /**
-     * Process without transaction, in most case this means send an asynchronous message
+     * Process without transaction, in most case this means send an asynchronous message.
      */
     private function processWithoutTransaction(MessageEnvelope $envelope): void
     {
