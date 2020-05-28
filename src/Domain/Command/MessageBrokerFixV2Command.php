@@ -176,7 +176,7 @@ final class MessageBrokerFixV2Command extends Command
         if ($object instanceof Envelope) {
             // Messenger did a complete serialization of the object, which
             // seems to have happened always. Deal with this.
-            $headers = MessageBrokerTransport::fromSymfonyStamps(...$object->all());
+            $headers = MessageBrokerTransport::fromSymfonyStamps($object->all());
             if ($headers) {
                 foreach ($headers as $key => $value) {
                     // @todo this will squash our own in case of conflict,
