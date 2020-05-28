@@ -20,6 +20,8 @@ final class PgSQLMessageBroker implements MessageBroker, LoggerAwareInterface
 {
     use LoggerAwareTrait;
 
+    const PROP_SERIAL = 'x-serial';
+
     private bool $debug = false;
     private string $contentType;
     private string $queue;
@@ -56,7 +58,8 @@ final class PgSQLMessageBroker implements MessageBroker, LoggerAwareInterface
                         FROM "message_broker"
                         WHERE
                             "queue" = ?::string
-                            AND "consumed_at" is null
+                            AND "consumed_at" IS NULL
+                            AND ("retry_at" IS NULL OR "retry_at" <= current_timestamp)
                         ORDER BY
                             "serial" ASC
                         LIMIT 1 OFFSET 0
@@ -68,7 +71,8 @@ final class PgSQLMessageBroker implements MessageBroker, LoggerAwareInterface
                     "headers",
                     "type",
                     "content_type",
-                    "body"::bytea
+                    "body"::bytea,
+                    "retry_count"
                 SQL,
                 [$this->queue]
             )
@@ -76,6 +80,8 @@ final class PgSQLMessageBroker implements MessageBroker, LoggerAwareInterface
         ;
 
        if ($data) {
+            $serial = $data['serial'];
+
             try {
                 if (\is_resource($data['body'])) { // Bytea
                     $body = \stream_get_contents($data['body']);
@@ -99,9 +105,12 @@ final class PgSQLMessageBroker implements MessageBroker, LoggerAwareInterface
                 // For symfony/messenger compatibility.
                 $data['headers']['Content-Type'] = $contentType;
 
-                // Set some other meta information into the envelope for users.
+                // Restore necessary properties on which we are authoritative.
                 $data['headers'][Property::MESSAGE_ID] = $data['id']->toString();
-                $data['headers']['x-serial'] = (string)$data['serial'];
+                $data['headers'][self::PROP_SERIAL] = $serial;
+                if ($data['retry_count']) {
+                    $data['headers'][Property::RETRY_COUNT] = (string)$data['retry_count'];
+                }
 
                 if ($contentType && $type) {
                     $message = $this
@@ -133,7 +142,69 @@ final class PgSQLMessageBroker implements MessageBroker, LoggerAwareInterface
      */
     public function dispatch(MessageEnvelope $envelope): void
     {
-        $messageId = Uuid::uuid4()->toString();
+        $this->doDispatch($envelope);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function ack(MessageEnvelope $envelope): void
+    {
+        // Nothing to do, ACK was atomic in the UPDATE/RETURNING SQL query.
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function reject(MessageEnvelope $envelope): void
+    {
+        $serial = (int)$envelope->getProperty(self::PROP_SERIAL);
+
+        if ($envelope->hasProperty(Property::RETRY_COUNT)) {
+            // Having a count property means the caller did already set it,
+            // we will not increment it ourself.
+            $count = (int)$envelope->getProperty(Property::RETRY_COUNT, "0");
+            $max = (int)$envelope->getProperty(Property::RETRY_MAX, (string)4);
+
+            if ($count >= $max) {
+                if ($serial) {
+                    $this->markAsFailed($serial);
+                }
+                return; // Dead letter.
+            }
+
+            if (!$serial) {
+                // This message was not originally delivered using this bus
+                // so we cannot update an existing item in queue, create a
+                // new one instead.
+                // Note that this should be an error, it should not happen,
+                // but re-queing it ourself is much more robust.
+                $this->doDispatch($envelope, true);
+                return;
+            }
+
+            $this->markForRetry($serial, $envelope);
+            return;
+        }
+
+        if ($serial) {
+            $this->markAsFailed($serial);
+        }
+    }
+
+    /**
+     * Real implementation of dispatch.
+     */
+    private function doDispatch(MessageEnvelope $envelope, bool $keepMessageIdIfPresent = false): void
+    {
+        if ($keepMessageIdIfPresent) {
+            $messageId = $envelope->getMessageId();
+            if (!$messageId) {
+                $messageId = Uuid::uuid4()->toString();
+            }
+        } else {
+            $messageId = Uuid::uuid4()->toString();
+        }
 
         // Reset message id if there is one, for the simple and unique reason
         // that the application could arbitrary resend a message as a new
@@ -172,31 +243,37 @@ final class PgSQLMessageBroker implements MessageBroker, LoggerAwareInterface
     }
 
     /**
-     * {@inheritdoc}
+     * Mark single message for retry.
      */
-    public function ack(MessageEnvelope $envelope): void
+    private function markForRetry(int $serial, MessageEnvelope $envelope): void
     {
-        // Nothing to do, ACK was atomic in the UPDATE/RETURNING SQL query.
-    }
+        $delay = (int)$envelope->getProperty(Property::RETRY_DELAI);
+        $count = (int)$envelope->getProperty(Property::RETRY_COUNT, "0");
 
-    /**
-     * {@inheritdoc}
-     */
-    public function reject(MessageEnvelope $envelope): void
-    {
-        // @todo Handle retry here.
-
-        $messageId = $envelope->getMessageId();
-
-        if ($messageId) {
-            $this->markAsFailed($messageId);
-        }
+        $this->runner->execute(
+            <<<SQL
+            UPDATE "message_broker"
+            SET
+                "consumed_at" = null,
+                "has_failed" = true,
+                "headers" = ?::json,
+                "retry_at" = current_timestamp + interval '"{$delay}" milliseconds',
+                "retry_count" = GREATEST("retry_count" + 1, ?::int)
+            WHERE
+                "serial" = ?::int
+            SQL
+            , [
+                $envelope->getProperties(),
+                $count,
+                $serial,
+            ]
+        );
     }
 
     /**
      * Mark single message as failed.
      */
-    private function markAsFailed(string $id): void
+    private function markAsFailed(int $serial): void
     {
         $this->runner->execute(
             <<<SQL
@@ -204,9 +281,9 @@ final class PgSQLMessageBroker implements MessageBroker, LoggerAwareInterface
             SET
                 "has_failed" = true
             WHERE
-                "id" = ?
+                "serial" = ?
             SQL
-            , [$id]
+            , [$serial]
         );
     }
 }

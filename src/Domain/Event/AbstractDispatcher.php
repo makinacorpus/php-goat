@@ -96,12 +96,18 @@ abstract class AbstractDispatcher implements Dispatcher
 
     /**
      * Requeue message if possible.
-     *
-     * Envelope contains all retry-related properties.
      */
     protected function doRequeue(MessageEnvelope $envelope): void
     {
         $this->logger->warning("Dispatcher re-queue is not implemented, skipping retry");
+    }
+
+    /**
+     * Reject message.
+     */
+    protected function doReject(MessageEnvelope $envelope): void
+    {
+        $this->logger->warning("Dispatcher reject is not implemented, skipping reject");
     }
 
     /**
@@ -129,6 +135,7 @@ abstract class AbstractDispatcher implements Dispatcher
         $max = (int)$envelope->getProperty(Property::RETRY_MAX, (string)$this->confRetryMax);
 
         if ($count >= $max) {
+            $this->doReject($envelope);
             return;
         }
 

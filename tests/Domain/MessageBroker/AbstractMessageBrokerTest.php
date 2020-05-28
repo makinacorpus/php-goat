@@ -128,6 +128,109 @@ abstract class AbstractMessageBrokerTest extends DatabaseAwareQueryTest
     /**
      * @dataProvider runnerDataProvider
      */
+    public function testRejectWithRetryCountIsRequeued(TestDriverFactory $factory): void
+    {
+        $messageBroker = $this->createMessageBroker($factory->getRunner(), $factory->getSchema());
+
+        $messageBroker->dispatch(MessageEnvelope::wrap(new MockMessage()));
+
+        $originalEnvelope = $messageBroker->get();
+
+        $serial = $originalEnvelope->getProperty('x-serial');
+        self::assertNotNull($serial);
+
+        $messageBroker->reject($originalEnvelope->withProperties([
+            Property::RETRY_COUNT => "1",
+        ]));
+
+        $envelope = $messageBroker->get();
+
+        self::assertSame("1", $envelope->getProperty(Property::RETRY_COUNT));
+        self::assertSame($serial, $envelope->getProperty('x-serial'));
+        self::assertSame($originalEnvelope->getMessageId(), $envelope->getMessageId());
+    }
+
+    /**
+     * @dataProvider runnerDataProvider
+     */
+    public function testRejectWithRetryCountWithoutSerialIsRequeued(TestDriverFactory $factory): void
+    {
+        $messageBroker = $this->createMessageBroker($factory->getRunner(), $factory->getSchema());
+
+        $messageBroker->dispatch(MessageEnvelope::wrap(new MockMessage()));
+
+        $originalEnvelope = $messageBroker->get();
+
+        $serial = $originalEnvelope->getProperty('x-serial');
+        self::assertNotNull($serial);
+
+        $messageBroker->reject($originalEnvelope->withProperties([
+            Property::RETRY_COUNT => "1",
+            'x-serial' => null,
+        ]));
+
+        $envelope = $messageBroker->get();
+
+        self::assertSame("1", $envelope->getProperty(Property::RETRY_COUNT));
+        self::assertNotNull($envelope->getProperty('x-serial'));
+        self::assertNotSame($serial, $envelope->getProperty('x-serial'));
+        self::assertSame($originalEnvelope->getMessageId(), $envelope->getMessageId());
+    }
+
+    /**
+     * @dataProvider runnerDataProvider
+     */
+    public function testRejectWithRetryDelayInFarFutureIsNotGetRightNow(TestDriverFactory $factory): void
+    {
+        $messageBroker = $this->createMessageBroker($factory->getRunner(), $factory->getSchema());
+
+        $messageBroker->dispatch(MessageEnvelope::wrap(new MockMessage()));
+
+        $originalEnvelope = $messageBroker->get();
+
+        $serial = $originalEnvelope->getProperty('x-serial');
+        self::assertNotNull($serial);
+
+        $messageBroker->reject($originalEnvelope->withProperties([
+            Property::RETRY_COUNT => "1",
+            Property::RETRY_DELAI => "100000000",
+        ]));
+
+        $envelope = $messageBroker->get();
+        self::assertNull($envelope);
+    }
+
+    /**
+     * @dataProvider runnerDataProvider
+     */
+    public function testRejectWithLowerRetryCountGetsFixed(TestDriverFactory $factory): void
+    {
+        $messageBroker = $this->createMessageBroker($factory->getRunner(), $factory->getSchema());
+
+        $messageBroker->dispatch(MessageEnvelope::wrap(new MockMessage()));
+
+        $originalEnvelope = $messageBroker->get();
+        $messageBroker->reject($originalEnvelope->withProperties([
+            Property::RETRY_COUNT => "1",
+        ]));
+
+        $secondEnvelope = $messageBroker->get();
+        $messageBroker->reject($secondEnvelope->withProperties([
+            Property::RETRY_COUNT => "1",
+        ]));
+
+        $thirdEnvelope = $messageBroker->get();
+        $messageBroker->reject($thirdEnvelope->withProperties([
+            Property::RETRY_COUNT => "1",
+        ]));
+
+        $envelope = $messageBroker->get();
+        self::assertSame("3", $envelope->getProperty(Property::RETRY_COUNT));
+    }
+
+    /**
+     * @dataProvider runnerDataProvider
+     */
     public function testMissingTypeInDatabaseFallsBackWithHeader(TestDriverFactory $factory): void
     {
         $runner = $factory->getRunner();
