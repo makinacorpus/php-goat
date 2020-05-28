@@ -7,7 +7,7 @@ services:
     goat.domain.dispatcher:
         public: false
         class: Goat\Domain\Event\DefaultDispatcher
-        arguments: ['@messenger.bus.sync.messenger.handlers_locator', '@messenger.bus.sync', '@messenger.bus.async']
+        arguments: ['@messenger.bus.sync.messenger.handlers_locator', '@goat.domain.message_broker']
         tags: [{ name: "monolog.logger", channel: "goat_dispatcher" }]
 
     goat.domain.dispatcher_middleware:

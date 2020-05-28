@@ -22,17 +22,15 @@ final class PgSQLMessageBroker implements MessageBroker, LoggerAwareInterface
 
     const PROP_SERIAL = 'x-serial';
 
-    private bool $debug = false;
     private string $contentType;
     private string $queue;
     private array $options; 
     private Runner $runner;
     private SerializerInterface $serializer;
 
-    public function __construct(Runner $runner, SerializerInterface $serializer, array $options = [], bool $debug = false)
+    public function __construct(Runner $runner, SerializerInterface $serializer, array $options = [])
     {
         $this->contentType = $options['content_type'] ?? Property::DEFAULT_CONTENT_TYPE;
-        $this->debug = $debug;
         $this->logger = new NullLogger();
         $this->options = $options;
         $this->queue = $options['queue'] ?? 'default';
@@ -71,7 +69,7 @@ final class PgSQLMessageBroker implements MessageBroker, LoggerAwareInterface
                     "headers",
                     "type",
                     "content_type",
-                    "body"::bytea,
+                    "body",
                     "retry_count"
                 SQL,
                 [$this->queue]
