@@ -264,13 +264,19 @@ final class GoatEventStore extends AbstractEventStore
             $where = $select->getWhere();
 
             if ($this->names) {
-                $names = \array_map(
-                    static function (string $name) use ($nameMap): string {
-                        return $nameMap->getName($name);
-                    },
-                    (array)$this->names
-                );
-                $where->isIn('event.name', $names);
+                $conditions = [];
+                foreach ($this->names as $name) {
+                    if ($name !== ($value = $nameMap->getName($name))) {
+                        $conditions[] = $value;
+                        $conditions[] = $name;
+                    } else if ($name !== ($value = $nameMap->getType($name))) {
+                        $conditions[] = $value;
+                        $conditions[] = $name;
+                    } else {
+                        $conditions[] = $name;
+                    }
+                }
+                $where->isIn('event.name', $conditions);
             }
             if ($this->searchName) {
                 $where->expression(ExpressionLike::iLike('event.name', '%?%', $this->searchName));
