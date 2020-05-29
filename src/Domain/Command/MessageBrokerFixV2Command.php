@@ -148,19 +148,21 @@ final class MessageBrokerFixV2Command extends Command
             return $breaker;
         }
 
-        $this
-            ->runner
-            ->getQueryBuilder()
-            ->update('message_broker')
-            ->sets([
-                'body' => $row['body'],
-                'content_type' => $row['content_type'],
-                'headers' => ExpressionValue::create($row['headers'], 'json'),
-                'type' => $row['type'],
-            ])
-            ->condition('serial', $row['serial'])
-            ->execute()
-        ;
+        if (!$this->dryRun) {
+            $this
+                ->runner
+                ->getQueryBuilder()
+                ->update('message_broker')
+                ->sets([
+                    'body' => $row['body'],
+                    'content_type' => $row['content_type'],
+                    'headers' => ExpressionValue::create($row['headers'], 'json'),
+                    'type' => $row['type'],
+                ])
+                ->condition('serial', $row['serial'])
+                ->execute()
+            ;
+        }
 
         return self::ROW_SUCCESS;
     }
