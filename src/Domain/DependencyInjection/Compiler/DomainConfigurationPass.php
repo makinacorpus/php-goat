@@ -17,29 +17,14 @@ final class DomainConfigurationPass implements CompilerPassInterface
 {
     use PriorityTaggedServiceTrait;
 
-    /** @var string */
-    private $dispatcherId;
-
-    /** @var string */
-    private $projectorTag;
-
-    /** @var string */
-    private $projectorRegistryId;
-
-    /** @var string */
-    private $eventStoreId;
-
-    /** @var string */
-    private $lockServiceId;
-
-    /** @var string */
-    private $loggerId;
-
-    /** @var string */
-    private $messengerSerializerServiceId;
-
-    /** @var string */
-    private $transactionHandlerTag;
+    private string $dispatcherId;
+    private string $projectorTag;
+    private string $projectorRegistryId;
+    private string $eventStoreId;
+    private string $lockServiceId;
+    private string $loggerId;
+    private string $messengerSerializerServiceId;
+    private string $transactionHandlerTag;
 
     /**
      * Default constructor
@@ -52,8 +37,8 @@ final class DomainConfigurationPass implements CompilerPassInterface
         string $eventStoreId = 'goat.domain.event_store',
         string $lockServiceId = 'goat.domain.lock_service',
         string $messengerSerializerServiceId = 'messenger.transport.symfony_serializer',
-        string $loggerId = 'logger')
-    {
+        string $loggerId = 'logger'
+    ) {
         $this->dispatcherId = $dispatcherId;
         $this->projectorTag = $projectorTag;
         $this->projectorRegistryId = $projectorRegistryId;

@@ -20,7 +20,8 @@ implemented using a decorator.
 
 # How to configure
 
-If you are working with Symfony, use `makinacorpus/goat-bundle`.
+If you are working with Symfony, use `makinacorpus/goat` and
+`makinacorpus/goat-query-bundle`.
 
 ## Enable it
 
