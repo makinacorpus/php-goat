@@ -24,7 +24,7 @@ final class PgSQLMessageBroker implements MessageBroker, LoggerAwareInterface
 
     private string $contentType;
     private string $queue;
-    private array $options; 
+    private array $options;
     private Runner $runner;
     private SerializerInterface $serializer;
 

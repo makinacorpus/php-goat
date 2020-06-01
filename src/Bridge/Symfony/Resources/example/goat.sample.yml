@@ -40,7 +40,7 @@ goat:
 
     domain:
         #
-        # Enable the domain features (event dispatcher)*
+        # Enable the domain features (event dispatcher).
         #
         enabled: true
 

@@ -18,14 +18,17 @@ use Goat\Runner\Transaction;
 
 final class GoatEventStore extends AbstractEventStore
 {
-    private $indexRelation;
-    private $indexTable;
-    private $runner;
-    private $schema;
-    private $tablePrefix;
+    private Runner $runner;
+    private string $indexTable;
+    private string $tablePrefix;
+    private string $schema;
 
     /**
      * Default constructor.
+     *
+     * @todo
+     *   Consider null schema, allowing the path resolution be done by your
+     *   RDBMS instead.
      *
      * @codeCoverageIgnore
      *   Code coverage does not take into account data provider run methods.
@@ -44,10 +47,11 @@ final class GoatEventStore extends AbstractEventStore
      * Get index table relation
      *
      * @internal
+     *   For \Goat\Domain\Event\Goat\GoatEventQuery usage only.
      */
     public function getIndexRelation(): ExpressionRelation
     {
-        return $this->indexRelation ?? ($this->indexRelation = ExpressionRelation::create($this->indexTable, 'index', $this->schema));
+        return ExpressionRelation::create($this->indexTable, 'index', $this->schema);
     }
 
     /**
@@ -58,7 +62,7 @@ final class GoatEventStore extends AbstractEventStore
      */
     public function getEventRelation(string $namespace): ExpressionRelation
     {
-        return ExpressionRelation::create(\sprintf('%s%s', $this->tablePrefix, $namespace), 'event', $this->schema);
+        return ExpressionRelation::create($this->tablePrefix . $namespace, 'event', $this->schema);
     }
 
     /**
@@ -247,6 +251,7 @@ final class GoatEventStore extends AbstractEventStore
      * Create select query from event query
      *
      * @internal
+     *   For \Goat\Domain\Event\Goat\GoatEventQuery usage only.
      */
     public function createSelectQuery(GoatEventQuery $query): SelectQuery
     {

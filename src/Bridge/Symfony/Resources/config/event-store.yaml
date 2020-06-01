@@ -1,4 +1,65 @@
 services:
+    # This allows you to change the SQL connection being used by the event
+    # store to something else than default. Event store is an append-only
+    # set of two tables, which benefits from a lower transaction level
+    # than REPEATABLE READ (level 3) such as READ COMMITED (level 2).
+    #
+    #  - Using REPEATABLE READ isolation level, two concurent writes will
+    #    block at least once, which then will fail and ROLLBACK. This forces
+    #    the user to implement an application-level retry of its transactions
+    #    thus including the complete application business transaction within
+    #    the retried procedure.
+    #
+    #  - Using READ COMMITED isolation level, two concurent writes will still
+    #    block, but once the first succeeded, the second one will read the data
+    #    commited by the previous one (it is not read-isolated), and will then
+    #    continue to work since generated revision numbers or other identifiers
+    #    based on data state will be up-to-date.
+    #
+    # When using READ COMMITED for the event store, you lower the chances that
+    # you'll need to retry event store append transactions, and if such failure
+    # happen, it will be a much smaller transaction to retry than your full
+    # complete application business transaction.
+    #
+    # Also, by using another RDBMS session, transactions for storing events
+    # don't get caught in business transactions, which means that:
+    #
+    #   - You will never miss an event stored caught in a business transaction
+    #     since that transaction will execute and ROLLBACK in a different
+    #     session.
+    #
+    #   - On the other side, events pushing other events will be stored along
+    #     the way, even if the business transaction ROLLBACK, potential nested
+    #     SAVEPOINT may COMMIT temporarily within the transaction, thus trigger
+    #     the event stored as successful, leading to a false positive.
+    #
+    # This choice is up to you, you have to know that:
+    #
+    #   - Keeping the default connection will be slower in contention scenarios
+    #     since failure in store the event will force complete business
+    #     transaction to ROLLBACK, but it will be much more resilient and will
+    #     never lead to incoherent history being saved.
+    #
+    #   - Using a dedicated connection will be much faster, cause much less
+    #     contention scenarios, but can lead to false positive event stores
+    #     and lead to incoherent history.
+    #
+    # Basically, second option is safe only when you NEVER chain events
+    # processing along a single transaction.
+    #
+    # Note: we didn't test this fully yet, all what is written above is very
+    # theorical, so please be cautious. If unsure, keep event store in the
+    # main SQL connection.
+    goat.runner.event_store:
+        alias: "@goat.runner.default"
+
+    # Everything described in the comment block upper is true for the message
+    # broker as well. Nevertheless, message broker SQL queries are much simpler
+    # and safer and will hopefully not trigger any contention, changing its SQL
+    # connection is probably unnecessary and will possibility lead to wrongly
+    # sent message issued by business transactions which have been ROLLBACK.
+    goat.runner.message_broker:
+        alias: "@goat.runner.default"
 
     # @todo
     #   - Autoconfigure this from user configuration
@@ -18,7 +79,7 @@ services:
     goat.domain.message_broker.default:
         public: false
         class: Goat\Domain\MessageBroker\PgSQLMessageBroker
-        arguments: ["@goat.runner.default", "@serializer"]
+        arguments: ["@goat.runner.message_broker", "@serializer"]
         tags: [{ name: "monolog.logger", channel: "goat_dispatcher" }]
 
     # Give a generic identifier for message broker.
@@ -35,7 +96,7 @@ services:
         public: false
         class: Goat\Domain\EventStore\Goat\GoatEventStore
         # @todo make this configurable, allow table namespace configuration
-        arguments: ["@goat.runner.default"]
+        arguments: ["@goat.runner.event_store"]
         tags:
             - { name: "monolog.logger", channel: "goat_eventstore" }
         calls:
