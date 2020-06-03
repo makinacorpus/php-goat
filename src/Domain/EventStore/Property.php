@@ -24,6 +24,9 @@ final class Property
     const SUBJECT = 'subject';
     const USER_ID = 'user-id';
 
+    /** Custom header for storing event processing duration. */
+    const PROCESS_DURATION = 'x-goat-duration';
+
     /** Current number of retry count. */
     const RETRY_COUNT = 'x-retry-count';
 

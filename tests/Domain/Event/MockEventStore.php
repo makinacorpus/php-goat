@@ -10,8 +10,9 @@ use Goat\Domain\EventStore\EventQuery;
 
 class MockEventStore extends AbstractEventStore
 {
+    private int $position = 0;
     /** @var Event[] */
-    private $stored = [];
+    private array $stored = [];
 
     /** @return Event[] */
     public function getStored(): array
@@ -29,17 +30,46 @@ class MockEventStore extends AbstractEventStore
      */
     protected function doStore(Event $event): Event
     {
-        return $this->stored[] = $event;
+        $position = ++$this->position;
+
+        $callback = \Closure::bind(
+            static function (Event $event) use ($position): Event {
+                $event = clone $event;
+                $event->position = $position;
+                return $event;
+            },
+            null, Event::class
+        );
+
+        return $this->stored[] = $callback($event);
     }
 
     /**
+     * {@inheritdoc}
+     */
+    protected function doUpdate(Event $event): Event
+    {
+        foreach ($this->stored as $index => $candidate) {
+            if ($event->getPosition() === $candidate->getPosition()) {
+                $this->stored[$index] = $event;
+                break;
+            }
+        }
 
+        return $event;
+    }
+
+    /**
+     * {@inheritdoc}
      */
     public function query(): EventQuery
     {
         throw new \BadMethodCallException();
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function count(EventQuery $query): ?int
     {
         throw new \BadMethodCallException();

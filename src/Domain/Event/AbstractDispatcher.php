@@ -19,7 +19,6 @@ abstract class AbstractDispatcher implements Dispatcher
 {
     use DebuggableTrait;
 
-    const PROP_DURATION = 'x-goat-duration';
     const PROP_TIME_START = 'x-goat-time-start';
 
     private static int $commandCount = 0;
@@ -258,63 +257,62 @@ abstract class AbstractDispatcher implements Dispatcher
      *
      * DO NOT CALL THIS METHOD, use storeEvent() or storeEventWithError() instead.
      */
-    private function doStoreEventWith(MessageEnvelope $envelope, bool $success = true, array $extra = []): void
+    private function createEvent(MessageEnvelope $envelope): ?Event
     {
-        if ($envelope->hasProperty(self::PROP_TIME_START)) {
-            $start = (int)$envelope->getProperty(self::PROP_TIME_START);
-            $envelope = $envelope->withProperties([
-                self::PROP_TIME_START => null,
-                self::PROP_DURATION => self::nsecToMsec(\hrtime(true) - $start) . ' ms',
-            ]);
+        if (!$this->eventStore) {
+            return null;
         }
 
-        if ($this->eventStore) {
-            $id = $type = null;
-            if (($message = $envelope->getMessage()) instanceof Message) {
-                $id = $message->getAggregateId();
-                $type = $message->getAggregateType();
-            }
+        $id = $type = null;
+        if (($message = $envelope->getMessage()) instanceof Message) {
+            $id = $message->getAggregateId();
+            $type = $message->getAggregateType();
+        }
 
-            $event = $this->eventStore->store($message, $id, $type, !$success, ['properties' => $envelope->getProperties()] + $extra);
+        return $this->eventStore->store($message, $id, $type, false, ['properties' => $envelope->getProperties()]);
+    }
+
+    /**
+     * Handle event update with success.
+     */
+    private function eventWithSuccess(MessageEnvelope $envelope, ?Event $event): void
+    {
+        if ($event && $this->eventStore) {
+            $this->eventStore->update($event, [
+                self::PROP_TIME_START => null,
+                Property::PROCESS_DURATION => self::computeDuration($envelope),
+            ] + $envelope->getProperties());
+
+            // Handle projectors cannot raise exception, it will not interfere
+            // with custom error handling.
             $this->handleProjectors($event);
         }
     }
 
     /**
-     * Normalize exception trace
+     * Handle event update with failure.
      */
-    private function normalizeExceptionTrace(\Throwable $exception): string
+    private function eventWithFailure(MessageEnvelope $envelope, ?Event $event, \Throwable $e): void
     {
-        $output = '';
-        do {
-            if ($output) {
-                $output .= "\n";
-            }
-            $output .= \sprintf("%s: %s\n", \get_class($exception), $exception->getMessage());
-            $output .= $exception->getTraceAsString();
-        } while ($exception = $exception->getPrevious());
-
-        return $output;
+        if ($event && $this->eventStore) {
+            $this->eventStore->failedWith($event, $e, [
+                self::PROP_TIME_START => null,
+                Property::PROCESS_DURATION => self::computeDuration($envelope),
+            ] + $envelope->getProperties());
+        }
     }
 
     /**
-     * Store event
+     * Compute some additional metadata for event.
      */
-    private function storeEventWithError(MessageEnvelope $envelope, \Throwable $exception): void
+    private function computeDuration(MessageEnvelope $envelope): ?string
     {
-        $this->doStoreEventWith($envelope, false, [
-            'error_code' => $exception->getCode(),
-            'error_message' => $exception->getMessage(),
-            'error_trace' => $this->normalizeExceptionTrace($exception),
-        ]);
-    }
+        if ($envelope->hasProperty(self::PROP_TIME_START)) {
+            $start = (int)$envelope->getProperty(self::PROP_TIME_START);
 
-    /**
-     * Store event.
-     */
-    private function storeEvent(MessageEnvelope $envelope): void
-    {
-        $this->doStoreEventWith($envelope, true);
+            return self::nsecToMsec(\hrtime(true) - $start) . ' ms';
+        }
+        return null;
     }
 
     /**
@@ -327,54 +325,52 @@ abstract class AbstractDispatcher implements Dispatcher
             // transaction, we let the root transaction handle commit and
             // rollback.
             $this->processWithoutTransaction($envelope);
-        } else {
-            $transaction = $exception = null;
-            $atCommit = false;
-            try {
-                $transaction = $this->startTransaction();
-                $this->synchronousProcess($envelope);
-                $atCommit = true;
-                $transaction->commit();
-                $this->logger->debug("Dispatcher transaction COMMIT");
-            } catch (\Throwable $e) {
-                $exception = $e;
-                if ($transaction) {
-                    if ($atCommit) {
-                        $this->logger->error("Dispatcher transaction FAIL (at commit), attempting ROLLBACK", ['exception' => $e]);
-                    } else {
-                        $this->logger->error("Dispatcher transaction FAIL (before commit), attempting ROLLBACK", ['exception' => $e]);
-                    }
-                    $transaction->rollback($e);
+
+            return;
+        }
+
+        $event = $this->createEvent($envelope);
+
+        $transaction = null;
+        $atCommit = false;
+        try {
+            $transaction = $this->startTransaction();
+            $this->synchronousProcess($envelope);
+            $atCommit = true;
+            $transaction->commit();
+            $this->logger->debug("Dispatcher transaction COMMIT");
+            $this->eventWithSuccess($envelope, $event);
+        } catch (\Throwable $e) {
+            // Log as meaningful as we can, this is a very hard part to debug
+            // so output the most as we can for future developers that will
+            // try to guess what happened in production.
+            if ($transaction) {
+                if ($atCommit) {
+                    $this->logger->error("Dispatcher transaction FAIL (at commit), attempting ROLLBACK", ['exception' => $e]);
                 } else {
-                    $this->logger->error("Dispatcher transaction FAIL, no pending transaction");
+                    $this->logger->error("Dispatcher transaction FAIL (before commit), attempting ROLLBACK", ['exception' => $e]);
                 }
-                throw $e;
-            } finally {
-                // Store MUST happen in finally, an exception could be rethrowed
-                // during rollback, case in which we still need to store event
-                // no matter what happens.
-                if ($exception) {
-                    // Attempt requeue of message, in case of error.
-                    try {
-                        if ($exception instanceof DispatcherRetryableError) {
-                            $envelope = $this->requeue($envelope);
-                            $this->logger->debug("Dispatcher requeue");
-                        } else {
-                            $envelope = $this->reject($envelope);
-                            $this->logger->debug("Dispatcher reject");
-                        }
-                    } catch (\Throwable $e) {
-                        $this->logger->error("Dispatcher re-queue FAIL", ['exception' => $e]);
-                    } finally {
-                        // Same explaination as just upper, the requeue call
-                        // could raise exceptions, and hide ours, we MUST
-                        // store the event, or we will lose history.
-                        $this->storeEventWithError($envelope, $exception);
-                    }
-                } else {
-                    $this->storeEvent($envelope);
-                }
+                $transaction->rollback();
+            } else {
+                $this->logger->error("Dispatcher transaction FAIL, no pending transaction");
             }
+
+            // Attempt retry if possible.
+            try {
+                if ($e instanceof DispatcherRetryableError) {
+                    $envelope = $this->requeue($envelope);
+                    $this->logger->debug("Dispatcher requeue");
+                } else {
+                    $envelope = $this->reject($envelope);
+                    $this->logger->debug("Dispatcher reject");
+                }
+            } catch (\Throwable $nested) {
+                $this->logger->error("Dispatcher re-queue FAIL", ['exception' => $nested]);
+            }
+
+            $this->eventWithFailure($envelope, $event, $e);
+
+            throw $e;
         }
     }
 
@@ -383,11 +379,14 @@ abstract class AbstractDispatcher implements Dispatcher
      */
     private function processWithoutTransaction(MessageEnvelope $envelope): void
     {
+        $event = $this->createEvent($envelope);
+
         try {
             $this->synchronousProcess($envelope);
-            $this->storeEvent($envelope);
+            $this->eventWithSuccess($envelope, $event);
         } catch (\Throwable $e) {
-            $this->storeEventWithError($envelope, $e);
+            $this->eventWithSuccess($envelope, $event);
+
             throw $e;
         }
     }

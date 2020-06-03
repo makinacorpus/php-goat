@@ -31,6 +31,11 @@ class MockDispatcher extends AbstractDispatcher
         $this->requeueCallback = $requeueCallback;
     }
 
+    public function setProcessCallback(callable $processCallback): void
+    {
+        $this->processCallback = $processCallback;
+    }
+
     /**
      * Requeue message if possible.
      *

@@ -13,6 +13,103 @@ use Goat\Domain\Tests\EventStore\AbstractEventStoreTest;
 
 final class DefaultDispatcherTest extends AbstractEventStoreTest
 {
+    public function testProcessSuccessStoresEvent(): void
+    {
+        $dispatcher = new MockDispatcher(
+            static function () { /* No error means success. */ },
+            static function () { throw new \BadMethodCallException(); }
+        );
+
+        $eventStore = new MockEventStore();
+        $dispatcher->setEventStore($eventStore);
+
+        $dispatcher->process(new MockMessage());
+
+        self::assertSame(1, $eventStore->countStored());
+
+        $dispatcher->process(new MockMessage());
+
+        self::assertSame(2, $eventStore->countStored());
+
+        foreach ($eventStore->getStored() as $event) {
+            self::assertFalse($event->hasFailed());
+            self::assertNull($event->getErrorCode());
+            self::assertNull($event->getErrorMessage());
+            self::assertNull($event->getErrorTrace());
+        }
+    }
+
+    public function testProcessFailureStoresEvent(): void
+    {
+        $dispatcher = new MockDispatcher(
+            static function () { throw new \DomainException(); },
+            static function () { throw new \BadMethodCallException(); }
+        );
+
+        $eventStore = new MockEventStore();
+        $dispatcher->setEventStore($eventStore);
+
+        try {
+            $dispatcher->process(new MockMessage());
+            self::fail();
+        } catch (DispatcherError $e) {
+        }
+
+        self::assertSame(1, $eventStore->countStored());
+
+        try {
+            $dispatcher->process(new MockMessage());
+            self::fail();
+        } catch (DispatcherError $e) {
+        }
+
+        self::assertSame(2, $eventStore->countStored());
+
+        foreach ($eventStore->getStored() as $event) {
+            self::assertTrue($event->hasFailed());
+            self::assertNotNull($event->getErrorCode());
+            self::assertNotNull($event->getErrorMessage());
+            self::assertNotNull($event->getErrorTrace());
+        }
+    }
+
+    public function testProcessNestedStoresAllEventsInOrder(): void
+    {
+        $count = 0;
+
+        $dispatcher = new MockDispatcher(
+            static function () { throw new \DomainException(); },
+            static function () { throw new \BadMethodCallException(); }
+        );
+
+        $eventStore = new MockEventStore();
+        $dispatcher->setEventStore($eventStore);
+
+        $dispatcher->setProcessCallback(
+            static function () use ($dispatcher, &$count) {
+                if (++$count < 3) {
+                    $dispatcher->process(
+                        MessageEnvelope::wrap(
+                            new MockMessage(),
+                            [
+                                'x-test-count' => $count,
+                            ]
+                        )
+                    );
+                }
+            }
+        );
+
+        $dispatcher->process(new MockMessage());
+
+        self::assertSame(3, $eventStore->countStored());
+
+        $stored = $eventStore->getStored();
+        self::assertNull($stored[0]->getProperty('x-test-count'));
+        self::assertSame('1', $stored[1]->getProperty('x-test-count'));
+        self::assertSame('2', $stored[2]->getProperty('x-test-count'));
+    }
+
     public function testProcessConvertExceptionToDispatcherError(): void
     {
         $dispatcher = new MockDispatcher(

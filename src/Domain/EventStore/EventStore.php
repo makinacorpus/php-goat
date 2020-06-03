@@ -25,7 +25,17 @@ interface EventStore
     public function store(object $message, ?UuidInterface $aggregateId = null, ?string $aggregateType = null, bool $failed = false, array $extra = []): Event;
 
     /**
-     * Create event query
+     * Update event metadata.
+     */
+    public function update(Event $event, array $properties): Event;
+
+    /**
+     * Mark event as failed and update metadata.
+     */
+    public function failedWith(Event $event, \Throwable $exception, array $properties = []): Event;
+
+    /**
+     * Create event query.
      */
     public function query(): EventQuery;
 

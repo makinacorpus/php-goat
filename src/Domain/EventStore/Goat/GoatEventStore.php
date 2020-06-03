@@ -212,7 +212,7 @@ final class GoatEventStore extends AbstractEventStore
                     'error_trace' => $event->getErrorTrace(),
                     'has_failed' => $event->hasFailed(),
                     'name' => $event->getName(),
-                    'properties' => ExpressionValue::create($properties = $this->computeProperties($event), 'jsonb'),
+                    'properties' => ExpressionValue::create($event->getProperties(), 'jsonb'),
                     'revision' => $revisionQuery,
                 ])
                 ->returning('position')
@@ -226,10 +226,9 @@ final class GoatEventStore extends AbstractEventStore
 
             $transaction->commit();
 
-            $func = \Closure::bind(static function (Event $event) use ($properties, $position, $revision): Event {
+            $func = \Closure::bind(static function (Event $event) use ($position, $revision): Event {
                 $ret = clone $event;
                 $ret->position = $position;
-                $ret->properties = $properties;
                 $ret->revision = $revision;
                 return $ret;
             }, null, Event::class);
@@ -245,6 +244,32 @@ final class GoatEventStore extends AbstractEventStore
 
             throw $e;
         }
+    }
+
+    /**
+     * Real update implementation.
+     */
+    protected function doUpdate(Event $event): Event
+    {
+        $aggregateType = $event->getAggregateType();
+        $eventRelation = $this->getEventRelation($this->getNamespace($aggregateType));
+
+        $this
+            ->runner
+            ->getQueryBuilder()
+            ->update($eventRelation)
+            ->sets([
+                'error_code' => $event->getErrorCode(),
+                'error_message' => $event->getErrorMessage(),
+                'error_trace' => $event->getErrorTrace(),
+                'has_failed' => $event->hasFailed(),
+                'properties' => ExpressionValue::create($event->getProperties(), 'jsonb'),
+            ])
+            ->where('position', $event->getPosition())
+            ->perform()
+        ;
+
+        return $event;
     }
 
     /**
