@@ -69,7 +69,7 @@ final class PgSQLMessageBroker implements MessageBroker, LoggerAwareInterface
                     "headers",
                     "type",
                     "content_type",
-                    "body",
+                    "body"::bytea,
                     "retry_count"
                 SQL,
                 [$this->queue]
@@ -77,7 +77,7 @@ final class PgSQLMessageBroker implements MessageBroker, LoggerAwareInterface
             ->fetch()
         ;
 
-       if ($data) {
+        if ($data) {
             $serial = $data['serial'];
 
             try {
@@ -124,7 +124,7 @@ final class PgSQLMessageBroker implements MessageBroker, LoggerAwareInterface
                 return MessageEnvelope::wrap($message, $data['headers']);
 
             } catch (\Throwable $e) {
-                $this->markAsFailed((string)$data['id']);
+                $this->markAsFailed($serial);
 
                 throw new TransportException('Error while fetching messages', 0, $e);
             }
