@@ -51,7 +51,7 @@ services:
     # theorical, so please be cautious. If unsure, keep event store in the
     # main SQL connection.
     goat.runner.event_store:
-        alias: "@goat.runner.default"
+        alias: "goat.runner.default"
 
     # Everything described in the comment block upper is true for the message
     # broker as well. Nevertheless, message broker SQL queries are much simpler
@@ -59,7 +59,7 @@ services:
     # connection is probably unnecessary and will possibility lead to wrongly
     # sent message issued by business transactions which have been ROLLBACK.
     goat.runner.message_broker:
-        alias: "@goat.runner.default"
+        alias: "goat.runner.default"
 
     # @todo
     #   - Autoconfigure this from user configuration
