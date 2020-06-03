@@ -275,7 +275,7 @@ abstract class AbstractDispatcher implements Dispatcher
     /**
      * Handle event update with success.
      */
-    private function eventWithSuccess(MessageEnvelope $envelope, ?Event $event): void
+    private function updateEventWithSuccess(MessageEnvelope $envelope, ?Event $event): void
     {
         if ($event && $this->eventStore) {
             $this->eventStore->update($event, [
@@ -292,7 +292,7 @@ abstract class AbstractDispatcher implements Dispatcher
     /**
      * Handle event update with failure.
      */
-    private function eventWithFailure(MessageEnvelope $envelope, ?Event $event, \Throwable $e): void
+    private function updateEventWithFailure(MessageEnvelope $envelope, ?Event $event, \Throwable $e): void
     {
         if ($event && $this->eventStore) {
             $this->eventStore->failedWith($event, $e, [
@@ -339,7 +339,7 @@ abstract class AbstractDispatcher implements Dispatcher
             $atCommit = true;
             $transaction->commit();
             $this->logger->debug("Dispatcher transaction COMMIT");
-            $this->eventWithSuccess($envelope, $event);
+            $this->updateEventWithSuccess($envelope, $event);
         } catch (\Throwable $e) {
             // Log as meaningful as we can, this is a very hard part to debug
             // so output the most as we can for future developers that will
@@ -368,7 +368,7 @@ abstract class AbstractDispatcher implements Dispatcher
                 $this->logger->error("Dispatcher re-queue FAIL", ['exception' => $nested]);
             }
 
-            $this->eventWithFailure($envelope, $event, $e);
+            $this->updateEventWithFailure($envelope, $event, $e);
 
             throw $e;
         }
@@ -383,9 +383,9 @@ abstract class AbstractDispatcher implements Dispatcher
 
         try {
             $this->synchronousProcess($envelope);
-            $this->eventWithSuccess($envelope, $event);
+            $this->updateEventWithSuccess($envelope, $event);
         } catch (\Throwable $e) {
-            $this->eventWithSuccess($envelope, $event);
+            $this->updateEventWithFailure($envelope, $event);
 
             throw $e;
         }
