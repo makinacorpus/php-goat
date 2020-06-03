@@ -385,7 +385,7 @@ abstract class AbstractDispatcher implements Dispatcher
             $this->synchronousProcess($envelope);
             $this->updateEventWithSuccess($envelope, $event);
         } catch (\Throwable $e) {
-            $this->updateEventWithFailure($envelope, $event);
+            $this->updateEventWithFailure($envelope, $event, $e);
 
             throw $e;
         }
