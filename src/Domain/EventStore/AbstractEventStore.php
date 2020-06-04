@@ -55,65 +55,94 @@ abstract class AbstractEventStore implements EventStore
      */
     final public function store(object $message, ?UuidInterface $aggregateId = null, ?string $aggregateType = null, bool $failed = false, array $extra = []): Event
     {
-        $event = Event::create($message);
-        $nameMap = $this->getNameMap();
+        @\trigger_error(\sprintf("%s::store() is deprecated", EventStore::class), E_USER_DEPRECATED);
 
-        // Compute normalized aggregate type, otherwise the PHP native class
-        // or type name would be stored in database, we sure don't want that.
-        $aggregateType = $nameMap->getName($aggregateType ?? $event->getAggregateType());
-        if (!$aggregateId) {
-            $aggregateId = $event->getAggregateId();
+        $builder = $this
+            ->append()
+            ->message($message)
+            ->aggregate($aggregateType, $aggregateId)
+        ;
+
+        if (isset($extra['properties'])) {
+            foreach ($extra['properties'] as $key => $value) {
+                $builder->property($key, $value);
+            }
         }
 
-        // Compute normalized event type.
-        if ($eventType = $nameMap->getMessageName($message)) {
-            $extra['properties']['type'] = $eventType;
+        if ($failed) {
+            @\trigger_error(\sprintf("%s::store() with \$failed parameter is not supported anymore", EventStore::class), E_USER_DEPRECATED);
         }
 
-        // Compute normalized event name.
-        $eventName = $nameMap->getName($event->getName());
+        return $builder->execute();
+    }
 
-        $logContext = [
-            'aggregate_id' => (string)$aggregateId,
-            'aggregate_type' => $aggregateType,
-            'event' => $event,
-            'event_name' => $eventName,
-        ];
+    /**
+     * {@inheritdoc}
+     */
+    public function append(): EventBuilder
+    {
+        return new DefaultEventBuilder(function (DefaultEventBuilder $builder) {
+            $nameMap = $this->getNameMap();
 
-        // Compute necessary common properties.
-        if (empty($extra['properties'])) {
-            $extra['properties'] = [];
-        }
-        foreach ($this->computeProperties($event) as $key => $value) {
-            $extra['properties'][$key] = $value;
-        }
+            $message = $builder->getMessage();
+            $aggregateId = $builder->getAggregateId();
+            $aggregateType = $builder->getAggregateType();
+            $properties = $builder->getProperties();
 
-        $callback = \Closure::bind(
-            static function (Event $event) use ($failed, $aggregateId, $aggregateType, $eventName, $extra): Event {
-                $event->aggregateId = $aggregateId;
-                $event->aggregateType = $aggregateType;
-                $event->errorCode = $extra['error_code'] ?? null;
-                $event->errorMessage = $extra['error_message'] ?? null;
-                $event->errorTrace = $extra['error_trace'] ?? null;
-                $event->name = $eventName;
-                $event->hasFailed = $failed;
-                $event->properties = $extra['properties'];
-                return $event;
-            },
-            null, Event::class
-        );
+            $event = Event::create($message);
 
-        try {
-            $newEvent = $this->doStore($callback($event));
-            $this->logger->debug("Event stored", $logContext);
+            // Compute normalized aggregate type, otherwise the PHP native class
+            // or type name would be stored in database, we sure don't want that.
+            $aggregateType = $nameMap->getName($aggregateType ?? $event->getAggregateType());
+            if (!$aggregateId) {
+                $aggregateId = $event->getAggregateId();
+            }
 
-            return $newEvent;
+            // Compute normalized event type.
+            if ($eventType = $nameMap->getMessageName($message)) {
+                $properties['type'] = $eventType;
+            }
 
-        } catch (\Throwable $e) {
-            $this->logger->critical("Event could not be stored", $logContext + ['exception' => $e]);
+            // Compute normalized event name.
+            $eventName = $nameMap->getName($event->getName());
 
-            throw $e;
-        }
+            $logContext = [
+                'aggregate_id' => (string)$aggregateId,
+                'aggregate_type' => $aggregateType,
+                'event' => $event,
+                'event_name' => $eventName,
+            ];
+
+            // Compute necessary common properties. Custom properties from
+            // caller might be overriden, the store is authoritative on some
+            // of them.
+            foreach ($this->computeProperties($event) as $key => $value) {
+                $properties[$key] = $value;
+            }
+
+            $callback = \Closure::bind(
+                static function (Event $event) use ($aggregateId, $aggregateType, $eventName, $properties): Event {
+                    $event->aggregateId = $aggregateId;
+                    $event->aggregateType = $aggregateType;
+                    $event->name = $eventName;
+                    $event->properties = $properties;
+                    return $event;
+                },
+                null, Event::class
+            );
+
+            try {
+                $newEvent = $this->doStore($callback($event));
+                $this->logger->debug("Event stored", $logContext);
+
+                return $newEvent;
+
+            } catch (\Throwable $e) {
+                $this->logger->critical("Event could not be stored", $logContext + ['exception' => $e]);
+
+                throw $e;
+            }
+        });
     }
 
     /**

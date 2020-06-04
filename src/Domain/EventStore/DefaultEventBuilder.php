@@ -48,7 +48,7 @@ final class DefaultEventBuilder implements EventBuilder
     /**
      * {@inheritdoc}
      */
-    public function aggregate(string $type, ?UuidInterface $id = null): self
+    public function aggregate(?string $type, ?UuidInterface $id = null): self
     {
         $this->failIfLocked();
 

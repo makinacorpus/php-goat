@@ -10,19 +10,30 @@ use Ramsey\Uuid\UuidInterface;
 interface EventStore
 {
     /**
-     * Set namespace map
+     * Set namespace map.
      */
     public function setNamespaceMap(NamespaceMap $namespaceMap): void;
 
     /**
-     * Set serializer
+     * Set serializer.
      */
     public function setSerializer(SerializerInterface $serializer, ?string $format = null): void;
 
     /**
-     * Store event
+     * Store event.
+     *
+     * @deprecated
+     *   Use self::append() instead.
      */
     public function store(object $message, ?UuidInterface $aggregateId = null, ?string $aggregateType = null, bool $failed = false, array $extra = []): Event;
+
+    /**
+     * Append new event.
+     *
+     * @return EventBuilder<Event>
+     *   Once executed, event is stored.
+     */
+    public function append(): EventBuilder;
 
     /**
      * Update event metadata.

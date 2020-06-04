@@ -23,7 +23,7 @@ interface EventBuilder
      *
      * If no UUID is provided, new one will be generated.
      */
-    public function aggregate(string $type, ?UuidInterface $id = null): self;
+    public function aggregate(?string $type, ?UuidInterface $id = null): self;
 
     /**
      * With given property value.

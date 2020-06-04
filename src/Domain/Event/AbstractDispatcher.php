@@ -253,9 +253,7 @@ abstract class AbstractDispatcher implements Dispatcher
     }
 
     /**
-     * Really store event callback
-     *
-     * DO NOT CALL THIS METHOD, use storeEvent() or storeEventWithError() instead.
+     * Really store event callback.
      */
     private function createEvent(MessageEnvelope $envelope): ?Event
     {
@@ -263,13 +261,13 @@ abstract class AbstractDispatcher implements Dispatcher
             return null;
         }
 
-        $id = $type = null;
-        if (($message = $envelope->getMessage()) instanceof Message) {
-            $id = $message->getAggregateId();
-            $type = $message->getAggregateType();
+        $builder = $this->eventStore->append()->message($envelope->getMessage());
+
+        foreach ($envelope->getProperties() as $name => $value) {
+            $builder->property($name, $value);
         }
 
-        return $this->eventStore->store($message, $id, $type, false, ['properties' => $envelope->getProperties()]);
+        return $builder->execute();
     }
 
     /**
