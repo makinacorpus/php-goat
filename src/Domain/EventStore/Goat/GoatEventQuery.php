@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Goat\Domain\EventStore\Goat;
 
 use Goat\Domain\EventStore\AbstractEventQuery;
+use Goat\Domain\EventStore\Event;
 use Goat\Domain\EventStore\EventStream;
 use Goat\Runner\ResultIterator;
 
@@ -69,8 +70,19 @@ final class GoatEventQuery extends AbstractEventQuery
             public function getIterator()
             {
                 foreach ($this->result as $row) {
-                    yield $this->store->HydrateEvent($row);
+                    yield $this->store->hydrateEvent($row);
                 }
+            }
+
+            /**
+             * {@inheritdoc}
+             */
+            public function fetch(): ?Event
+            {
+                if ($row = $this->result->fetch()) {
+                    return $this->store->hydrateEvent($row);
+                }
+                return null;
             }
         };
     }
