@@ -88,6 +88,7 @@ abstract class AbstractEventStore implements EventStore
             $aggregateId = $builder->getAggregateId();
             $aggregateType = $builder->getAggregateType();
             $properties = $builder->getProperties();
+            $createdAt = $builder->getDate();
 
             $event = Event::create($message);
 
@@ -121,11 +122,12 @@ abstract class AbstractEventStore implements EventStore
             }
 
             $callback = \Closure::bind(
-                static function (Event $event) use ($aggregateId, $aggregateType, $eventName, $properties): Event {
+                static function (Event $event) use ($aggregateId, $aggregateType, $eventName, $properties, $createdAt): Event {
                     $event->aggregateId = $aggregateId;
                     $event->aggregateType = $aggregateType;
                     $event->name = $eventName;
                     $event->properties = $properties;
+                    $event->createdAt = $createdAt;
                     return $event;
                 },
                 null, Event::class

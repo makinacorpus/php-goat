@@ -19,6 +19,13 @@ interface EventBuilder
     public function message(object $message, ?string $type = null): self;
 
     /**
+     * Set date if not now.
+     *
+     * Warning: this will not modify the event position, only its date.
+     */
+    public function date(\DateTimeInterface $date): self;
+
+    /**
      * With aggregate information.
      *
      * If no UUID is provided, new one will be generated.

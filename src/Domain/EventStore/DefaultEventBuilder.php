@@ -18,6 +18,7 @@ final class DefaultEventBuilder implements EventBuilder
     private ?string $name = null;
     private ?string $aggregateType = null;
     private ?UuidInterface $aggregateId = null;
+    private ?\DateTimeInterface $date = null;
     private array $properties = [];
     /** @var callable */
     private $execute;
@@ -41,6 +42,18 @@ final class DefaultEventBuilder implements EventBuilder
 
         $this->message = $message;
         $this->name = $name;
+
+        return $this;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function date(\DateTimeInterface $date): self
+    {
+        $this->failIfLocked();
+
+        $this->date = $date;
 
         return $this;
     }
@@ -106,6 +119,11 @@ final class DefaultEventBuilder implements EventBuilder
     public function getAggregateType(): ?string
     {
         return $this->aggregateType;
+    }
+
+    public function getDate(): ?\DateTimeInterface
+    {
+        return $this->date;
     }
 
     public function getProperties(): array
