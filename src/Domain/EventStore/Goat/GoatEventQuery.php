@@ -50,6 +50,8 @@ final class GoatEventQuery extends AbstractEventQuery
         $eventRelation = $this->eventStore->getEventRelation('default'); // @todo
         $indexRelation = $this->eventStore->getIndexRelation();
 
+        $isForSingleAggregateStream = false;
+
         $select = $this
             ->eventStore
             ->getRunner()
@@ -89,15 +91,19 @@ final class GoatEventQuery extends AbstractEventQuery
             if ($this->aggregateAsRoot) {
                 $where->or()->isEqual('index.aggregate_id', $this->aggregateId)->isEqual('index.aggregate_root', $this->aggregateId);
             } else {
+                $isForSingleAggregateStream = true;
                 $where->isEqual('index.aggregate_id', $this->aggregateId);
             }
         }
         if ($this->dateLowerBound && $this->dateHigherBound) {
             $where->condition(
                 'event.created_at',
-                // need to accept 2019-04-25 10:12:13.22115 as valid for higerBound 2019-04-25 10:12:13
-                // using a date_trunc(second) on event_created_at would be a perf killer, better to check against
-                // 2019-04-25 10:12:14 (note that would also accept 2019-04-25 10:12:14.00000)
+                // need to accept 2019-04-25 10:12:13.22115 as valid for
+                // higerBound 2019-04-25 10:12:13 using a date_trunc(second)
+                // on event_created_at would be a perf killer, better to check
+                // against 2019-04-25 10:12:14 (note that would also accept
+                // 2019-04-25 10:12:14.00000).
+                // @todo get rid of that, find a better way.
                 new ExpressionRaw(\sprintf("'%s'::timestamp without time zone AND '%s'::timestamp without time zone + interval '1 second'",
                     $this->dateLowerBound->format("Y-m-d H:i:s"),
                     $this->dateHigherBound->format("Y-m-d H:i:s")
@@ -110,9 +116,14 @@ final class GoatEventQuery extends AbstractEventQuery
         }
 
         if ($this->reverse) {
-            // We sometime have bugs with date, only the serial can really
-            // properly sort the stream.
-            $select->orderBy('event.position', Query::ORDER_DESC);
+            if ($isForSingleAggregateStream) {
+                // Revision is authoritative order instead of position for
+                // a single aggregate stream. We cannot use it otherwise when
+                // more than one stream get mixed up.
+                $select->orderBy('event.revision', Query::ORDER_DESC);
+            } else {
+                $select->orderBy('event.position', Query::ORDER_DESC);
+            }
             $select->orderBy('event.created_at', Query::ORDER_DESC);
 
             if ($this->position) {
@@ -121,10 +132,13 @@ final class GoatEventQuery extends AbstractEventQuery
             if ($this->revision) {
                 $where->isLessOrEqual('event.revision', $this->revision);
             }
-
         } else {
-            // Cf. upper note.
-            $select->orderBy('event.position', Query::ORDER_ASC);
+            if ($isForSingleAggregateStream) {
+                // Cf. upper note.
+                $select->orderBy('event.revision', Query::ORDER_ASC);
+            } else {
+                $select->orderBy('event.position', Query::ORDER_ASC);
+            }
             $select->orderBy('event.created_at', Query::ORDER_ASC);
 
             if ($this->position) {
