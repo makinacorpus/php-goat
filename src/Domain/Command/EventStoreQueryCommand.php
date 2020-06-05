@@ -74,11 +74,23 @@ final class EventStoreQueryCommand extends Command
     protected function outputAsPlainText(iterable $stream, OutputInterface $output): void
     {
         $table = new Table($output);
+        $table->setHeaders([
+            'pos.',
+            'created at',
+            'valid at',
+            'aggr. type',
+            'aggr. id',
+            'rev.',
+            'name',
+            'fail',
+        ]);
+
         /** @var \Goat\Domain\EventStore\Event $event */
         foreach ($stream as $event) {
             $table->addRow([
                 $event->getPosition(),
                 $event->createdAt()->format('Y-m-d H:i:s'),
+                $event->validAt()->format('Y-m-d H:i:s'),
                 $event->getAggregateType(),
                 $event->getAggregateId(),
                 $event->getRevision(),
@@ -86,6 +98,7 @@ final class EventStoreQueryCommand extends Command
                 $event->hasFailed() ? 'FAIL' : '',
             ]);
         }
+
         $table->render();
     }
 

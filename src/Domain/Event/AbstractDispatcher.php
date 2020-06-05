@@ -276,10 +276,17 @@ abstract class AbstractDispatcher implements Dispatcher
     private function updateEventWithSuccess(MessageEnvelope $envelope, ?Event $event): void
     {
         if ($event && $this->eventStore) {
-            $this->eventStore->update($event, [
-                self::PROP_TIME_START => null,
-                Property::PROCESS_DURATION => self::computeDuration($envelope),
-            ] + $envelope->getProperties());
+
+            $properties = $envelope->getProperties();
+            $properties[Property::PROCESS_DURATION] = self::computeDuration($envelope);
+            $properties[self::PROP_TIME_START] = null;
+
+            $event = $this
+                ->eventStore
+                ->update($event)
+                ->properties($properties)
+                ->execute()
+            ;
 
             // Handle projectors cannot raise exception, it will not interfere
             // with custom error handling.
@@ -290,13 +297,20 @@ abstract class AbstractDispatcher implements Dispatcher
     /**
      * Handle event update with failure.
      */
-    private function updateEventWithFailure(MessageEnvelope $envelope, ?Event $event, \Throwable $e): void
+    private function updateEventWithFailure(MessageEnvelope $envelope, ?Event $event, \Throwable $exception): void
     {
         if ($event && $this->eventStore) {
-            $this->eventStore->failedWith($event, $e, [
-                self::PROP_TIME_START => null,
-                Property::PROCESS_DURATION => self::computeDuration($envelope),
-            ] + $envelope->getProperties());
+
+            $properties = $envelope->getProperties();
+            $properties[Property::PROCESS_DURATION] = self::computeDuration($envelope);
+            $properties[self::PROP_TIME_START] = null;
+
+            $this
+                ->eventStore
+                ->failedWith($event, $exception)
+                ->properties($properties)
+                ->execute()
+            ;
         }
     }
 

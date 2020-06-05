@@ -40,6 +40,12 @@ final class Property
     const MODIFIED_AT = 'x-goat-modified-at';
     /** Event was modified, just arbitrary text here. */
     const MODIFIED_WHY = 'x-goat-modified-why';
+    /** Event was modified, previous name it had. */
+    const MODIFIED_PREVIOUS_NAME = 'x-goat-modified-prev-name';
+    /** Event was modified, previous revision it was at. */
+    const MODIFIED_PREVIOUS_REVISION = 'x-goat-modified-prev-rev';
+    /** Event was modified, an ISO8601 previous valid date. */
+    const MODIFIED_PREVIOUS_VALID_AT = 'x-goat-modified-prev-valid-at';
 
     /**
      * Convert custom properties to AMQP properties.

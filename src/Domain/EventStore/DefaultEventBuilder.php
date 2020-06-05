@@ -34,7 +34,7 @@ final class DefaultEventBuilder implements EventBuilder
     }
 
     /**
-     * {@inheritdoc}
+     * Set message.
      */
     public function message(object $message, ?string $name = null): self
     {
@@ -78,9 +78,19 @@ final class DefaultEventBuilder implements EventBuilder
     {
         $this->failIfLocked();
 
-        if (null === $value) {
-            unset($this->properties[$name]);
-        } else {
+        $this->properties[$name] = $value;
+
+        return $this;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function properties(array $properties): self
+    {
+        $this->failIfLocked();
+
+        foreach ($properties as $name => $value) {
             $this->properties[$name] = $value;
         }
 
@@ -90,7 +100,7 @@ final class DefaultEventBuilder implements EventBuilder
     /**
      * {@inheritdoc}
      */
-    public function execute()
+    public function execute(): Event
     {
         $this->locked = true;
 

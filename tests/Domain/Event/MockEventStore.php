@@ -62,6 +62,14 @@ class MockEventStore extends AbstractEventStore
     /**
      * {@inheritdoc}
      */
+    protected function doMoveAt(Event $event, int $newRevision): Event
+    {
+        throw new \Exception("This is not implemented yet.");
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function query(): EventQuery
     {
         throw new \BadMethodCallException();

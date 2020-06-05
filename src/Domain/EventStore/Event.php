@@ -110,6 +110,7 @@ final class Event
     private ?UuidInterface $aggregateRoot = null;
     private ?string $aggregateType = null;
     private ?\DateTimeInterface $createdAt = null;
+    private ?\DateTimeInterface $validAt = null;
     private $data;
     private ?int $errorCode = null;
     private ?string $errorMessage = null;
@@ -208,11 +209,30 @@ final class Event
     }
 
     /**
-     * Get creation date
+     * Get creation date.
+     *
+     * You MUST NOT use this for business purpose, use validity date instead.
+     *
+     * @see Event::validAt()
      */
     public function createdAt(): \DateTimeInterface
     {
         return $this->createdAt ?? ($this->createdAt = new \DateTimeImmutable());
+    }
+
+    /**
+     * Get validity date.
+     *
+     * Validity date is the moment in time the event is considered done. This
+     * field exists because events can be amended to fix history in case of bugs
+     * were spotted.
+     *
+     * Creation date MUST NOT be used for business purposes, only validation
+     * date can be.
+     */
+    public function validAt(): \DateTimeInterface
+    {
+        return $this->validAt ?? $this->createdAt();
     }
 
     /**

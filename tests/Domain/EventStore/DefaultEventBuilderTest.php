@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Goat\Domain\Tests\EventStore;
 
 use Goat\Domain\EventStore\DefaultEventBuilder;
+use Goat\Domain\EventStore\Event;
 use Goat\Domain\Tests\Event\MockMessage;
 use PHPUnit\Framework\TestCase;
 use Ramsey\Uuid\Uuid;
@@ -13,7 +14,7 @@ final class DefaultEventBuilderTest extends TestCase
 {
     public function testMessage(): void
     {
-        $builder = new DefaultEventBuilder(fn () => null);
+        $builder = new DefaultEventBuilder(fn () => Event::create(new MockMessage()));
 
         $message = new MockMessage();
 
@@ -25,7 +26,7 @@ final class DefaultEventBuilderTest extends TestCase
 
     public function testAggregate(): void
     {
-        $builder = new DefaultEventBuilder(fn () => null);
+        $builder = new DefaultEventBuilder(fn () => Event::create(new MockMessage()));
 
         $id = Uuid::uuid4();
 
@@ -42,7 +43,7 @@ final class DefaultEventBuilderTest extends TestCase
 
     public function testProperty(): void
     {
-        $builder = new DefaultEventBuilder(fn () => null);
+        $builder = new DefaultEventBuilder(fn () => Event::create(new MockMessage()));
 
         $builder->property('foo', 'This is foo.');
         $builder->property('bar', 'This is bar.');
@@ -56,27 +57,27 @@ final class DefaultEventBuilderTest extends TestCase
         );
     }
 
-    public function testPropertyWithNullRemovesProperty(): void
+    public function testProperties(): void
     {
-        $builder = new DefaultEventBuilder(fn () => null);
+        $builder = new DefaultEventBuilder(fn () => Event::create(new MockMessage()));
 
-        $builder->property('foo', 'This is foo.');
+        $builder->properties([
+            'foo' => 'This is foo.',
+            'bar' => 'This is bar.',
+        ]);
 
         self::assertSame(
             [
                 'foo' => 'This is foo.',
+                'bar' => 'This is bar.',
             ],
             $builder->getProperties()
         );
-
-        $builder->property('foo', null);
-
-        self::assertSame([], $builder->getProperties());
     }
 
     public function testSetWhenLockedRaiseError(): void
     {
-        $builder = new DefaultEventBuilder(fn () => null);
+        $builder = new DefaultEventBuilder(fn () => Event::create(new MockMessage()));
 
         $builder->execute();
 
@@ -86,7 +87,7 @@ final class DefaultEventBuilderTest extends TestCase
 
     public function testGetMessageWhenNotSetFails(): void
     {
-        $builder = new DefaultEventBuilder(fn () => null);
+        $builder = new DefaultEventBuilder(fn () => Event::create(new MockMessage()));
 
         self::expectException(\BadMethodCallException::class);
         $builder->getMessage();
@@ -94,10 +95,11 @@ final class DefaultEventBuilderTest extends TestCase
 
     public function testExecuteCallsConstructorCallable(): void
     {
-        $builder = new DefaultEventBuilder(fn (DefaultEventBuilder $builder) => 'Foo, tout simplement.');
+        $event = Event::create(new MockMessage());
+        $builder = new DefaultEventBuilder(fn (DefaultEventBuilder $builder) => $event);
 
         $result = $builder->execute();
 
-        self::assertSame('Foo, tout simplement.', $result);
+        self::assertSame($event, $result);
     }
 }

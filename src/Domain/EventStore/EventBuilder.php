@@ -8,18 +8,11 @@ use Ramsey\Uuid\UuidInterface;
 
 /**
  * Event builder.
- *
- * @param EventBuilder<T>
  */
 interface EventBuilder
 {
     /**
-     * Set message, can be a any object.
-     */
-    public function message(object $message, ?string $name = null): self;
-
-    /**
-     * Set date if not now.
+     * Set validity date if not now.
      *
      * Warning: this will not modify the event position, only its date.
      */
@@ -41,11 +34,15 @@ interface EventBuilder
     public function property(string $name, ?string $value): self;
 
     /**
-     * Execute operation.
+     * With given mulitple property value.
      *
-     * @return <T>
-     *   Where T was defined by the caller.
-     *   I WANT GENERICS !
+     * @param array<string,null|string> $properties
+     *   If set to null, explicitely remove property.
      */
-    public function execute();
+    public function properties(array $properties): self;
+
+    /**
+     * Execute operation.
+     */
+    public function execute(): Event;
 }

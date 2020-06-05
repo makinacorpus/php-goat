@@ -58,6 +58,7 @@ create table if not exists "event_default" (
     "aggregate_id" uuid not null,
     "revision" integer not null,
     "created_at" timestamp not null default now(),
+    "valid_at" timestamp not null default now(),
     "name" varchar(500) not null,
     "properties" jsonb default '{}'::jsonb,
     "data" bytea not null,

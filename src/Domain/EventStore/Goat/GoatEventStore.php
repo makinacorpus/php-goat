@@ -105,6 +105,7 @@ final class GoatEventStore extends AbstractEventStore
             $ret->namespace = $row['namespace'];
             $ret->position = $row['position'];
             $ret->revision = $row['revision'];
+            $ret->validAt = $row['valid_at'];
 
             return $ret;
 
@@ -128,6 +129,7 @@ final class GoatEventStore extends AbstractEventStore
         $aggregateId = $event->getAggregateId();
         $aggregateType = $event->getAggregateType();
         $createdAt = $event->createdAt();
+        $validAt = $event->validAt();
 
         $eventRelation = $this->getEventRelation($namespace = $this->getNamespace($aggregateType));
         $indexRelation = $this->getIndexRelation();
@@ -210,6 +212,7 @@ final class GoatEventStore extends AbstractEventStore
                     'name' => $event->getName(),
                     'properties' => ExpressionValue::create($event->getProperties(), 'jsonb'),
                     'revision' => $revisionQuery,
+                    'valid_at' => $validAt,
                 ])
                 ->returning('position')
                 ->returning('revision')
@@ -259,13 +262,23 @@ final class GoatEventStore extends AbstractEventStore
                 'error_message' => $event->getErrorMessage(),
                 'error_trace' => $event->getErrorTrace(),
                 'has_failed' => $event->hasFailed(),
+                'name' => $event->getName(),
                 'properties' => ExpressionValue::create($event->getProperties(), 'jsonb'),
+                'valid_at' => $event->validAt(),
             ])
             ->where('position', $event->getPosition())
             ->perform()
         ;
 
         return $event;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    protected function doMoveAt(Event $event, int $newRevision): Event
+    {
+        throw new \Exception("Not implemented yet.");
     }
 
     /**

@@ -101,30 +101,47 @@ abstract class AbstractEventStore implements EventStore
             $nameMap = $this->getNameMap();
 
             $message = $builder->getMessage();
-            $eventName = $builder->getMessageName();
-            $aggregateId = $builder->getAggregateId();
-            $aggregateType = $builder->getAggregateType();
-            $properties = $builder->getProperties();
-            $createdAt = $builder->getDate();
 
             $event = Event::create($message);
+            $eventName = $builder->getMessageName();
+
+            $aggregateId = $builder->getAggregateId() ?? $event->getAggregateId();
+            $aggregateType = $builder->getAggregateType();
+
+            $properties = $builder->getProperties();
+            $validAt = $builder->getDate();
 
             // Compute normalized aggregate type, otherwise the PHP native class
             // or type name would be stored in database, we sure don't want that.
             $aggregateType = $nameMap->getName($aggregateType ?? $event->getAggregateType());
-            if (!$aggregateId) {
-                $aggregateId = $event->getAggregateId();
-            }
 
             // Compute normalized event name. If event name was given by the
             // caller normalize it before registering it into the properties
-            // array.
-            // Otherwise, use the name map directly to guess it.
+            // array. Otherwise, use the name map directly to guess it.
             if ($eventName) {
-                $eventName = $properties['type'] = $nameMap->getName($eventName);
-            } else if ($eventName = $nameMap->getMessageName($message)) {
-                $properties['type'] = $eventName;
+                $eventName = $nameMap->getName($eventName);
+            } else {
+                $eventName = $nameMap->getMessageName($message);
             }
+
+            // Compute necessary common properties. Custom properties from
+            // caller might be overriden, the store is authoritative on some
+            // of them.
+            $properties[Property::CONTENT_TYPE] = $this->getSerializationFormat();
+            $properties[Property::MESSAGE_TYPE] = $eventName;
+
+            $callback = \Closure::bind(
+                static function (Event $event) use ($aggregateId, $aggregateType, $eventName, $properties, $validAt): Event {
+                    $event->aggregateId = $aggregateId;
+                    $event->aggregateType = $aggregateType;
+                    $event->createdAt = new \DateTimeImmutable();
+                    $event->name = $eventName;
+                    $event->properties = $properties;
+                    $event->validAt = $validAt;
+                    return $event;
+                },
+                null, Event::class
+            );
 
             $logContext = [
                 'aggregate_id' => (string)$aggregateId,
@@ -132,25 +149,6 @@ abstract class AbstractEventStore implements EventStore
                 'event' => $event,
                 'event_name' => $eventName,
             ];
-
-            // Compute necessary common properties. Custom properties from
-            // caller might be overriden, the store is authoritative on some
-            // of them.
-            foreach ($this->computeProperties($event) as $key => $value) {
-                $properties[$key] = $value;
-            }
-
-            $callback = \Closure::bind(
-                static function (Event $event) use ($aggregateId, $aggregateType, $eventName, $properties, $createdAt): Event {
-                    $event->aggregateId = $aggregateId;
-                    $event->aggregateType = $aggregateType;
-                    $event->name = $eventName;
-                    $event->properties = $properties;
-                    $event->createdAt = $createdAt;
-                    return $event;
-                },
-                null, Event::class
-            );
 
             try {
                 $newEvent = $this->doStore($callback($event));
@@ -172,92 +170,75 @@ abstract class AbstractEventStore implements EventStore
     }
 
     /**
-     * Update event metadata.
+     * {@inheritdoc}
      */
-    public function update(Event $event, array $properties): Event
+    public function update(Event $event): EventBuilder
     {
-        $logContext = [
-            'event' => $event,
-        ];
-
-        $callback = \Closure::bind(
-            static function (Event $event) use ($properties): Event {
-                $event = clone $event;
-                // Soft alter properties.
-                foreach ($properties as $key => $value) {
-                    if (null === $value || '' === $value) {
-                        unset($event->properties[$key]);
-                    } else {
-                        $event->properties[$key] = (string)$value;
-                    }
+        return new DefaultEventBuilder(
+            function (EventBuilder $builder) use ($event) {
+                $logContext = ['event' => $event];
+                try {
+                    $newEvent = $this->doUpdate($this->prepareUpdate($event, $builder));
+                    $this->logger->debug("Event updated", $logContext);
+                    return $newEvent;
+                } catch (\Throwable $e) {
+                    $this->logger->critical("Event could not be updated", $logContext + ['exception' => $e]);
+                    throw $e;
                 }
-                return $event;
-            },
-            null, Event::class
+            }
         );
+    }
 
-        try {
-            $newEvent = $this->doUpdate($callback($event));
-            $this->logger->debug("Event updated", $logContext);
+    /**
+     * {@inheritdoc}
+     */
+    public function moveAfterRevision(Event $event, int $afterRevision): EventBuilder
+    {
+        throw new \Exception("Not implemented yet.");
+    }
 
-            return $newEvent;
+    /**
+     * {@inheritdoc}
+     */
+    public function moveAtDate(Event $event, \DateTimeInterface $newDate): EventBuilder
+    {
+        throw new \Exception("Not implemented yet.");
+    }
 
-        } catch (\Throwable $e) {
-            $this->logger->critical("Event could not be updated", $logContext + ['exception' => $e]);
-
-            throw $e;
-        }
+    /**
+     * {@inheritdoc}
+     */
+    public function insertAfter(int $afterRevision): EventBuilder
+    {
+        throw new \Exception("Not implemented yet.");
     }
 
     /**
      * Mark event as failed and update metadata.
      */
-    public function failedWith(Event $event, \Throwable $exception, array $properties = []): Event
+    public function failedWith(Event $event, \Throwable $exception): EventBuilder
     {
-        $logContext = [
-            'event' => $event,
-        ];
-
-        $code = $exception->getCode();
-        $message = $exception->getMessage();
-        $trace = $this->normalizeExceptionTrace($exception);
-
-        $callback = \Closure::bind(
-            static function (Event $event) use ($properties, $message, $code, $trace): Event {
-                $event = clone $event;
-                $event->hasFailed = true;
-                $event->errorCode = $code;
-                $event->errorMessage = $message;
-                $event->errorTrace = $trace;
-                // Soft alter properties.
-                foreach ($properties as $key => $value) {
-                    if (null === $value || '' === $value) {
-                        unset($event->properties[$key]);
-                    } else {
-                        $event->properties[$key] = (string)$value;
-                    }
+        return new DefaultEventBuilder(
+            function (EventBuilder $builder) use ($event, $exception) {
+                $logContext = ['event' => $event];
+                try {
+                    $newEvent = $this->doUpdate($this->prepareUpdate($event, $builder, $exception));
+                    $this->logger->debug("Event updated", $logContext);
+                    return $newEvent;
+                } catch (\Throwable $e) {
+                    $this->logger->critical("Event could not be updated", $logContext + ['exception' => $e]);
+                    throw $e;
                 }
-                return $event;
-            },
-            null, Event::class
+            }
         );
-
-        try {
-            $newEvent = $this->doUpdate($callback($event));
-            $this->logger->debug("Event updated", $logContext);
-
-            return $newEvent;
-
-        } catch (\Throwable $e) {
-            $this->logger->critical("Event could not be updated", $logContext + ['exception' => $e]);
-
-            throw $e;
-        }
     }
 
     /**
      * Real storage implementation, event is already fully populated to the
      * exception of revision and position. properties can be updated too.
+     *
+     * This returns an event because the storage may take the liberty of
+     * changing internals, such as adding new properties.
      */
     abstract protected function doStore(Event $event): Event;
 
@@ -267,8 +248,22 @@ abstract class AbstractEventStore implements EventStore
      * You must NOT change other values than properties and error message
      * information, all information that identifies the aggregate or the
      * event MUST remain untouched, or here be dragons.
+     *
+     * This returns an event because the storage may take the liberty of
+     * changing internals, such as adding new properties.
      */
     abstract protected function doUpdate(Event $event): Event;
+
+    /**
+     * Real move implementation.
+     *
+     * You must NOT change other values than the revision or possibly the
+     * validity date, although it is supposed to already be up to date.
+     *
+     * This returns an event because the storage may take the liberty of
+     * changing internals, such as adding new properties.
+     */
+    abstract protected function doMoveAt(Event $event, int $newRevision): Event;
 
     /**
      * Serialize event data.
@@ -348,32 +343,64 @@ abstract class AbstractEventStore implements EventStore
     }
 
     /**
-     * Compute event properties that can be computed automatically.
+     * Prepare update and metadata for update along.
      */
-    final private function computeProperties(Event $event): array
+    private function prepareUpdate(Event $event, DefaultEventBuilder $builder, ?\Throwable $exception = null): Event
     {
-        $properties = $event->getProperties();
-        $message = $event->getMessage();
-
-        if (\is_object($message)) {
-            $properties[Property::CONTENT_TYPE] = $this->getSerializationFormat();
-            if (empty($properties[Property::MESSAGE_TYPE])) {
-                $properties[Property::MESSAGE_TYPE] =  \get_class($message);
-            }
-        } else {
-            $properties[Property::CONTENT_TYPE] = 'text/plain';
-            if (empty($properties[Property::MESSAGE_TYPE])) {
-                $properties[Property::MESSAGE_TYPE] =  \gettype($message);
-            }
+        $exceptionTraceAsString = null;
+        if ($exception) {
+            $exceptionTraceAsString = $this->normalizeExceptionTrace($exception);
         }
 
-        return $properties;
+        $callback = \Closure::bind(
+            function () use ($event, $builder, $exception, $exceptionTraceAsString): Event {
+                $event = clone $event;
+
+                $properties = $builder->getProperties();
+                $properties[Property::MODIFIED_AT] = (new \DateTime())->format(\DateTime::ISO8601);
+
+                $validAt = $builder->getDate();
+                if ($validAt) {
+                    $properties[Property::MODIFIED_PREVIOUS_NAME] = $event->validAt()->format(\DateTime::ISO8601);
+                    $event->validAt = $validAt;
+                }
+
+                $name = $builder->getMessageName();
+                if ($name) {
+                    $originalName = $event->getName();
+                    if ($originalName !== $name) {
+                        $properties[Property::MODIFIED_PREVIOUS_NAME] = $originalName;
+                    }
+                    $event->name = $name;
+                }
+
+                foreach ($properties as $key => $value) {
+                    if (null === $value || '' === $value) {
+                        unset($event->properties[$key]);
+                    } else {
+                        $event->properties[$key] = (string)$value;
+                    }
+                }
+
+                if ($exception) {
+                    $event->hasFailed = true;
+                    $event->errorCode = $exception->getCode();
+                    $event->errorMessage = $exception->getMessage();
+                    $event->errorTrace = $exceptionTraceAsString;
+                }
+
+                return $event;
+            },
+            null, Event::class
+        );
+
+        return $callback();
     }
 
     /**
      * Get or create empty namespace map.
      */
-    final private function getNamespaceMap(): NamespaceMap
+    private function getNamespaceMap(): NamespaceMap
     {
         return $this->namespaceMap ?? ($this->namespaceMap = new NamespaceMap());
     }

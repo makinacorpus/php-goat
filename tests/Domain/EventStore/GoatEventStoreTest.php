@@ -81,9 +81,7 @@ final class GoatEventStoreTest extends AbstractEventStoreTest
         $eventStore->append(new MockMessage1(7, "booh", null))->aggregate('some_type')->execute();
         $event2 = $eventStore->append(new MockMessage1(11, "baah", null))->aggregate('some_other_type')->execute();
 
-        $eventStore->update($event2, [
-            'x-test-property' => 11,
-        ]);
+        $eventStore->update($event2)->property('x-test-property', '11')->execute();
 
         $stream = $eventStore->query()->failed(null)->withType('some_type')->execute();
         self::assertSame(1, \count($stream));
