@@ -11,12 +11,12 @@ use Goat\Runner\ResultIterator;
 final class GoatEventStream implements \IteratorAggregate, EventStream
 {
     private ResultIterator $result;
-    private GoatEventStore $store;
+    private GoatEventStore $eventStore;
 
-    public function __construct(ResultIterator $result, GoatEventStore $store)
+    public function __construct(ResultIterator $result, GoatEventStore $eventStore)
     {
         $this->result = $result;
-        $this->store = $store;
+        $this->eventStore = $eventStore;
     }
 
     /**
@@ -33,7 +33,7 @@ final class GoatEventStream implements \IteratorAggregate, EventStream
     public function getIterator()
     {
         foreach ($this->result as $row) {
-            yield $this->store->hydrateEvent($row);
+            yield $this->eventStore->hydrateEvent($row);
         }
     }
 
@@ -43,7 +43,7 @@ final class GoatEventStream implements \IteratorAggregate, EventStream
     public function fetch(): ?Event
     {
         if ($row = $this->result->fetch()) {
-            return $this->store->hydrateEvent($row);
+            return $this->eventStore->hydrateEvent($row);
         }
         return null;
     }

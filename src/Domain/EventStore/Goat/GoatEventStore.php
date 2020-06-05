@@ -282,13 +282,13 @@ final class GoatEventStore extends AbstractEventStore
     {
         $nameMap = $this->getNameMap();
 
-        $callback = \Closure::bind(function (GoatEventStore $store) use ($nameMap) {
+        $callback = \Closure::bind(function (GoatEventStore $eventStore) use ($nameMap) {
 
-            $select = $store
+            $select = $eventStore
                 ->getRunner()
                 ->getQueryBuilder()
-                ->select($store->getEventRelation('default')) // @todo
-                ->join($store->getIndexRelation(), 'event.aggregate_id = index.aggregate_id')
+                ->select($eventStore->getEventRelation('default')) // @todo
+                ->join($eventStore->getIndexRelation(), 'event.aggregate_id = index.aggregate_id')
             ;
 
             $where = $select->getWhere();

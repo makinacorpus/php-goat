@@ -85,10 +85,10 @@ SQL
     {
         $this->createTestSchema($runner);
 
-        $store = new GoatEventStore($runner, $schema);
-        $store->setSerializer($this->createSerializer());
+        $eventStore = new GoatEventStore($runner, $schema);
+        $eventStore->setSerializer($this->createSerializer());
 
-        return $store;
+        return $eventStore;
     }
 
     /**

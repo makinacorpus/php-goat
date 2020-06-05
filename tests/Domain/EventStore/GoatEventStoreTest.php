@@ -17,12 +17,12 @@ final class GoatEventStoreTest extends AbstractEventStoreTest
     {
         $runner = $factory->getRunner();
 
-        $store = $this->createEventStore($runner, $factory->getSchema());
+        $eventStore = $this->createEventStore($runner, $factory->getSchema());
 
         $message = new MockMessage1(7, "booh", null);
-        $store->append($message)->aggregate('some_type')->execute();
+        $eventStore->append($message)->aggregate('some_type')->execute();
 
-        $stream = $store->query()->failed(null)->execute();
+        $stream = $eventStore->query()->failed(null)->execute();
         self::assertSame(1, \count($stream));
 
         foreach ($stream as $event) {
@@ -53,12 +53,12 @@ final class GoatEventStoreTest extends AbstractEventStoreTest
     {
         $runner = $factory->getRunner();
 
-        $store = $this->createEventStore($runner, $factory->getSchema());
+        $eventStore = $this->createEventStore($runner, $factory->getSchema());
 
-        $store->append(new MockMessage2('foo', 'bar', $aggregateRootId = $this->createUuid()))->execute();
-        $store->append($message = new MockMessage2('foo', 'baz', $this->createUuid(), $aggregateRootId))->execute();
+        $eventStore->append(new MockMessage2('foo', 'bar', $aggregateRootId = $this->createUuid()))->execute();
+        $eventStore->append($message = new MockMessage2('foo', 'baz', $this->createUuid(), $aggregateRootId))->execute();
 
-        $stream = $store->query()->for($message->getAggregateId())->failed(null)->execute();
+        $stream = $eventStore->query()->for($message->getAggregateId())->failed(null)->execute();
         self::assertSame(1, \count($stream));
 
         foreach ($stream as $event) {
@@ -76,16 +76,16 @@ final class GoatEventStoreTest extends AbstractEventStoreTest
     {
         $runner = $factory->getRunner();
 
-        $store = $this->createEventStore($runner, $factory->getSchema());
+        $eventStore = $this->createEventStore($runner, $factory->getSchema());
 
-        $store->append(new MockMessage1(7, "booh", null))->aggregate('some_type')->execute();
-        $event2 = $store->append(new MockMessage1(11, "baah", null))->aggregate('some_other_type')->execute();
+        $eventStore->append(new MockMessage1(7, "booh", null))->aggregate('some_type')->execute();
+        $event2 = $eventStore->append(new MockMessage1(11, "baah", null))->aggregate('some_other_type')->execute();
 
-        $store->update($event2, [
+        $eventStore->update($event2, [
             'x-test-property' => 11,
         ]);
 
-        $stream = $store->query()->failed(null)->withType('some_type')->execute();
+        $stream = $eventStore->query()->failed(null)->withType('some_type')->execute();
         self::assertSame(1, \count($stream));
 
         foreach ($stream as $event) {
@@ -94,7 +94,7 @@ final class GoatEventStoreTest extends AbstractEventStoreTest
             self::assertFalse($event->hasProperty('x-test-property'));
         }
 
-        $stream = $store->query()->failed(null)->withType('some_other_type')->execute();
+        $stream = $eventStore->query()->failed(null)->withType('some_other_type')->execute();
         self::assertSame(1, \count($stream));
 
         foreach ($stream as $event) {

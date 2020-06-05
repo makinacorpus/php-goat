@@ -9,11 +9,11 @@ use Goat\Domain\EventStore\EventStream;
 
 final class GoatEventQuery extends AbstractEventQuery
 {
-    private GoatEventStore $store;
+    private GoatEventStore $eventStore;
 
-    public function __construct(GoatEventStore $store)
+    public function __construct(GoatEventStore $eventStore)
     {
-        $this->store = $store;
+        $this->eventStore = $eventStore;
     }
 
     /**
@@ -22,7 +22,7 @@ final class GoatEventQuery extends AbstractEventQuery
     public function execute(): EventStream
     {
         $select = $this
-            ->store
+            ->eventStore
             ->createSelectQuery($this)
             ->columnExpression("event.*")
             ->columns(['index.aggregate_type', 'index.aggregate_root', 'index.namespace'])
@@ -32,6 +32,6 @@ final class GoatEventQuery extends AbstractEventQuery
             $select->range($this->limit);
         }
 
-        return new GoatEventStream($select->execute(), $this->store);
+        return new GoatEventStream($select->execute(), $this->eventStore);
     }
 }
