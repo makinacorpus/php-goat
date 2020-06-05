@@ -30,10 +30,13 @@ interface EventStore
     /**
      * Append new event.
      *
+     * @param object $message
+     *   Message to store.
+     *
      * @return EventBuilder<Event>
      *   Once executed, event is stored.
      */
-    public function append(): EventBuilder;
+    public function append(object $message, ?string $name = null): EventBuilder;
 
     /**
      * Update event metadata.

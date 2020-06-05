@@ -16,7 +16,7 @@ interface EventBuilder
     /**
      * Set message, can be a any object.
      */
-    public function message(object $message, ?string $type = null): self;
+    public function message(object $message, ?string $name = null): self;
 
     /**
      * Set date if not now.

@@ -261,7 +261,7 @@ abstract class AbstractDispatcher implements Dispatcher
             return null;
         }
 
-        $builder = $this->eventStore->append()->message($envelope->getMessage());
+        $builder = $this->eventStore->append($envelope->getMessage());
 
         foreach ($envelope->getProperties() as $name => $value) {
             $builder->property($name, $value);

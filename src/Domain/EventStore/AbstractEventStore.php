@@ -57,11 +57,7 @@ abstract class AbstractEventStore implements EventStore
     {
         @\trigger_error(\sprintf("%s::store() is deprecated", EventStore::class), E_USER_DEPRECATED);
 
-        $builder = $this
-            ->append()
-            ->message($message)
-            ->aggregate($aggregateType, $aggregateId)
-        ;
+        $builder = $this->append($message)->aggregate($aggregateType, $aggregateId);
 
         if (isset($extra['properties'])) {
             foreach ($extra['properties'] as $key => $value) {
@@ -79,12 +75,13 @@ abstract class AbstractEventStore implements EventStore
     /**
      * {@inheritdoc}
      */
-    public function append(): EventBuilder
+    public function append(object $message, ?string $name = null): EventBuilder
     {
-        return new DefaultEventBuilder(function (DefaultEventBuilder $builder) {
+        $execute = function (DefaultEventBuilder $builder) {
             $nameMap = $this->getNameMap();
 
             $message = $builder->getMessage();
+            $eventName = $builder->getMessageName();
             $aggregateId = $builder->getAggregateId();
             $aggregateType = $builder->getAggregateType();
             $properties = $builder->getProperties();
@@ -99,13 +96,15 @@ abstract class AbstractEventStore implements EventStore
                 $aggregateId = $event->getAggregateId();
             }
 
-            // Compute normalized event type.
-            if ($eventType = $nameMap->getMessageName($message)) {
-                $properties['type'] = $eventType;
+            // Compute normalized event name. If event name was given by the
+            // caller normalize it before registering it into the properties
+            // array.
+            // Otherwise, use the name map directly to guess it.
+            if ($eventName) {
+                $eventName = $properties['type'] = $nameMap->getName($eventName);
+            } else if ($eventName = $nameMap->getMessageName($message)) {
+                $properties['type'] = $eventName;
             }
-
-            // Compute normalized event name.
-            $eventName = $nameMap->getName($event->getName());
 
             $logContext = [
                 'aggregate_id' => (string)$aggregateId,
@@ -144,7 +143,12 @@ abstract class AbstractEventStore implements EventStore
 
                 throw $e;
             }
-        });
+        };
+
+        $builder = new DefaultEventBuilder($execute);
+        $builder->message($message, $name);
+
+        return $builder;
     }
 
     /**
