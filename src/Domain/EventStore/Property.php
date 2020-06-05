@@ -10,10 +10,10 @@ namespace Goat\Domain\EventStore;
  */
 final class Property
 {
-    const DEFAULT_CONTENT_ENCODING = 'UTF-8';
-    const DEFAULT_CONTENT_TYPE = 'application/json';
-    const DEFAULT_NAMESPACE = 'default';
     const DEFAULT_TYPE = 'none';
+    const DEFAULT_NAMESPACE = 'default';
+    const DEFAULT_CONTENT_TYPE = 'application/json';
+    const DEFAULT_CONTENT_ENCODING = 'UTF-8';
 
     const APP_ID = 'app-id';
     const CONTENT_ENCODING = 'content-encoding';
@@ -29,12 +29,17 @@ final class Property
 
     /** Current number of retry count. */
     const RETRY_COUNT = 'x-retry-count';
-
     /** Retry after at least <VALUE> milliseconds. */
     const RETRY_DELAI = 'x-retry-delai';
-
     /** Maximum number of retries (AMQP would use a TTL instead). */
     const RETRY_MAX = 'x-retry-max';
+
+    /** Event was modified, this contains arbitrary text. */
+    const MODIFIED_BY = 'x-goat-modified-by';
+    /** Event was modified, an ISO8601 is welcome in this value. */
+    const MODIFIED_AT = 'x-goat-modified-at';
+    /** Event was modified, just arbitrary text here. */
+    const MODIFIED_WHY = 'x-goat-modified-why';
 
     /**
      * Convert custom properties to AMQP properties.
