@@ -7,12 +7,8 @@ namespace Goat\Domain\EventStore\Goat;
 use Goat\Domain\EventStore\AbstractEventStore;
 use Goat\Domain\EventStore\Event;
 use Goat\Domain\EventStore\EventQuery;
-use Goat\Query\ExpressionLike;
-use Goat\Query\ExpressionRaw;
 use Goat\Query\ExpressionRelation;
 use Goat\Query\ExpressionValue;
-use Goat\Query\Query;
-use Goat\Query\SelectQuery;
 use Goat\Runner\Runner;
 use Goat\Runner\Transaction;
 
@@ -273,120 +269,6 @@ final class GoatEventStore extends AbstractEventStore
     }
 
     /**
-     * Create select query from event query
-     *
-     * @internal
-     *   For \Goat\Domain\Event\Goat\GoatEventQuery usage only.
-     */
-    public function createSelectQuery(GoatEventQuery $query): SelectQuery
-    {
-        $nameMap = $this->getNameMap();
-
-        $callback = \Closure::bind(function (GoatEventStore $eventStore) use ($nameMap) {
-
-            $select = $eventStore
-                ->getRunner()
-                ->getQueryBuilder()
-                ->select($eventStore->getEventRelation('default')) // @todo
-                ->join($eventStore->getIndexRelation(), 'event.aggregate_id = index.aggregate_id')
-            ;
-
-            $where = $select->getWhere();
-
-            if ($this->names) {
-                $conditions = [];
-                foreach ($this->names as $name) {
-                    if ($name !== ($value = $nameMap->getName($name))) {
-                        $conditions[] = $value;
-                        $conditions[] = $name;
-                    } else if ($name !== ($value = $nameMap->getType($name))) {
-                        $conditions[] = $value;
-                        $conditions[] = $name;
-                    } else {
-                        $conditions[] = $name;
-                    }
-                }
-                $where->isIn('event.name', $conditions);
-            }
-            if ($this->searchName) {
-                $where->expression(ExpressionLike::iLike('event.name', '%?%', $this->searchName));
-            }
-            if ($this->searchData) {
-                // TODO: use jsonb storage and search ?
-                $where->expression(ExpressionLike::iLike('data', '%?%', $this->searchData));
-            }
-            if ($this->aggregateTypes) {
-                $where->isIn('index.aggregate_type', $this->aggregateTypes);
-            }
-            if ($this->aggregateId) {
-                if ($this->aggregateAsRoot) {
-                    $where->or()->isEqual('index.aggregate_id', $this->aggregateId)->isEqual('index.aggregate_root', $this->aggregateId);
-                } else {
-                    $where->isEqual('index.aggregate_id', $this->aggregateId);
-                }
-            }
-            if ($this->dateLowerBound && $this->dateHigherBound) {
-                $where->condition(
-                    'event.created_at',
-                    // need to accept 2019-04-25 10:12:13.22115 as valid for higerBound 2019-04-25 10:12:13
-                    // using a date_trunc(second) on event_created_at would be a perf killer, better to check against
-                    // 2019-04-25 10:12:14 (note that would also accept 2019-04-25 10:12:14.00000)
-                    new ExpressionRaw(\sprintf("'%s'::timestamp without time zone AND '%s'::timestamp without time zone + interval '1 second'",
-                        $this->dateLowerBound->format("Y-m-d H:i:s"),
-                        $this->dateHigherBound->format("Y-m-d H:i:s")
-                    )),
-                    'BETWEEN'
-                );
-            }
-            if (null !== $this->failed) {
-                $where->condition('event.has_failed', $this->failed);
-            }
-
-            if ($this->reverse) {
-                // We sometime have bugs with date, only the serial can really
-                // properly sort the stream.
-                $select->orderBy('event.position', Query::ORDER_DESC);
-                $select->orderBy('event.created_at', Query::ORDER_DESC);
-
-                if ($this->position) {
-                    $where->isLessOrEqual('event.position', $this->position);
-                }
-                if ($this->revision) {
-                    $where->isLessOrEqual('event.revision', $this->revision);
-                }
-
-            } else {
-                // Cf. upper note.
-                $select->orderBy('event.position', Query::ORDER_ASC);
-                $select->orderBy('event.created_at', Query::ORDER_ASC);
-
-                if ($this->position) {
-                    $where->isGreaterOrEqual('event.position', $this->position);
-                }
-                if ($this->revision) {
-                    $where->isGreaterOrEqual('event.revision', $this->revision);
-                }
-            }
-
-            if ($this->dateLowerBound && !$this->dateHigherBound) {
-                $where->isGreaterOrEqual('event.created_at', $this->dateLowerBound);
-            }
-
-            if ($this->dateHigherBound && !$this->dateLowerBound) {
-                $where->isLessorEqual(
-                    'event.created_at',
-                    new ExpressionRaw(\sprintf("'%s'::timestamp without time zone + interval '1 second'", $this->dateHigherBound->format("Y-m-d H:i:s")))
-                );
-            }
-
-            return $select;
-
-        }, $query, GoatEventQuery::class);
-
-        return $callback($this);
-    }
-
-    /**
      * {@inheritdoc}
      */
     public function query(): EventQuery
@@ -408,7 +290,7 @@ final class GoatEventStore extends AbstractEventStore
             );
         }
 
-        return $this
+        return $query
             ->createSelectQuery($query)
             ->removeAllColumns()
             ->removeAllOrder()

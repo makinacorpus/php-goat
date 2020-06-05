@@ -9,20 +9,19 @@ use Ramsey\Uuid\UuidInterface;
 
 abstract class AbstractEventQuery implements EventQuery
 {
-    protected $aggregateId;
-    protected $aggregateAsRoot = false;
-    protected $aggregateTypes = [];
-    protected $dateHigherBound;
-    protected $dateLowerBound;
-    protected $failed = false;
-    protected $for;
-    protected $limit = 0;
-    protected $names = [];
-    protected $searchName;
-    protected $searchData;
-    protected $position;
-    protected $reverse = false;
-    protected $revision;
+    protected ?UuidInterface $aggregateId = null;
+    protected bool $aggregateAsRoot = false;
+    protected array $aggregateTypes = [];
+    protected ?\DateTimeInterface $dateHigherBound = null;
+    protected ?\DateTimeInterface $dateLowerBound = null;
+    protected ?bool $failed = false;
+    protected int $limit = 0;
+    protected array $names = [];
+    protected ?string $searchName = null;
+    protected $searchData = null;
+    protected ?int $position = null;
+    protected bool $reverse = false;
+    protected ?int $revision = null;
 
     /**
      * Convert value to UUID, raise exception in case of failure
@@ -118,7 +117,6 @@ abstract class AbstractEventQuery implements EventQuery
      */
     public function withSearchName(string $name): EventQuery
     {
-
         $this->searchName = $name;
 
         return $this;
@@ -129,7 +127,6 @@ abstract class AbstractEventQuery implements EventQuery
      */
     public function withSearchData($data): EventQuery
     {
-
         $this->searchData = $data;
 
         return $this;

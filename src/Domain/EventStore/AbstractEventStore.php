@@ -51,6 +51,26 @@ abstract class AbstractEventStore implements EventStore
     }
 
     /**
+     * Get namespace for aggregate type.
+     *
+     * @internal
+     */
+    final public function getNamespace(string $aggregateType): string
+    {
+        return $this->getNamespaceMap()->getNamespace($aggregateType);
+    }
+
+    /**
+     * Get or create empty namespace map.
+     *
+     * @internal
+     */
+    final public function getNameMap(): NameMap
+    {
+        return $this->nameMap ?? ($this->nameMap = new DefaultNameMap());
+    }
+
+    /**
      * {@inheritdoc}
      */
     final public function store(object $message, ?UuidInterface $aggregateId = null, ?string $aggregateType = null, bool $failed = false, array $extra = []): Event
@@ -309,22 +329,6 @@ abstract class AbstractEventStore implements EventStore
             // it has to do or fail by itself.
             return new BrokenMessage($aggregateType, $aggregateId, $data, $eventName);
         }
-    }
-
-    /**
-     * Get or create empty namespace map.
-     */
-    final protected function getNameMap(): NameMap
-    {
-        return $this->nameMap ?? ($this->nameMap = new DefaultNameMap());
-    }
-
-    /**
-     * Get namespace for aggregate type.
-     */
-    final protected function getNamespace(string $aggregateType): string
-    {
-        return $this->getNamespaceMap()->getNamespace($aggregateType);
     }
 
     /**
