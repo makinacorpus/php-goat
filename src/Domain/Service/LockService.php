@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Goat\Domain\Service;
 
-use Goat\Domain\DebuggableTrait;
 use Goat\Domain\Event\Error\ParallelExecutionError;
 use Goat\Runner\Runner;
 use Psr\Log\NullLogger;
@@ -16,14 +15,8 @@ use Psr\Log\NullLogger;
  */
 final class LockService
 {
-    use DebuggableTrait;
+    private Runner $runner;
 
-    /** @var Runner */
-    private $runner;
-
-    /**
-     * Default constructor
-     */
     public function __construct(Runner $runner)
     {
         $this->runner = $runner;

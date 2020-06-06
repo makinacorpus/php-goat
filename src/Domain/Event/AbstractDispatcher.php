@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Goat\Domain\Event;
 
-use Goat\Domain\DebuggableTrait;
 use Goat\Domain\EventStore\Event;
 use Goat\Domain\EventStore\EventStore;
 use Goat\Domain\EventStore\Property;
@@ -17,8 +16,6 @@ use Psr\Log\NullLogger;
 
 abstract class AbstractDispatcher implements Dispatcher
 {
-    use DebuggableTrait;
-
     const PROP_TIME_START = 'x-goat-time-start';
 
     private static int $commandCount = 0;

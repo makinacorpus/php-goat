@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Goat\Domain\EventStore;
 
-use Goat\Domain\DebuggableTrait;
 use Goat\Domain\Event\BrokenMessage;
 use Goat\Domain\Serializer\MimeTypeConverter;
 use Psr\Log\NullLogger;
@@ -13,8 +12,6 @@ use Symfony\Component\Serializer\SerializerInterface;
 
 abstract class AbstractEventStore implements EventStore
 {
-    use DebuggableTrait;
-
     private NameMap $nameMap;
     private NamespaceMap $namespaceMap;
     private SerializerInterface $serializer;

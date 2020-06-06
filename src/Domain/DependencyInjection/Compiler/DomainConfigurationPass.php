@@ -59,7 +59,6 @@ final class DomainConfigurationPass implements CompilerPassInterface
         $hasEventStore = $container->has($this->eventStoreId);
         $hasLockService = $container->has($this->lockServiceId);
         $hasProjectorRegistry =  $container->has($this->projectorRegistryId);
-        $isDebug = $container->getParameter('kernel.debug');
 
         if ($hasEventStore) {
             $eventStoreDef = $container->getDefinition($this->eventStoreId);
@@ -69,9 +68,6 @@ final class DomainConfigurationPass implements CompilerPassInterface
                 }
                 if ($hasLogger) {
                     $eventStoreDef->addMethodCall('setLogger', [new Reference($this->loggerId)]);
-                }
-                if ($isDebug) {
-                    $eventStoreDef->addMethodCall('setDebug', [true]);
                 }
             }
         }
@@ -103,18 +99,12 @@ final class DomainConfigurationPass implements CompilerPassInterface
             if ($hasLogger) {
                 $dispatcherDef->addMethodCall('setLogger', [new Reference($this->loggerId)]);
             }
-            if ($isDebug) {
-                $dispatcherDef->addMethodCall('setDebug', [true]);
-            }
         }
 
         if ($hasLockService) {
             $lockServiceDef = $container->getDefinition($this->lockServiceId);
             if ($hasLogger) {
                 $lockServiceDef->addMethodCall('setLogger', [new Reference($this->loggerId)]);
-            }
-            if ($isDebug) {
-                $lockServiceDef->addMethodCall('setDebug', [true]);
             }
         }
 
