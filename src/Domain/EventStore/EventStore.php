@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Goat\Domain\EventStore;
 
 use Symfony\Component\Serializer\SerializerInterface;
-use Ramsey\Uuid\UuidInterface;
 
 interface EventStore
 {
@@ -18,14 +17,6 @@ interface EventStore
      * Set serializer.
      */
     public function setSerializer(SerializerInterface $serializer, ?string $format = null): void;
-
-    /**
-     * Store event.
-     *
-     * @deprecated
-     *   Use self::append() instead.
-     */
-    public function store(object $message, ?UuidInterface $aggregateId = null, ?string $aggregateType = null, bool $failed = false, array $extra = []): Event;
 
     /**
      * Append new event.

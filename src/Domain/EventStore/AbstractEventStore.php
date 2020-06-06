@@ -73,28 +73,6 @@ abstract class AbstractEventStore implements EventStore
     /**
      * {@inheritdoc}
      */
-    final public function store(object $message, ?UuidInterface $aggregateId = null, ?string $aggregateType = null, bool $failed = false, array $extra = []): Event
-    {
-        @\trigger_error(\sprintf("%s::store() is deprecated", EventStore::class), E_USER_DEPRECATED);
-
-        $builder = $this->append($message)->aggregate($aggregateType, $aggregateId);
-
-        if (isset($extra['properties'])) {
-            foreach ($extra['properties'] as $key => $value) {
-                $builder->property($key, $value);
-            }
-        }
-
-        if ($failed) {
-            @\trigger_error(\sprintf("%s::store() with \$failed parameter is not supported anymore", EventStore::class), E_USER_DEPRECATED);
-        }
-
-        return $builder->execute();
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public function append(object $message, ?string $name = null): EventBuilder
     {
         $execute = function (DefaultEventBuilder $builder) {
@@ -164,7 +142,11 @@ abstract class AbstractEventStore implements EventStore
         };
 
         $builder = new DefaultEventBuilder($execute);
-        $builder->message($message, $name);
+        $builder->message($message);
+
+        if ($name) {
+            $builder->name($name);
+        }
 
         return $builder;
     }
@@ -214,7 +196,7 @@ abstract class AbstractEventStore implements EventStore
     }
 
     /**
-     * Mark event as failed and update metadata.
+     * {@inheritdoc}
      */
     public function failedWith(Event $event, \Throwable $exception): EventBuilder
     {

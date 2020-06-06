@@ -12,6 +12,11 @@ use Ramsey\Uuid\UuidInterface;
 interface EventBuilder
 {
     /**
+     * Set message name.
+     */
+    public function name(string $name): self;
+
+    /**
      * Set validity date if not now.
      *
      * Warning: this will not modify the event position, only its date.

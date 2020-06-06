@@ -8,8 +8,6 @@ use Ramsey\Uuid\UuidInterface;
 
 /**
  * Default event builder implementation.
- *
- * @param EventBuilder<T>
  */
 final class DefaultEventBuilder implements EventBuilder
 {
@@ -26,7 +24,7 @@ final class DefaultEventBuilder implements EventBuilder
     /**
      * @param callable $execute
      *   Callable must take exactly one argument, which is this builder
-     *   instance, and return whatever object it meant to return.
+     *   instance, and return an Event instance.
      */
     public function __construct(callable $execute)
     {
@@ -36,11 +34,22 @@ final class DefaultEventBuilder implements EventBuilder
     /**
      * Set message.
      */
-    public function message(object $message, ?string $name = null): self
+    public function message(object $message): self
     {
         $this->failIfLocked();
 
         $this->message = $message;
+
+        return $this;
+    }
+
+    /**
+     * Set message name.
+     */
+    public function name(string $name): self
+    {
+        $this->failIfLocked();
+
         $this->name = $name;
 
         return $this;

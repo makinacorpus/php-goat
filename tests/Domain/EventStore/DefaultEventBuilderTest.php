@@ -19,6 +19,7 @@ final class DefaultEventBuilderTest extends TestCase
         $message = new MockMessage();
 
         $builder->message($message, 'foo.bar');
+        $builder->name('foo.bar');
 
         self::assertSame($message, $builder->getMessage());
         self::assertSame('foo.bar', $builder->getMessageName());
