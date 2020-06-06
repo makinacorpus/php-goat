@@ -6,12 +6,16 @@ namespace Goat\Domain\EventStore;
 
 use Goat\Domain\Event\BrokenMessage;
 use Goat\Domain\Serializer\MimeTypeConverter;
+use Psr\Log\LoggerAwareInterface;
+use Psr\Log\LoggerAwareTrait;
 use Psr\Log\NullLogger;
 use Ramsey\Uuid\UuidInterface;
 use Symfony\Component\Serializer\SerializerInterface;
 
-abstract class AbstractEventStore implements EventStore
+abstract class AbstractEventStore implements EventStore, LoggerAwareInterface
 {
+    use LoggerAwareTrait;
+
     private NameMap $nameMap;
     private NamespaceMap $namespaceMap;
     private SerializerInterface $serializer;
