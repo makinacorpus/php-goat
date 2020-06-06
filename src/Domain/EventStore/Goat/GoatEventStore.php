@@ -312,4 +312,187 @@ final class GoatEventStore extends AbstractEventStore
             ->fetchField()
         ;
     }
+
+    /*
+     * @todo This is ulgy, but this code needed to be kept somewhere.
+     *
+
+    protected function doPlayOperationStream(iterable $operations): void
+    {
+        $runner = $this->eventStore->getRunner();
+        $transaction = null;
+
+        try {
+            $transaction = $runner->beginTransaction(Transaction::SERIALIZABLE);
+
+            // DEFERRED is necessary, because during a short lap of time, will
+            // have duplicated revision numbers within aggregate streams.
+            $transaction->deferred();
+
+            foreach ($operations as $operation) {
+                if ($operation instanceof EventAmendOperationInsertAfterRevision) {
+                    $this->doInsertAfterRevision($runner, $operation);
+                } else if ($operation instanceof EventAmendOperationMoveAfterRevision) {
+                    $this->doMoveAfterRevision($runner, $operation);
+                } else if ($operation instanceof EventAmendOperationUpdate) {
+                    $this->doUpdate($runner, $operation);
+                } else {
+                    throw new \InvalidArgumentException(\sprintf("Unsupported event amend operation '%s'", \get_class($operation)));
+                }
+            }
+
+            $transaction->commit();
+
+        } catch (\Throwable $e) {
+            if ($transaction) {
+                $transaction->rollback();
+            }
+
+            throw $e;
+        }
+    }
+
+    private function doInsertAfterRevision(Runner $runner, EventAmendOperationInsertAfterRevision $operation): void
+    {
+        throw new \Exception("Not implemented yet.");
+    }
+
+    private function doMoveAfterRevision(Runner $runner, EventAmendOperationMoveAfterRevision $operation): void
+    {
+        $aggregateId = $operation->aggregateId;
+        $eventRelation = $this->lockAggregateStream($runner, $aggregateId);
+
+        $newRevision = $operation->revision + 1; // We move after.
+        $currentRevision = $operation->currentRevision;
+
+        $queryBuilder = $runner->getQueryBuilder();
+
+        // This is necessary to update position as well, otherwise querying
+        // the event store with more than one stream at once will order on
+        // position, and restitute events in the wrong order. Please note that
+        // dates will NOT be used for ordering.
+        if ($newRevision === $currentRevision) {
+            throw new \InvalidArgumentException(\sprintf("Invalid no-op move for aggregate with id '%s'", $aggregateId));
+        } else if ($currentRevision < $newRevision) {
+            $revisionExpr = ExpressionRaw::create('"revision" - 1');
+            // $positionExpr = ExpressionRaw::create('"position" - 1');
+        } else {
+            $revisionExpr = ExpressionRaw::create('"revision" + 1');
+            // $positionExpr = ExpressionRaw::create('"position" + 1');
+        }
+
+        // First of all, find the new position the item will be placed into.
+        // @todo I'd be glad to avoid doing this.
+        /*
+        $newPosition = $queryBuilder
+            ->select($eventRelation)
+            ->column('position')
+            ->where('aggregate_id', $aggregateId)
+            ->where('revision', $newRevision)
+            ->execute()
+            ->fetchField()
+        ;
+         * /
+
+        // @todo I have to fix this, but it seems that even deferred, the
+        //   constraint is failing.
+        $queryBuilder
+            ->update($eventRelation)
+            ->set('revision', -1)
+            // ->set('position', -1)
+            ->where('aggregate_id', $aggregateId)
+            ->where('position', $operation->position)
+            ->perform()
+        ;
+
+        // First update all by changing their revision numbers. This will make
+        // targetted revision number being free for us.
+        $queryBuilder
+            ->update($eventRelation)
+            ->set('revision', $revisionExpr)
+            // ->set('position', $positionExpr)
+            ->set('properties', ExpressionRaw::create(
+                <<<SQL
+                jsonb_set(
+                    jsonb_set(
+                        "properties",
+                        '{x-goat-modified-prev-rev}',
+                        to_jsonb(revision)
+                    ),
+                    '{x-goat-modified-prev-pos}',
+                    to_jsonb(position)
+                )
+                SQL
+            ))
+            // ->set('position', $positionExpr)
+            ->where('aggregate_id', $aggregateId)
+            ->where(static function (Where $where) use ($currentRevision, $newRevision) {
+                if ($currentRevision < $newRevision) {
+                    $where->isBetween('revision', $currentRevision, $newRevision);
+                } else {
+                    $where->isBetween('revision', $newRevision, $currentRevision);
+                }
+            })
+            ->perform()
+        ;
+
+        // Then update our event to reposition itself at the right place.
+        $queryBuilder
+            ->update($eventRelation)
+            ->set('revision', $newRevision)
+            // ->set('position', $newPosition)
+            ->where('aggregate_id', $aggregateId)
+            ->where('position', $operation->position)
+            ->perform()
+        ;
+    }
+
+    private function doUpdate(Runner $runner, EventAmendOperationUpdate $operation): void
+    {
+        $aggregateId = $operation->aggregateId;
+        $eventRelation = $this->lockAggregateStream($runner, $aggregateId);
+
+        throw new \Exception("Not implemented yet.");
+    }
+
+    private function lockAggregateStream(Runner $runner, UuidInterface $aggregateId): ExpressionRelation
+    {
+        $aggregateType = $this->findAggregateType($runner, $aggregateId);
+        $eventRelation = $this->eventStore->getEventRelation($this->eventStore->getNamespace($aggregateType));
+
+        $runner
+            ->getQueryBuilder()
+            ->select($eventRelation)
+            ->columnExpression('1')
+            ->where('aggregate_id', $aggregateId)
+            ->forUpdate()
+            ->performOnly()
+            ->perform()
+        ;
+
+        return $eventRelation;
+    }
+
+    private function findAggregateType(Runner $runner, UuidInterface $aggregateId): string
+    {
+        $indexRelation = $this->eventStore->getIndexRelation();
+
+        $type = $runner
+            ->getQueryBuilder()
+            ->select($indexRelation)
+            ->column('aggregate_type')
+            ->where('aggregate_id', $aggregateId)
+            ->execute()
+            ->fetchField()
+        ;
+
+        // @codeCoverageIgnoreStart
+        if (!$type) {
+            throw new \InvalidArgumentException(\sprintf("Aggregate with id '%s' is unknown to event index", $aggregateId->toString()));
+        }
+        // @codeCoverageIgnoreEnd
+
+        return $type;
+    }
+     */
 }
