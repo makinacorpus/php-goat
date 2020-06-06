@@ -60,6 +60,9 @@ final class GoatEventQuery extends AbstractEventQuery
 
         $where = $select->getWhere();
 
+        // @todo names convertion using the name map should not belong to the
+        //   store implementation, we must find a way to make it completely
+        //   dependency free.
         if ($this->names) {
             $conditions = [];
             foreach ($this->names as $name) {

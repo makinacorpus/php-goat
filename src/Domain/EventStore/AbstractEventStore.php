@@ -12,6 +12,31 @@ use Psr\Log\NullLogger;
 use Ramsey\Uuid\UuidInterface;
 use Symfony\Component\Serializer\SerializerInterface;
 
+/**
+ * Implementors, please note that the only operation that needs to be atomic
+ * in this whole event store is the append() method: since it creates a new
+ * event in the history, position and revision keys need to be computed and
+ * this may cause data consistency issues notably unique key conflicts during
+ * concurent scenarios.
+ *
+ * On the other hand considering update and move operations, no matter if you
+ * use a SQL backend or any other technology: since the store is append only,
+ * position and revision keys have already been computed, data consistency
+ * conflicts cannot exists and thus those operation theorically do not require
+ * to be made atomic using ACID transactions.
+ *
+ * @todo
+ *   - Improve log contextes, normalize {id}#{rev} notation, create an helper
+ *     function to do this.
+ *   - Evaluate the need to also updating revision numbers when moving an
+ *     event, this will be much more complex for backends to implement but it
+ *     will remove ambiguities when two events are at the exact same date in
+ *     time and must be reversed.
+ *   - Evaluate adding an "order" field on the Event class, which when moved,
+ *     then is set to the previous relative event +1 value, so that the order
+ *     will always be OK within changing the revision numbers, and without
+ *     risking serializations error due to revision key conflicts.
+ */
 abstract class AbstractEventStore implements EventStore, LoggerAwareInterface
 {
     use LoggerAwareTrait;
