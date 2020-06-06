@@ -17,6 +17,11 @@ use Symfony\Component\Serializer\SerializerInterface;
 
 /**
  * Dispatches messages on AMQP.
+ *
+ * @experimental
+ * @codeCoverageIgnore
+ * @deprecated
+ *   This code is dead, but kept here until we do implement AMQP correctly.
  */
 final class AmqpDispatcher extends AbstractDirectDispatcher
 {

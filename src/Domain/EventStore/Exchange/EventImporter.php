@@ -7,7 +7,10 @@ namespace Goat\Domain\EventStore\Exchange;
 use Symfony\Component\Serializer\SerializerInterface;
 
 /**
- * Import stream
+ * Import stream.
+ *
+ * @experimental
+ * @codeCoverageIgnore
  */
 final class EventImporter
 {

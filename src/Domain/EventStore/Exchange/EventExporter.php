@@ -10,7 +10,10 @@ use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Serializer\Encoder\XmlEncoder;
 
 /**
- * Export stream
+ * Export stream.
+ *
+ * @experimental
+ * @codeCoverageIgnore
  */
 final class EventExporter
 {

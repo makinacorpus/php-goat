@@ -16,6 +16,9 @@ use phpDocumentor\Reflection\DocBlockFactory;
  *
  * I'm not very happy of this code, but it should work.
  *
+ * @experimental
+ * @codeCoverageIgnore
+ *
  * @todo
  *   Implement whitelist
  */
@@ -171,6 +174,9 @@ final class MessageExtractor
 
 /**
  * Formats RestructuredText.
+ *
+ * @experimental
+ * @codeCoverageIgnore
  */
 final class MessageRstFormatter
 {
@@ -357,7 +363,10 @@ EOT;
 }
 
 /**
- * Message meta-information, not to be used at runtime
+ * Message meta-information, not to be used at runtime.
+ *
+ * @experimental
+ * @codeCoverageIgnore
  */
 final class MessageInformation
 {

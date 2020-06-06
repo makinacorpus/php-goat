@@ -7,6 +7,8 @@ namespace Goat\Domain\EventStore;
 /**
  * Property names are AMQP compatible, except for 'type', and 'X-*' that should
  * be message properties by the AMQP spec.
+ *
+ * @codeCoverageIgnore
  */
 trait WithPropertiesTrait
 {
