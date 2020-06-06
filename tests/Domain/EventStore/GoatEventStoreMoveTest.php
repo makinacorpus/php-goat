@@ -6,11 +6,11 @@ namespace Goat\Domain\Tests\EventStore;
 
 use Goat\Domain\EventStore\Event;
 use Goat\Domain\EventStore\EventStore;
+use Goat\Domain\EventStore\Property;
 use Goat\Domain\Tests\Event\MockMessage;
 use Goat\Runner\Testing\TestDriverFactory;
 use Ramsey\Uuid\Uuid;
 use Ramsey\Uuid\UuidInterface;
-use Goat\Domain\EventStore\Property;
 
 final class GoatEventStoreMoveTest extends AbstractEventStoreTest
 {
