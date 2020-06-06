@@ -210,20 +210,14 @@ abstract class AbstractEventStore implements EventStore, LoggerAwareInterface
 
         $builder = $this
             ->update($event)
-            ->property(
-                Property::MODIFIED_PREVIOUS_REVISION,
-                (string)$event->getRevision()
-            )
+            ->properties([
+                Property::MODIFIED_PREVIOUS_REVISION => (string)$event->getRevision(),
+                Property::MODIFIED_PREVIOUS_VALID_AT => $event->validAt()->format(\DateTime::ISO8601),
+            ])
         ;
 
         if ($newDate) {
-            $builder
-                ->date($newDate)
-                ->property(
-                    Property::MODIFIED_PREVIOUS_VALID_AT,
-                    $event->validAt()->format(\DateTime::ISO8601)
-                )
-            ;
+            $builder->date($newDate);
         }
 
         return $builder;
@@ -445,15 +439,21 @@ abstract class AbstractEventStore implements EventStore, LoggerAwareInterface
      */
     private function findDateAfter(Event $event, int $afterRevision): ?\DateTimeInterface
     {
-        $dateBefore = null;
-        $dateAfter = null;
-        $eventDate = $event->validAt();
-
         $logContext = [
             'id' => $event->getAggregateId(),
             'rev' => $event->getRevision(),
             'previous' => $afterRevision,
         ];
+
+        if ($event->getRevision() === $afterRevision) {
+            $this->logger->notice("findDateAfter({id}#{rev}, #{previous}) - current element already is the target revision", $logContext);
+
+            return null;
+        }
+
+        $dateBefore = null;
+        $dateAfter = null;
+        $eventDate = $event->validAt();
 
         $bounds = $this
             ->query()
@@ -466,7 +466,7 @@ abstract class AbstractEventStore implements EventStore, LoggerAwareInterface
         $previous = $bounds->fetch();
 
         if ($previous) {
-            $this->logger->debug("findDateAfter({id}#{rev}, #{previous}) - found previous revision", $logContext);
+            $this->logger->debug("findDateAfter({id}#{rev}, #{previous}) - found target revision", $logContext);
 
             $dateBefore = $previous->validAt();
 
@@ -474,10 +474,15 @@ abstract class AbstractEventStore implements EventStore, LoggerAwareInterface
             // events, we will have to do date magic.
             $next = $bounds->fetch();
             if ($next) {
+                if ($next->getRevision() === $event->getRevision()) {
+                    // Object is already at the right place, just return.
+                    return null;
+                }
+
                 $dateAfter = $next->validAt();
             }
         } else {
-            $this->logger->warning("findDateAfter() - {id}#{rev} - revision #{previous} does not exist", $logContext);
+            $this->logger->warning("findDateAfter({id}#{rev}, #{previous}) - revision does not exist", $logContext);
 
             // We don't have an event matching the given revision, find the
             // previous one, any one, and use it as date bound.
@@ -492,6 +497,12 @@ abstract class AbstractEventStore implements EventStore, LoggerAwareInterface
             ;
 
             if ($anyPrevious) {
+                if ($anyPrevious->getRevision() === $event->getRevision()) {
+                    $this->logger->debug("findDateAfter({id}#{rev}, #{previous}) - event is already at the right place", $logContext);
+
+                    return null;
+                }
+
                 $dateBefore = $anyPrevious->validAt();
             }
         }
