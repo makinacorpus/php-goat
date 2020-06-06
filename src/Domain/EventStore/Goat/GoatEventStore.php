@@ -17,19 +17,19 @@ final class GoatEventStore extends AbstractEventStore
     private Runner $runner;
     private string $indexTable;
     private string $tablePrefix;
-    private string $schema;
+    private ?string $schema = null;
 
     /**
      * Default constructor.
      *
-     * @todo
-     *   Consider null schema, allowing the path resolution be done by your
-     *   RDBMS instead.
+     * @param ?string $schema
+     *   Set null to let your RDMS schema resolution do the job or if your
+     *   RDMS does not support schema.
      *
      * @codeCoverageIgnore
      *   Code coverage does not take into account data provider run methods.
      */
-    public function __construct(Runner $runner, string $schema = 'public')
+    public function __construct(Runner $runner, ?string $schema = 'public')
     {
         parent::__construct();
 
