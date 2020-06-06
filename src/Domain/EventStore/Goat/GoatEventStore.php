@@ -278,7 +278,8 @@ final class GoatEventStore extends AbstractEventStore
      */
     protected function doMoveAt(Event $event, int $newRevision): Event
     {
-        throw new \Exception("Not implemented yet.");
+        // @todo later on, attempt to fix revision numbers if possible.
+        return $this->doUpdate($event);
     }
 
     /**

@@ -185,12 +185,16 @@ abstract class AbstractEventStore implements EventStore, LoggerAwareInterface
         return new DefaultEventBuilder(
             function (EventBuilder $builder) use ($event) {
                 $logContext = ['event' => $event];
+
                 try {
                     $newEvent = $this->doUpdate($this->prepareUpdate($event, $builder));
                     $this->logger->debug("Event updated", $logContext);
+
                     return $newEvent;
+
                 } catch (\Throwable $e) {
                     $this->logger->critical("Event could not be updated", $logContext + ['exception' => $e]);
+
                     throw $e;
                 }
             }
@@ -202,7 +206,27 @@ abstract class AbstractEventStore implements EventStore, LoggerAwareInterface
      */
     public function moveAfterRevision(Event $event, int $afterRevision): EventBuilder
     {
-        throw new \Exception("Not implemented yet.");
+        $newDate = $this->findDateAfter($event, $afterRevision);
+
+        $builder = $this
+            ->update($event)
+            ->property(
+                Property::MODIFIED_PREVIOUS_REVISION,
+                (string)$event->getRevision()
+            )
+        ;
+
+        if ($newDate) {
+            $builder
+                ->date($newDate)
+                ->property(
+                    Property::MODIFIED_PREVIOUS_VALID_AT,
+                    $event->validAt()->format(\DateTime::ISO8601)
+                )
+            ;
+        }
+
+        return $builder;
     }
 
     /**
@@ -210,7 +234,14 @@ abstract class AbstractEventStore implements EventStore, LoggerAwareInterface
      */
     public function moveAtDate(Event $event, \DateTimeInterface $newDate): EventBuilder
     {
-        throw new \Exception("Not implemented yet.");
+        return $this
+            ->update($event)
+            ->date($newDate)
+            ->property(
+                Property::MODIFIED_PREVIOUS_VALID_AT,
+                $event->validAt()->format(\DateTime::ISO8601)
+            )
+        ;
     }
 
     /**
@@ -403,6 +434,122 @@ abstract class AbstractEventStore implements EventStore, LoggerAwareInterface
         );
 
         return $callback();
+    }
+
+    /**
+     * Find suitable date to set to the given event for inserting it after
+     * the given revision to re-order the stream.
+     *
+     * @return null|\DateTimeInterface
+     *   If null returned here, this means the event needs not to be moved.
+     */
+    private function findDateAfter(Event $event, int $afterRevision): ?\DateTimeInterface
+    {
+        $dateBefore = null;
+        $dateAfter = null;
+        $eventDate = $event->validAt();
+
+        $logContext = [
+            'id' => $event->getAggregateId(),
+            'rev' => $event->getRevision(),
+            'previous' => $afterRevision,
+        ];
+
+        $bounds = $this
+            ->query()
+            ->for($event->getAggregateId())
+            ->fromRevision($afterRevision)
+            ->limit(2)
+            ->execute()
+        ;
+
+        $previous = $bounds->fetch();
+
+        if ($previous) {
+            $this->logger->debug("findDateAfter({id}#{rev}, #{previous}) - found previous revision", $logContext);
+
+            $dateBefore = $previous->validAt();
+
+            // We are going to position our updated event between two existing
+            // events, we will have to do date magic.
+            $next = $bounds->fetch();
+            if ($next) {
+                $dateAfter = $next->validAt();
+            }
+        } else {
+            $this->logger->warning("findDateAfter() - {id}#{rev} - revision #{previous} does not exist", $logContext);
+
+            // We don't have an event matching the given revision, find the
+            // previous one, any one, and use it as date bound.
+            $anyPrevious = $this
+                ->query()
+                ->for($event->getAggregateId())
+                ->fromRevision($afterRevision)
+                ->reverse(true)
+                ->limit(1)
+                ->execute()
+                ->fetch()
+            ;
+
+            if ($anyPrevious) {
+                $dateBefore = $anyPrevious->validAt();
+            }
+        }
+
+        if ($dateBefore) {
+            \assert($dateBefore instanceof \DateTimeInterface);
+
+            if ($dateAfter) {
+                if ($dateBefore < $eventDate && $eventDate < $dateAfter) {
+                    $this->logger->debug("findDateAfter({id}#{rev}, #{previous}) - event is already at the right place");
+
+                    return null;
+                }
+
+                return $this->findDateBetween($dateBefore, $dateAfter);
+            }
+
+            if ($dateBefore < $eventDate) {
+                $this->logger->debug("findDateAfter({id}#{rev}, #{previous}) - event is already at the right place");
+
+                return null;
+            }
+
+            return $dateBefore->modify('+1 sec');
+        }
+
+        // No bounds means we are creating the stream, and our event does
+        // not exist, since it should have been selected at least by one
+        // of those queries if it was alone in the stream. Log this error
+        // and just run the update.
+        $this->logger->warning("findDateAfter({id}#{rev}, #{previous}) - stream is empty");
+
+        return null;
+    }
+
+    /**
+     * I am not proud of this one, but it'll work.
+     */
+    private function findDateBetween(\DateTimeInterface $from, \DateTimeInterface $to): \DateTimeInterface
+    {
+        $diff = $to->diff($from);
+        \assert($diff instanceof \DateInterval);
+
+        if ($diff->y || $diff->m || $diff->d || $diff->h || $diff->m) {
+            // Diff is enought by minutes, just add one second to from.
+            return $from->modify('+1 sec');
+        }
+
+        if (1 < $diff->s) {
+            return $from->modify('+1 sec');
+        }
+
+        // Damn! Diff is less or equal than a single second. PostgreSQL storage
+        // has a microsecond precision, so we can actually afford to add one
+        // microsec. here, but for some other storage backends, this will not
+        // work. This means that in the end, we will need to shift revisions
+        // in the stream to ensure correct ordering as well.
+        return $from->modify('+1 msec');
     }
 
     /**
