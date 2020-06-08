@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Goat\Domain\EventStore;
 
+use Ramsey\Uuid\UuidInterface;
 use Symfony\Component\Serializer\SerializerInterface;
 
 interface EventStore
@@ -92,14 +93,18 @@ interface EventStore
      * Validity date will be arbitrarily set somewhere in between the given
      * revision and the next event if any.
      *
+     * @param UuidInterface $aggregateId
+     *   We need to be able to identify the stream for inserting.
      * @param int $afterRevision
      *   Use self::REVISION_TOP to move event at the top of the stream.
+     * @param object $message
+     *   Message to store.
      *
      * @return EventBuilder<self>
      *   You need to call execute once done, it will return this session
      *   instance on which you will be able to continue chaining.
      */
-    public function insertAfter(int $afterRevision): EventBuilder;
+    public function insertAfter(UuidInterface $aggregateId, int $afterRevision, object $message, ?string $name = null): EventBuilder;
 
     /**
      * Mark event as failed and update metadata.

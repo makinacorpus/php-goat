@@ -48,6 +48,8 @@ final class Property
     const MODIFIED_PREVIOUS_REVISION = 'x-goat-modified-prev-rev';
     /** Event was modified, an ISO8601 previous valid date. */
     const MODIFIED_PREVIOUS_VALID_AT = 'x-goat-modified-prev-valid-at';
+    /** Event was modified, an ISO8601 previous valid date. */
+    const MODIFIED_INSERTED = 'x-goat-modified-inserted';
 
     /**
      * Convert custom properties to AMQP properties.

@@ -241,9 +241,21 @@ abstract class AbstractEventStore implements EventStore, LoggerAwareInterface
     /**
      * {@inheritdoc}
      */
-    public function insertAfter(int $afterRevision): EventBuilder
+    public function insertAfter(UuidInterface $aggregateId, int $afterRevision, object $message, ?string $name = null): EventBuilder
     {
-        throw new \Exception("Not implemented yet.");
+        $builder = $this
+            ->append($message, $name)
+            ->aggregate(null, $aggregateId)
+            ->property(Property::MODIFIED_INSERTED, '1')
+        ;
+
+        $newDate = $this->findDateAfterForInsert($aggregateId, $afterRevision);
+
+        if ($newDate) {
+            $builder->date($newDate);
+        }
+
+        return $builder;
     }
 
     /**
@@ -534,6 +546,67 @@ abstract class AbstractEventStore implements EventStore, LoggerAwareInterface
         // of those queries if it was alone in the stream. Log this error
         // and just run the update.
         $this->logger->warning("findDateAfter({id}#{rev}, #{previous}) - stream is empty");
+
+        return null;
+    }
+
+    /**
+     * Find suitable date to set to the given event for inserting it after
+     * the given revision to re-order the stream.
+     *
+     * @return null|\DateTimeInterface
+     *   If null returned here, this means the event needs not to be moved.
+     */
+    private function findDateAfterForInsert(UuidInterface $aggregateId, int $afterRevision): ?\DateTimeInterface
+    {
+        $logContext = ['id' => $aggregateId, 'previous' => $afterRevision];
+
+        $bounds = $this
+            ->query()
+            ->for($aggregateId)
+            ->fromRevision($afterRevision)
+            ->limit(2)
+            ->execute()
+        ;
+
+        $previous = $bounds->fetch();
+
+        if ($previous) {
+            $this->logger->debug("findDateAfterForInsert({id}, #{previous}) - found target revision", $logContext);
+
+            // We are going to position our updated event between two existing
+            // events, we will have to do date magic.
+            $next = $bounds->fetch();
+            if ($next) {
+                return $this->findDateBetween($previous->validAt(), $next->validAt());
+            }
+
+            return $previous->validAt()->modify('+1 sec');
+        }
+
+        $this->logger->warning("findDateAfterForInsert({id}, #{previous}) - revision does not exist", $logContext);
+
+        // We don't have an event matching the given revision, find the
+        // previous one, any one, and use it as date bound.
+        $anyPrevious = $this
+            ->query()
+            ->for($aggregateId)
+            ->fromRevision($afterRevision)
+            ->reverse(true)
+            ->limit(1)
+            ->execute()
+            ->fetch()
+        ;
+
+        if ($anyPrevious) {
+            return $anyPrevious->validAt()->modify('+1 sec');
+        }
+
+        // No bounds means we are creating the stream, and our event does
+        // not exist, since it should have been selected at least by one
+        // of those queries if it was alone in the stream. Log this error
+        // and just run the update.
+        $this->logger->warning("findDateAfter({id}, #{previous}) - stream is empty");
 
         return null;
     }

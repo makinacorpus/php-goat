@@ -15,6 +15,154 @@ use Ramsey\Uuid\UuidInterface;
 final class GoatEventStoreMoveTest extends AbstractEventStoreTest
 {
     /**
+     * Considering the following sequence: 1, 3.
+     * And A inserts after 2.
+     *
+     * Result will be: 1, A, 3.
+     *
+     * @dataProvider runnerDataProvider
+     */
+    public function testInsertAfter1(TestDriverFactory $factory): void
+    {
+        self::markTestSkipped("OK, this doesn't work.");
+
+        $runner = $factory->getRunner();
+
+        $aggregateA = Uuid::uuid4();
+        $eventStore = $this->createEventStore($runner, $factory->getSchema());
+
+        $eventStore
+            ->append(new MockMessage(), '1')
+            ->aggregate('foo', $aggregateA)
+            ->date(\DateTimeImmutable::createFromFormat('Y-m-d H:i:s', '2020-06-05 12:00:13'))
+            ->execute()
+        ;
+
+        $eventStore
+            ->append(new MockMessage(), '3')
+            ->aggregate('foo', $aggregateA)
+            ->date(\DateTimeImmutable::createFromFormat('Y-m-d H:i:s', '2020-06-05 12:00:14'))
+            ->execute()
+        ;
+
+        self::assertStreamIs(
+            $eventStore,
+            $aggregateA,
+            ['1', '3']
+        );
+
+        $newEvent = $eventStore
+            ->insertAfter($aggregateA, 2, new MockMessage())
+            ->name('A')
+            ->aggregate('foo', $aggregateA)
+            ->execute()
+        ;
+
+        self::assertTrue($newEvent->hasProperty(Property::MODIFIED_INSERTED));
+
+        self::assertStreamIs(
+            $eventStore,
+            $aggregateA,
+            ['1', 'A', '3']
+        );
+    }
+
+    /**
+     * Considering A, and the following sequence: 1, 2, 3.
+     * And A inserts after 2.
+     *
+     * Result will be: 1, 2, A, 3.
+     *
+     * @dataProvider runnerDataProvider
+     */
+    public function testInsertAfter2(TestDriverFactory $factory): void
+    {
+        $runner = $factory->getRunner();
+
+        $aggregateA = Uuid::uuid4();
+        $eventStore = $this->createEventStore($runner, $factory->getSchema());
+
+        $eventStore
+            ->append(new MockMessage(), '1')
+            ->aggregate('foo', $aggregateA)
+            ->date(\DateTimeImmutable::createFromFormat('Y-m-d H:i:s', '2020-06-05 12:00:13'))
+            ->execute()
+        ;
+
+        $eventStore
+            ->append(new MockMessage(), '2')
+            ->aggregate('foo', $aggregateA)
+            ->date(\DateTimeImmutable::createFromFormat('Y-m-d H:i:s', '2020-06-05 12:00:14'))
+            ->execute()
+        ;
+
+        $eventStore
+            ->append(new MockMessage(), '3')
+            ->aggregate('foo', $aggregateA)
+            ->date(\DateTimeImmutable::createFromFormat('Y-m-d H:i:s', '2020-06-05 12:00:16'))
+            ->execute()
+        ;
+
+        self::assertStreamIs(
+            $eventStore,
+            $aggregateA,
+            ['1', '2', '3']
+        );
+
+        $newEvent = $eventStore
+            ->insertAfter($aggregateA, 2, new MockMessage())
+            ->name('A')
+            ->aggregate('foo', $aggregateA)
+            ->execute()
+        ;
+
+        self::assertTrue($newEvent->hasProperty(Property::MODIFIED_INSERTED));
+
+        self::assertStreamIs(
+            $eventStore,
+            $aggregateA,
+            ['1', '2', 'A', '3']
+        );
+    }
+
+    /**
+     * Considering A, and the following sequence: <empty>.
+     * And A inserts after 2.
+     *
+     * Result will be: A.
+     *
+     * @dataProvider runnerDataProvider
+     */
+    public function testInsertAfter3(TestDriverFactory $factory): void
+    {
+        $runner = $factory->getRunner();
+
+        $aggregateA = Uuid::uuid4();
+        $eventStore = $this->createEventStore($runner, $factory->getSchema());
+
+        self::assertStreamIs(
+            $eventStore,
+            $aggregateA,
+            []
+        );
+
+        $newEvent = $eventStore
+            ->insertAfter($aggregateA, 2, new MockMessage())
+            ->name('A')
+            ->aggregate('foo', $aggregateA)
+            ->execute()
+        ;
+
+        self::assertTrue($newEvent->hasProperty(Property::MODIFIED_INSERTED));
+
+        self::assertStreamIs(
+            $eventStore,
+            $aggregateA,
+            ['A']
+        );
+    }
+
+    /**
      * Considering the following sequence: A, 1, 3.
      * And A moves after 2.
      *
