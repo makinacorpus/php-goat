@@ -101,13 +101,6 @@ final class DomainConfigurationPass implements CompilerPassInterface
             }
         }
 
-        if ($hasLockService) {
-            $lockServiceDef = $container->getDefinition($this->lockServiceId);
-            if ($hasLogger) {
-                $lockServiceDef->addMethodCall('setLogger', [new Reference($this->loggerId)]);
-            }
-        }
-
         $serializerServiceId = 'serializer';
         if ($container->hasDefinition($serializerServiceId)) {
             $decoratorInnerId = $serializerServiceId.'.inner';
