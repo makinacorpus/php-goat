@@ -117,6 +117,16 @@ interface EventStore
     public function query(): EventQuery;
 
     /**
+     * Find single event by position.
+     */
+    public function findByPosition(int $position): Event;
+
+    /**
+     * Find single event by revision.
+     */
+    public function findByRevision(UuidInterface $aggregateId, int $revision): Event;
+
+    /**
      * count events hold by this query, ignoring limit.
      *
      * Returns null if the backend does not support count.

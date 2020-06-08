@@ -11,6 +11,7 @@ use Goat\Query\ExpressionRelation;
 use Goat\Query\ExpressionValue;
 use Goat\Runner\Runner;
 use Goat\Runner\Transaction;
+use Ramsey\Uuid\UuidInterface;
 
 final class GoatEventStore extends AbstractEventStore
 {
@@ -288,6 +289,65 @@ final class GoatEventStore extends AbstractEventStore
     public function query(): EventQuery
     {
         return new GoatEventQuery($this);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function findByPosition(int $position): Event
+    {
+        $eventRelation = $this->getEventRelation('default'); // @todo
+        $indexRelation = $this->getIndexRelation();
+
+        $event = $this
+            ->runner
+            ->getQueryBuilder()
+            ->select($eventRelation)
+            ->columnExpression("event.*")
+            ->columns(['index.aggregate_type', 'index.aggregate_root', 'index.namespace'])
+            ->join($indexRelation, 'event.aggregate_id = index.aggregate_id')
+            ->where('position', $position)
+            ->range(1)
+            ->execute()
+            ->setHydrator(fn ($row) => $this->hydrateEvent($row))
+            ->fetch()
+        ;
+
+        if (!$event) {
+            throw new \InvalidArgumentException(\sprintf("Event with position #%d does not exist", $position));
+        }
+
+        return $event;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function findByRevision(UuidInterface $aggregateId, int $revision): Event
+    {
+        $eventRelation = $this->getEventRelation('default'); // @todo
+        $indexRelation = $this->getIndexRelation();
+
+        $event = $this
+            ->runner
+            ->getQueryBuilder()
+            ->select($eventRelation)
+            ->columnExpression("event.*")
+            ->columns(['index.aggregate_type', 'index.aggregate_root', 'index.namespace'])
+            ->join($indexRelation, 'event.aggregate_id = index.aggregate_id')
+            ->where('aggregate_id', $aggregateId)
+            ->where('revision', $revision)
+            ->range(1)
+            ->execute()
+            ->setHydrator(fn ($row) => $this->hydrateEvent($row))
+            ->fetch()
+        ;
+
+        if (!$event) {
+            throw new \InvalidArgumentException(\sprintf("Event %s#%d does not exist", $aggregateId->toString(), $revision));
+        }
+
+        return $event;
     }
 
     /**
