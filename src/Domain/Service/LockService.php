@@ -6,6 +6,8 @@ namespace Goat\Domain\Service;
 
 use Goat\Domain\Event\Error\ParallelExecutionError;
 use Goat\Runner\Runner;
+use Psr\Log\LoggerAwareInterface;
+use Psr\Log\LoggerAwareTrait;
 use Psr\Log\NullLogger;
 
 /**
@@ -13,8 +15,10 @@ use Psr\Log\NullLogger;
  * a semaphore, something that can ensure your stuff is running in one place
  * only.
  */
-final class LockService
+final class LockService implements LoggerAwareInterface
 {
+    use LoggerAwareTrait;
+
     private Runner $runner;
 
     public function __construct(Runner $runner)

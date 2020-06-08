@@ -22,7 +22,6 @@ final class DomainConfigurationPass implements CompilerPassInterface
     private string $projectorRegistryId;
     private string $eventStoreId;
     private string $lockServiceId;
-    private string $loggerId;
     private string $messengerSerializerServiceId;
     private string $transactionHandlerTag;
 
@@ -36,15 +35,13 @@ final class DomainConfigurationPass implements CompilerPassInterface
         string $transactionHandlerTag = 'goat.domain.transaction_handler',
         string $eventStoreId = 'goat.domain.event_store',
         string $lockServiceId = 'goat.domain.lock_service',
-        string $messengerSerializerServiceId = 'messenger.transport.symfony_serializer',
-        string $loggerId = 'logger'
+        string $messengerSerializerServiceId = 'messenger.transport.symfony_serializer'
     ) {
         $this->dispatcherId = $dispatcherId;
         $this->projectorTag = $projectorTag;
         $this->projectorRegistryId = $projectorRegistryId;
         $this->eventStoreId = $eventStoreId;
         $this->lockServiceId = $lockServiceId;
-        $this->loggerId = $loggerId;
         $this->messengerSerializerServiceId = $messengerSerializerServiceId;
         $this->transactionHandlerTag = $transactionHandlerTag;
     }
@@ -54,7 +51,6 @@ final class DomainConfigurationPass implements CompilerPassInterface
      */
     public function process(ContainerBuilder $container)
     {
-        $hasLogger = $container->has($this->loggerId);
         $hasDispatcher = $container->has($this->dispatcherId);
         $hasEventStore = $container->has($this->eventStoreId);
         $hasLockService = $container->has($this->lockServiceId);
@@ -65,9 +61,6 @@ final class DomainConfigurationPass implements CompilerPassInterface
             if (\is_subclass_of($eventStoreDef->getClass(), AbstractEventStore::class)) {
                 if ($container->has('serializer')) {
                     $eventStoreDef->addMethodCall('setSerializer', [new Reference('serializer')]);
-                }
-                if ($hasLogger) {
-                    $eventStoreDef->addMethodCall('setLogger', [new Reference($this->loggerId)]);
                 }
             }
         }
@@ -95,9 +88,6 @@ final class DomainConfigurationPass implements CompilerPassInterface
             }
             if ($hasLockService) {
                 $dispatcherDef->addMethodCall('setLockService', [new Reference($this->lockServiceId)]);
-            }
-            if ($hasLogger) {
-                $dispatcherDef->addMethodCall('setLogger', [new Reference($this->loggerId)]);
             }
         }
 

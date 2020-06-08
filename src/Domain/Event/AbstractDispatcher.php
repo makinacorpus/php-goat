@@ -12,10 +12,14 @@ use Goat\Domain\Event\Error\DispatcherRetryableError;
 use Goat\Domain\Projector\ProjectorRegistry;
 use Goat\Domain\Service\LockService;
 use Goat\Driver\Error\TransactionError;
+use Psr\Log\LoggerAwareInterface;
+use Psr\Log\LoggerAwareTrait;
 use Psr\Log\NullLogger;
 
-abstract class AbstractDispatcher implements Dispatcher
+abstract class AbstractDispatcher implements Dispatcher, LoggerAwareInterface
 {
+    use LoggerAwareTrait;
+
     const PROP_TIME_START = 'x-goat-time-start';
 
     private static int $commandCount = 0;
