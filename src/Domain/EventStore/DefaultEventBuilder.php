@@ -111,6 +111,7 @@ final class DefaultEventBuilder implements EventBuilder
      */
     public function execute(): Event
     {
+        $this->failIfLocked();
         $this->locked = true;
 
         return \call_user_func($this->execute, $this);
