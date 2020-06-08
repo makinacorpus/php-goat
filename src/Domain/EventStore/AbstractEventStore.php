@@ -406,7 +406,7 @@ abstract class AbstractEventStore implements EventStore, LoggerAwareInterface
 
                 $validAt = $builder->getDate();
                 if ($validAt) {
-                    $properties[Property::MODIFIED_PREVIOUS_NAME] = $event->validAt()->format(\DateTime::ISO8601);
+                    $properties[Property::MODIFIED_PREVIOUS_VALID_AT] = $event->validAt()->format(\DateTime::ISO8601);
                     $event->validAt = $validAt;
                 }
 
