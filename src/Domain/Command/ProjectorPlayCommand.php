@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace Goat\Domain\Command;
 
-use Goat\Domain\EventStore\EventStore;
-use Goat\Domain\Projector\Projector;
 use Goat\Domain\Projector\ProjectorRegistry;
 use Goat\Domain\Projector\ReplayableProjector;
+use Goat\Domain\Projector\Worker\Worker;
+use Goat\Domain\Projector\Worker\WorkerEvent;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Exception\InvalidArgumentException;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -20,17 +21,17 @@ final class ProjectorPlayCommand extends Command
     protected static $defaultName = 'projector:play';
 
     private ProjectorRegistry $projectorRegistry;
-    private EventStore $eventStore;
+    private Worker $worker;
 
     /**
      * Default constructor
      */
-    public function __construct(ProjectorRegistry $projectorRegistry, EventStore $eventStore)
+    public function __construct(ProjectorRegistry $projectorRegistry, Worker $worker)
     {
         parent::__construct();
 
         $this->projectorRegistry = $projectorRegistry;
-        $this->eventStore = $eventStore;
+        $this->worker = $worker;
     }
 
     /**
@@ -39,10 +40,11 @@ final class ProjectorPlayCommand extends Command
     protected function configure()
     {
         $this
-            ->setDescription('Play a projector from the last processed event date.')
-            ->addArgument('projector', InputArgument::REQUIRED, 'Projector identifier or className')
+            ->setDescription('Play projectors.')
+            ->addArgument('projector', InputArgument::OPTIONAL, 'Projector identifier or className')
             ->addOption('reset', null, InputOption::VALUE_NONE, 'Reset all projector\'s data and replay it for all events present in EventStore (only available for ReplayableProjector)')
-            ->addOption('date', null, InputOption::VALUE_REQUIRED, 'Play projector from a specific date (format Y-m-d)')
+            ->addOption('continue', null, InputOption::VALUE_NONE, 'If set, ignore current projectors state and restart playing erroneous ones.')
+            ->addOption('date', null, InputOption::VALUE_REQUIRED, 'Deprecated ignored option.')
         ;
     }
 
@@ -52,93 +54,91 @@ final class ProjectorPlayCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         if ($input->getOption('reset') and $input->getOption('date')) {
-            throw new \InvalidArgumentException("You can not use both 'reset' and 'date' options, you have to choose one.");
+            throw new InvalidArgumentException("You can not use both 'reset' and 'date' options, you have to choose one.");
         }
 
-        $projector = $this->projectorRegistry->find($input->getArgument('projector'));
+        $projectorId = $input->getArgument('projector');
 
         if ($input->getOption('reset')) {
-            $this->handleReset($projector);
+            if (!$projectorId) {
+                throw new InvalidArgumentException("You cannot specify --reset without a projector identifier.");
+            }
         }
 
-        if ($dateOption = $input->getOption('date')) {
-            if (!$date = \DateTimeImmutable::createFromFormat('Y-m-d', $input->getOption('date'))) {
+        if ($input->getOption('date')) {
+            $output->writeln("<error>--date option is ignored and will be replaced in a near future.</error>");
+        }
+
+        if ($projectorId) {
+            $this->handleSingleProjector($input, $output, $projectorId);
+        } else {
+            $this->handleAllProjectors($input, $output);
+        }
+    }
+
+    private function handleSingleProjector(InputInterface $input, OutputInterface $output, string $projectorId): void
+    {
+        if ($input->getOption('reset')) {
+            $projector = $this->projectorRegistry->find($projectorId);
+
+            if (!$projector instanceof ReplayableProjector) {
                 throw new \InvalidArgumentException(\sprintf(
-                    "Can't create Datetime from given date (%s). Format should be Y-m-d",
-                    $dateOption
+                    "Cannot 'reset' projector '%s': does not implement %s",
+                    $projectorId,
+                    ReplayableProjector::class
                 ));
             }
-        } else {
-            $date = $projector->getLastProcessedEventDate();
+
+            $this->worker->reset($projector);
         }
 
-        $events = $this->findEventsToProcess($projector, $date);
+        $progressBar = $this->prepareProgressBar($output);
+        $progressBar->start();
 
-        if (!$total = \count($events)) {
-            $output->writeln('there is no event to process for this projector.');
+        $this->worker->play(
+            $projectorId,
+            (bool) $input->getOption('continue')
+        );
+    }
 
-            return 0;
-        }
+    private function handleAllProjectors(InputInterface $input, OutputInterface $output): void
+    {
 
-        $output->writeln(\sprintf("%d events has(ve) to be processed", $total));
+        $progressBar = $this->prepareProgressBar($output);
+        $progressBar->start();
 
-        $progress = new ProgressBar($output);
-        $progress->setFormat('debug');
-        $progress->setMaxSteps($total);
+        $this->worker->playAll(
+            (bool) $input->getOption('continue')
+        );
+    }
 
-        $failed = 0;
-        foreach ($events as $event) {
-            try {
-                $projector->onEvent($event);
-            } catch (\Throwable $e) {
-                $output->writeln(\sprintf("<error>%s</error>", $e->getMessage()));
-                $failed++;
+    private function prepareProgressBar(OutputInterface $output): ProgressBar
+    {
+        $progressBar = new ProgressBar($output);
+        $progressBar->setFormat('debug');
+
+        $dispatcher = $this->worker->getEventDispatcher();
+
+        $dispatcher->addListener(
+            WorkerEvent::BEGIN,
+            static function (WorkerEvent $event) use ($progressBar) {
+                $progressBar->setMaxSteps($event->getStreamSize());
             }
-            $progress->advance(1);
-        }
+        );
 
-        $progress->finish();
-        $output->writeln("");
+        $dispatcher->addListener(
+            WorkerEvent::END,
+            static function (WorkerEvent $event) use ($progressBar, $output) {
+                $progressBar->finish();
+                $output->writeln("");
+            }
+        );
 
-        $output->writeln(\sprintf(
-            "%d events(s) has(ve) been correctly process, %d failed.",
-            $total - $failed,
-            $failed
-        ));
-
-        return 0;
-    }
-
-    private function handleReset(Projector $projector): void
-    {
-        if (!$projector instanceof ReplayableProjector) {
-            throw new \InvalidArgumentException(\sprintf(
-                "Can't 'reset' Projector : '%s' does not implement %s",
-                \get_class($projector),
-                ReplayableProjector::class
-            ));
-        }
-
-        $projector->reset();
-    }
-
-    private function findEventsToProcess(Projector $projector, ?\DateTimeInterface $date): ?iterable
-    {
-        $query =  $this
-            ->eventStore
-            ->query()
-            ->failed(false)
-        ;
-
-        $handledEvents = $projector->getHandledEvents();
-        if (null !== $handledEvents) {
-            $query->withName($handledEvents);
-        }
-
-        if ($date) {
-            $query = $query->fromDate($date);
-        }
-
-        return $query->execute();
+        $dispatcher->addListener(
+            WorkerEvent::NEXT,
+            static function (WorkerEvent $event) use ($progressBar) {
+                $progressBar->setProgress($event->getCurrentPosition());
+            }
+        );
     }
 }
