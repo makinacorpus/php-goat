@@ -7,6 +7,7 @@ namespace Goat\Domain\Tests\Event;
 use Goat\Domain\EventStore\AbstractEventStore;
 use Goat\Domain\EventStore\Event;
 use Goat\Domain\EventStore\EventQuery;
+use Ramsey\Uuid\UuidInterface;
 
 class MockEventStore extends AbstractEventStore
 {
@@ -79,6 +80,16 @@ class MockEventStore extends AbstractEventStore
      * {@inheritdoc}
      */
     public function count(EventQuery $query): ?int
+    {
+        throw new \BadMethodCallException();
+    }
+
+    public function findByPosition(int $position): Event
+    {
+        throw new \BadMethodCallException();
+    }
+
+    public function findByRevision(UuidInterface $aggregateId, int $revision): Event
     {
         throw new \BadMethodCallException();
     }

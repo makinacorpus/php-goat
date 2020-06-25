@@ -34,26 +34,23 @@ class ProjectorRegistry
     /**
      * Find a projector by identifier.
      */
-    protected function findByIdentifier(string $identifier, bool $throwExceptionOnMissing = true): ?Projector
+    protected function findByIdentifier(string $id, bool $throwExceptionOnMissing = true): ?Projector
     {
         $this->isInitializedOrDie();
 
         if ($this->projectors) {
             foreach ($this->projectors as $projector) {
-                if ($identifier === $projector->getIdentifier()) {
+                if ($id === $projector->getIdentifier()) {
                     return $projector;
                 }
             }
         }
 
         if ($throwExceptionOnMissing) {
-            throw new \InvalidArgumentException(\sprintf(
-                "No projector can't be found for identifier '%s'",
-                $identifier
-            ));
-        } else {
-            return null;
+            throw new ProjectorDoesNotExistError($id);
         }
+
+        return null;
     }
 
     /**
@@ -72,19 +69,16 @@ class ProjectorRegistry
         }
 
         if ($throwExceptionOnMissing) {
-            throw new \InvalidArgumentException(\sprintf(
-                "No projector can't be found for className '%s'",
-                $className
-            ));
-        } else {
-            return null;
+            throw new ProjectorDoesNotExistError($className);
         }
+
+        return null;
     }
 
     /**
      * Find a projector by identifier or by class name.
      */
-    public function findByIdentifierOrClassName(string $identifierOrClassName, bool $throwExceptionOnMissing = true): ?Projector
+    public function find(string $identifierOrClassName, bool $throwExceptionOnMissing = true): ?Projector
     {
         if ( $projector = $this->findByIdentifier($identifierOrClassName, false)) {
             return $projector;
@@ -93,13 +87,10 @@ class ProjectorRegistry
         }
 
         if ($throwExceptionOnMissing) {
-            throw new \InvalidArgumentException(\sprintf(
-                "No projector can't be found for identifier or className '%s'",
-                $identifierOrClassName
-            ));
-        } else {
-            return null;
+            throw new ProjectorDoesNotExistError($identifierOrClassName);
         }
+
+        return null;
     }
 
     public function setProjectors(iterable $projectors): void

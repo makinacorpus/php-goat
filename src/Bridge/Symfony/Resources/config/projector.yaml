@@ -1,5 +1,43 @@
 services:
 
+    # Allows to maintain a different SQL connection for the projector state
+    # store, allowing it to go out of business transactions scope.
+    goat.runner.projector_state:
+        alias: "goat.runner.default"
+
     goat.domain.projector_registry:
         public: false
         class: Goat\Domain\Projector\ProjectorRegistry
+
+    goat.domain.projector_state_store.goat:
+        public: false
+        class: Goat\Domain\Projector\State\GoatStateStore
+        arguments:
+            - "@goat.runner.projector_state"
+
+    goat.domain.projector_state_store:
+        alias: goat.domain.projector_state_store.goat
+
+    Goat\Domain\Projector\State\StateStore:
+        alias: goat.domain.projector_state_store
+
+    goat.domain.projector_worker:
+        public: false
+        class: Goat\Domain\Projector\Worker\DefaultWorker
+        arguments:
+            - "@goat.domain.projector_registry"
+            - "@goat.domain.event_store"
+            - "@goat.domain.projector_state_store"
+
+    Goat\Domain\Projector\Worker\Worker:
+        alias: goat.domain.projector_worker
+
+    goat.domain.projector_player:
+        public: false
+        class: Goat\Domain\Projector\Runtime\DefaultRuntimePlayer
+        arguments:
+            - "@goat.domain.projector_registry"
+            - "@goat.domain.projector_state_store"
+
+    Goat\Domain\Projector\Runtime\RuntimePlayer:
+        alias: goat.domain.projector_player

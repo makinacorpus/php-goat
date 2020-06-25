@@ -7,8 +7,12 @@ namespace Goat\Domain\Projector;
 use Goat\Domain\EventStore\Event;
 
 /**
- * Projectors will be process after an event has been consume.
+ * Projectors will be process after an event has been consumed.
  * It's mainly used to statistics purpose.
+ *
+ * Projector will consume events, sometime, events can be sent more than once
+ * so implementation must be able to detect that, ensuring event consumption
+ * to be reentrant.
  */
 interface Projector
 {
