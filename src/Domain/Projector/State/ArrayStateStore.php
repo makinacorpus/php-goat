@@ -40,7 +40,7 @@ final class ArrayStateStore implements StateStore
                 $existing->clone(
                     null,
                     null,
-                    false
+                    true
                 )
             );
         }
@@ -150,8 +150,8 @@ final class ArrayStateStore implements StateStore
                     false,
                     true,
                     $exception->getCode(),
-                    $exception->getMessage()
-                    // @todo Trace?
+                    $exception->getMessage(),
+                    self::normalizeExceptionTrace($exception)
                 )
             );
         }
@@ -164,8 +164,8 @@ final class ArrayStateStore implements StateStore
                 false,
                 true,
                 $exception->getCode(),
-                $exception->getMessage()
-                // @todo Trace?
+                $exception->getMessage(),
+                self::normalizeExceptionTrace($exception)
             )
         );
     }
@@ -176,6 +176,23 @@ final class ArrayStateStore implements StateStore
     public function latest(string $id): ?State
     {
         return $this->data[$id] ?? null;
+    }
+
+    /**
+     * Normalize exception trace.
+     */
+    public static function normalizeExceptionTrace(\Throwable $exception): string
+    {
+        $output = '';
+        do {
+            if ($output) {
+                $output .= "\n";
+            }
+            $output .= \sprintf("%s: %s\n", \get_class($exception), $exception->getMessage());
+            $output .= $exception->getTraceAsString();
+        } while ($exception = $exception->getPrevious());
+
+        return $output;
     }
 
     /**

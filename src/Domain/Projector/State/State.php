@@ -141,6 +141,7 @@ final class State
                 $ret->errorMessage = $errorMessage;
                 $ret->errorTrace = $errorTrace;
             } else {
+                $ret->errorCode = $errorCode ?? 0;
                 $ret->errorMessage = null;
                 $ret->errorTrace = null;
             }
