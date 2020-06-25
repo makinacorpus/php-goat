@@ -56,7 +56,7 @@ class DefaultWorkerTest extends TestCase
         $worker->play('bar');
     }
 
-    public function testEmptyEventStreamRaiseStartAndEndEvent(): void
+    public function testEmptyEventStreamRaiseBeginAndEndEvent(): void
     {
         $registry = new ProjectorRegistry();
         $registry->setProjectors([
@@ -234,15 +234,11 @@ class DefaultWorkerTest extends TestCase
             $stateStore
         );
 
-        $beginCount = 0;
-        $endCount = 0;
+        $errorCount = 0;
 
         $dispatcher = $worker->getEventDispatcher();
-        $dispatcher->addListener(WorkerEvent::BEGIN, static function () use (&$beginCount) {
-            ++$beginCount;
-        });
-        $dispatcher->addListener(WorkerEvent::END, static function () use (&$endCount) {
-            ++$endCount;
+        $dispatcher->addListener(WorkerEvent::ERROR, static function () use (&$errorCount) {
+            ++$errorCount;
         });
 
         $worker->playAll();
@@ -250,8 +246,7 @@ class DefaultWorkerTest extends TestCase
         self::assertSame(3, $fooProjector->getOnEventCallCount());
         self::assertSame(1, $barProjector->getOnEventCallCount());
 
-        self::assertSame(1, $beginCount);
-        self::assertSame(1, $endCount);
+        self::assertSame(1, $errorCount);
 
         $stateFoo = $stateStore->latest('foo');
         self::assertFalse($stateFoo->isError());

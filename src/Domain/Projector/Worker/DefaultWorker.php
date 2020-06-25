@@ -219,7 +219,7 @@ final class DefaultWorker implements Worker
      *
      * @return array<string, ProjectorState>
      */
-    private function mapProjectors(iterable $projectors, bool $continueOnError)
+    private function mapProjectors(iterable $projectors, bool $continueOnError): array
     {
         $ret = [];
 
