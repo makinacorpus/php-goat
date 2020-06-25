@@ -20,6 +20,8 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
  * Default (and propably only) implementation.
  *
  * Interface exists for the need of decorating the worker.
+ *
+ * @todo Instrument using psr/log.
  */
 final class DefaultWorker implements Worker
 {

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Goat\Domain\Tests\Projector;
+namespace Goat\Domain\Tests\Projector\Worker;
 
 use Goat\Domain\EventStore\AbstractEventQuery;
 use Goat\Domain\EventStore\AbstractEventStore;

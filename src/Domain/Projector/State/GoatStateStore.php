@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace Goat\Domain\Projector\State;
 
 use Goat\Domain\EventStore\Event;
+use Goat\Query\ExpressionRaw;
 use Goat\Query\ExpressionRelation;
 use Goat\Query\Query;
 use Goat\Query\QueryBuilder;
-use Goat\Runner\Runner;
-use Goat\Query\ExpressionRaw;
 use Goat\Query\SelectQuery;
+use Goat\Runner\Runner;
 
 /**
  * goat-query/pgsql implementation.
