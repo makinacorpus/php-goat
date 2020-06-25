@@ -140,5 +140,7 @@ final class ProjectorPlayCommand extends Command
                 $progressBar->setProgress($event->getCurrentPosition());
             }
         );
+
+        return $progressBar;
     }
 }
