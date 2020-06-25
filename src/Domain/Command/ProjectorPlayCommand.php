@@ -55,7 +55,7 @@ final class ProjectorPlayCommand extends Command
             throw new \InvalidArgumentException("You can not use both 'reset' and 'date' options, you have to choose one.");
         }
 
-        $projector = $this->projectorRegistry->findByIdentifierOrClassName($input->getArgument('projector'));
+        $projector = $this->projectorRegistry->find($input->getArgument('projector'));
 
         if ($input->getOption('reset')) {
             $this->handleReset($projector);

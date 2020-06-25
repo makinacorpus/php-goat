@@ -8,9 +8,6 @@ use Goat\Domain\EventStore\Property;
 use Goat\Domain\EventStore\WithPropertiesTrait;
 use Ramsey\Uuid\Uuid;
 
-/**
- * Default event implementation, just extend this class.
- */
 final class MessageEnvelope
 {
     use WithPropertiesTrait;
