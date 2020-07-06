@@ -6,7 +6,6 @@ namespace Goat\Domain\Command;
 
 use Goat\Domain\EventStore\EventStore;
 use Goat\Domain\EventStore\Property;
-use Goat\Domain\EventStore\Exchange\EventExporter;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Input\InputInterface;
@@ -15,18 +14,16 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 final class EventStoreQueryCommand extends Command
 {
-    private $eventExporter;
     private $eventStore;
     protected static $defaultName = 'eventstore:query';
 
     /**
      * Default constructor
      */
-    public function __construct(EventStore $eventStore, ?EventExporter $eventExporter)
+    public function __construct(EventStore $eventStore)
     {
         parent::__construct();
 
-        $this->eventExporter = $eventExporter;
         $this->eventStore = $eventStore;
     }
 
@@ -42,7 +39,6 @@ final class EventStoreQueryCommand extends Command
             ->addOption('all', null, InputOption::VALUE_NONE, 'Include all event, including failed ones, superseed --all')
             ->addOption('failed', null, InputOption::VALUE_NONE, 'Display only rollbacked events, excluded when not specified')
             ->addOption('namespace', null, InputOption::VALUE_REQUIRED, 'Query a single namespace', Property::DEFAULT_NAMESPACE)
-            ->addOption('output-format', null, InputOption::VALUE_REQUIRED, "Outputs result with the given format, use 'binary' for later import")
             ->addOption('reverse', null, InputOption::VALUE_NONE, 'Query in descending order, all other filters will be reversed as well')
             ->addOption('start-date', null, InputOption::VALUE_REQUIRED, 'Start at given date/time, can be any string that new DateTime("...") will understand')
             ->addOption('start-position', null, InputOption::VALUE_REQUIRED, 'Start at given date/time, can be any string that new DateTime("...") will understand')
@@ -173,13 +169,6 @@ final class EventStoreQueryCommand extends Command
 
         $stream = $query->execute();
 
-        if ($format = $input->getOption('output-format')) {
-            if (!$this->eventExporter) {
-                throw new \InvalidArgumentException(\sprintf("You cannot export to file without symfony/serializer-pack installed"));
-            }
-            $this->eventExporter->exportAs($stream, STDOUT, $format);
-        } else {
-            $this->outputAsPlainText($stream, $output);
-        }
+        $this->outputAsPlainText($stream, $output);
     }
 }
