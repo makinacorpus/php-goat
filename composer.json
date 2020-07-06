@@ -66,7 +66,6 @@
         "ramsey/uuid": "^3.8 || ^4"
     },
     "require-dev" : {
-        "makinacorpus/calista-core": "^1.0",
         "makinacorpus/generated-hydrator-bundle": "^1.0@alpha",
         "makinacorpus/goat-query-bundle": "^2.0",
         "phpunit/phpunit" : "7.*",
