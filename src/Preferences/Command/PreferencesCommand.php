@@ -4,16 +4,9 @@ declare(strict_types=1);
 
 namespace Goat\Domain\Command;
 
-use App\Domain\Event\WithDescription;
 use Goat\Domain\EventStore\NameMap;
-use Goat\Domain\Generator\MessageExtractor;
-use Goat\Domain\Generator\MessageInformation;
-use Goat\Domain\Generator\MessageRstFormatter;
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Helper\Table;
-use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
-use Symfony\Component\Console\Output\OutputInterface;
 
 final class PreferencesCommand extends Command
 {
