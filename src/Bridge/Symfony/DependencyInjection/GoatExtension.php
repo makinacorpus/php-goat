@@ -33,11 +33,11 @@ final class GoatExtension extends Extension
         $loader = new YamlFileLoader($container, new FileLocator(\dirname(__DIR__).'/Resources/config'));
 
         $consoleEnabled = \class_exists(Command::class);
-        $domainEnabled = \interface_exists(RepositoryInterface::class) && ($config['domain']['enabled'] ?? true);
+        $domainEnabled = \interface_exists(RepositoryInterface::class) && ($config['domain']['event_dispatcher'] ?? false);
         $preferenceEnabled = \interface_exists(PreferencesRepository::class) && ($config['preferences']['enabled'] ?? false);
         $messengerEnabled = \interface_exists(MessageBusInterface::class);
-        $eventStoreEnabled = $domainEnabled && ($config['domain']['event_store'] ?? false);
-        $lockServiceEnabled = $domainEnabled && ($config['domain']['lock_service'] ?? false);
+        $eventStoreEnabled = $config['domain']['event_store'] ?? false;
+        $lockServiceEnabled = $config['domain']['lock_service'] ?? false;
 
         if ($domainEnabled) {
             $loader->load('domain.yaml');

@@ -40,9 +40,9 @@ goat:
 
     domain:
         #
-        # Enable the domain features (event dispatcher).
+        # Enable the custom event dispatcher.
         #
-        enabled: true
+        event_dispatcher: true
 
         #
         # Enable the event store, plugged over the event dispatcher and Symfony
