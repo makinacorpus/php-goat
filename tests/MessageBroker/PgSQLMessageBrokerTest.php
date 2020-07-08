@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Goat\Domain\Tests\MessageBroker;
+namespace Goat\Tests\MessageBroker;
 
 use Goat\MessageBroker\MessageBroker;
 use Goat\MessageBroker\PgSQLMessageBroker;

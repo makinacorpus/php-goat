@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Goat\Domain\Tests\MessageBroker;
+namespace Goat\Tests\MessageBroker;
 
 use Goat\Domain\Event\BrokenMessage;
 use Goat\Domain\Event\MessageEnvelope;
-use Goat\Domain\EventStore\Property;
 use Goat\Domain\Serializer\UuidNormalizer;
 use Goat\Domain\Tests\Event\MockMessage;
 use Goat\Domain\Tests\Event\MockRetryableMessage;
+use Goat\EventStore\Property;
 use Goat\MessageBroker\MessageBroker;
 use Goat\Query\ExpressionValue;
 use Goat\Runner\Runner;

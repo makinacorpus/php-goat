@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Goat\Domain\Projector\Projector;
 
-use Goat\Domain\EventStore\Event;
 use Goat\Domain\Projector\Projector;
+use Goat\EventStore\Event;
 
 /**
  * Write a projector that uses a callback.

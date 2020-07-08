@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Goat\Domain\Tests\EventStore;
 
-use Goat\Domain\EventStore\Event;
-use Goat\Domain\EventStore\EventStore;
-use Goat\Domain\EventStore\EventStream;
-use Goat\Domain\EventStore\Goat\GoatEventStore;
 use Goat\Domain\Serializer\UuidNormalizer;
+use Goat\EventStore\Event;
+use Goat\EventStore\EventStore;
+use Goat\EventStore\EventStream;
+use Goat\EventStore\Goat\GoatEventStore;
 use Goat\Runner\Runner;
 use Goat\Runner\Testing\DatabaseAwareQueryTest;
 use Ramsey\Uuid\Uuid;

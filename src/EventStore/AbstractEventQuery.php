@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Goat\Domain\EventStore;
+namespace Goat\EventStore;
 
 use Ramsey\Uuid\Uuid;
 use Ramsey\Uuid\UuidInterface;

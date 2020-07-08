@@ -30,15 +30,19 @@
     "autoload" : {
         "psr-4" : {
             "Goat\\Bridge\\Symfony\\" : "src/Bridge/Symfony/",
+            "Goat\\Dispatcher\\" : "src/Dispatcher/",
             "Goat\\Domain\\" : "src/Domain/",
-            "Goat\\Hydrator\\" : "src/Hydrator/",
-            "Goat\\Preferences\\" : "src/Preferences"
+            "Goat\\EventStore\\" : "src/EventStore/",
+            "Goat\\Lock\\" : "src/Lock/",
+            "Goat\\MessageBroker\\" : "src/MessageBroker/",
+            "Goat\\Preferences\\" : "src/Preferences",
+            "Goat\\Projector\\" : "src/Projector/"
         },
         "classmap": [
             "src/Domain/Event/Error.php",
             "src/Domain/Event/Message.php",
-            "src/Domain/EventStore/Mapping.php",
             "src/Domain/Generator/MessageDocumentation.php",
+            "src/EventStore/Mapping.php",
             "src/Preferences/Domain/Handler.php",
             "src/Preferences/Domain/Message.php",
             "src/Preferences/Domain/Model.php",
@@ -48,8 +52,13 @@
     "autoload-dev": {
         "psr-4": {
             "Goat\\Bridge\\Symfony\\Tests\\": "tests/Bridge/Symfony/",
+            "Goat\\Dispatcher\\Tests\\": "tests/Dispatcher/",
             "Goat\\Domain\\Tests\\": "tests/Domain/",
-            "Goat\\Preferences\\Tests\\": "tests/Preferences/"
+            "Goat\\EventStore\\Tests\\": "tests/EventStore/",
+            "Goat\\Lock\\Tests\\": "tests/Lock/",
+            "Goat\\MessageBroker\\Tests\\": "tests/MessageBroker/",
+            "Goat\\Preferences\\Tests\\": "tests/Preferences/",
+            "Goat\\Projector\\Tests\\": "tests/Projector/"
         }
     },
     "replace": {

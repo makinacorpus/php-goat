@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Goat\Domain\EventStore;
+namespace Goat\EventStore;
 
 /**
  * Namespace map tells us where to store events, if you have more than one

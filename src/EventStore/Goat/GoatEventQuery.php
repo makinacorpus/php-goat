@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Goat\Domain\EventStore\Goat;
+namespace Goat\EventStore\Goat;
 
-use Goat\Domain\EventStore\AbstractEventQuery;
-use Goat\Domain\EventStore\EventStream;
+use Goat\EventStore\AbstractEventQuery;
+use Goat\EventStore\EventStream;
 use Goat\Query\ExpressionLike;
 use Goat\Query\ExpressionRaw;
 use Goat\Query\Query;

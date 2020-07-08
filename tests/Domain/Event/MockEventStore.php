@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Goat\Domain\Tests\Event;
 
-use Goat\Domain\EventStore\AbstractEventStore;
-use Goat\Domain\EventStore\Event;
-use Goat\Domain\EventStore\EventQuery;
+use Goat\EventStore\AbstractEventStore;
+use Goat\EventStore\Event;
+use Goat\EventStore\EventQuery;
 use Ramsey\Uuid\UuidInterface;
 
 class MockEventStore extends AbstractEventStore

@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Goat\Domain\EventStore\Goat;
+namespace Goat\EventStore\Goat;
 
-use Goat\Domain\EventStore\AbstractEventStore;
-use Goat\Domain\EventStore\Event;
-use Goat\Domain\EventStore\EventQuery;
+use Goat\EventStore\AbstractEventStore;
+use Goat\EventStore\Event;
+use Goat\EventStore\EventQuery;
 use Goat\Query\ExpressionRelation;
 use Goat\Query\ExpressionValue;
 use Goat\Runner\Runner;

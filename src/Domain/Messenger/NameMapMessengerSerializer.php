@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Goat\Domain\Messenger;
 
-use Goat\Domain\EventStore\NameMap;
+use Goat\EventStore\NameMap;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Transport\Serialization\SerializerInterface;
 

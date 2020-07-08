@@ -4,13 +4,6 @@ declare(strict_types=1);
 
 namespace Goat\Domain\Tests\Projector\Worker;
 
-use Goat\Domain\EventStore\AbstractEventQuery;
-use Goat\Domain\EventStore\AbstractEventStore;
-use Goat\Domain\EventStore\Event;
-use Goat\Domain\EventStore\EventQuery;
-use Goat\Domain\EventStore\EventStore;
-use Goat\Domain\EventStore\EventStream;
-use Goat\Domain\EventStore\Testing\DummyArrayEventStream;
 use Goat\Domain\Projector\ProjectorDoesNotExistError;
 use Goat\Domain\Projector\ProjectorRegistry;
 use Goat\Domain\Projector\Projector\BrokenProjector;
@@ -19,6 +12,13 @@ use Goat\Domain\Projector\State\ArrayStateStore;
 use Goat\Domain\Projector\Worker\DefaultWorker;
 use Goat\Domain\Projector\Worker\MissingProjectorError;
 use Goat\Domain\Projector\Worker\WorkerEvent;
+use Goat\EventStore\AbstractEventQuery;
+use Goat\EventStore\AbstractEventStore;
+use Goat\EventStore\Event;
+use Goat\EventStore\EventQuery;
+use Goat\EventStore\EventStore;
+use Goat\EventStore\EventStream;
+use Goat\EventStore\Testing\DummyArrayEventStream;
 use PHPUnit\Framework\TestCase;
 use Ramsey\Uuid\UuidInterface;
 

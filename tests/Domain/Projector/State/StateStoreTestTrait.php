@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Goat\Domain\Tests\Projector\State;
 
-use Goat\Domain\EventStore\Event;
-use Goat\Domain\Projector\State\StateStore;
 use Goat\Domain\Projector\State\ProjectorLockedError;
+use Goat\Domain\Projector\State\StateStore;
+use Goat\EventStore\Event;
 
 trait StateStoreTestTrait
 {

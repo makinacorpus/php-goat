@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Goat\Domain\Generator;
 
-use Goat\Domain\EventStore\NameMap;
+use Goat\EventStore\NameMap;
 use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Helper\TableSeparator;
 use Symfony\Component\Console\Helper\TableStyle;

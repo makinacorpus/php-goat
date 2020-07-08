@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Goat\Domain\Tests\EventStore;
 
-use Goat\Domain\EventStore\Event;
-use Goat\Domain\EventStore\Property;
+use Goat\EventStore\Event;
+use Goat\EventStore\Property;
 use Goat\Runner\Testing\TestDriverFactory;
 
 final class GoatEventStoreTest extends AbstractEventStoreTest

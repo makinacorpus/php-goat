@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Goat\Domain\Tests\EventStore;
 
-use Goat\Domain\EventStore\DefaultEventBuilder;
-use Goat\Domain\EventStore\Event;
 use Goat\Domain\Tests\Event\MockMessage;
+use Goat\EventStore\DefaultEventBuilder;
+use Goat\EventStore\Event;
 use PHPUnit\Framework\TestCase;
 use Ramsey\Uuid\Uuid;
 

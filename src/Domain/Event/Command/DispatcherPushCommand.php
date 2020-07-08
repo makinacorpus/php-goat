@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Goat\Event\Command;
 
 use Goat\Domain\Event\Dispatcher;
-use Goat\Domain\EventStore\DefaultNameMap;
-use Goat\Domain\EventStore\NameMap;
+use Goat\EventStore\DefaultNameMap;
+use Goat\EventStore\NameMap;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;

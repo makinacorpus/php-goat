@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Goat\Domain\EventStore;
+namespace Goat\EventStore;
 
 /**
  * Property names are AMQP compatible, except for 'type', and 'X-*' that should

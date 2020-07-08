@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Goat\Domain\EventStore\Testing;
+namespace Goat\EventStore\Testing;
 
-use Goat\Domain\EventStore\Event;
-use Goat\Domain\EventStore\EventStream;
+use Goat\EventStore\Event;
+use Goat\EventStore\EventStream;
 
 /**
  * @var \Goat\Domain\Event\Event[]

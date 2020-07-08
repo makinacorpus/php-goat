@@ -65,7 +65,7 @@ services:
     #   - Autoconfigure this from user configuration
     goat.event_store.namespace_map:
         public: false
-        class: Goat\Domain\EventStore\NamespaceMap
+        class: Goat\EventStore\NamespaceMap
 
     # By arbitrarily injecting the message broker here, we loose the messenger
     # configuration and routing flexibility: we cannot have multiple queues
@@ -94,7 +94,7 @@ services:
 
     goat.event_store:
         public: false
-        class: Goat\Domain\EventStore\Goat\GoatEventStore
+        class: Goat\EventStore\Goat\GoatEventStore
         # @todo make this configurable, allow table namespace configuration
         arguments: ["@goat.runner.event_store"]
         tags:
@@ -103,6 +103,6 @@ services:
             - [setNamespaceMap, ["@goat.event_store.namespace_map"]]
             - [setNameMap, ["@goat.name_map"]]
 
-    Goat\Domain\EventStore\EventStore:
+    Goat\EventStore\EventStore:
         public: false
         alias: goat.event_store

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Goat\Domain\Event;
 
-use Goat\Domain\EventStore\Property;
-use Goat\Domain\EventStore\WithPropertiesTrait;
+use Goat\EventStore\Property;
+use Goat\EventStore\WithPropertiesTrait;
 use Ramsey\Uuid\Uuid;
 
 final class MessageEnvelope

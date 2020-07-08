@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace Goat\Domain\Tests\Event;
 
 use Goat\Domain\Event\MessageEnvelope;
-use Goat\Domain\EventStore\Event;
-use Goat\Domain\EventStore\Property;
 use Goat\Domain\Event\Decorator\EventStoreDispatcherDecorator;
 use Goat\Domain\Event\Error\DispatcherError;
 use Goat\Domain\Event\Error\DispatcherRetryableError;
 use Goat\Domain\Tests\EventStore\AbstractEventStoreTest;
+use Goat\EventStore\Event;
+use Goat\EventStore\Property;
 
 final class DefaultDispatcherTest extends AbstractEventStoreTest
 {

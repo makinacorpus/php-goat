@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Goat\Domain\Projector\State;
 
-use Goat\Domain\EventStore\Event;
+use Goat\EventStore\Event;
 
 /**
  * You may decorate this implementation to use another backend such as file

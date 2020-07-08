@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Goat\Domain\Serializer;
 
-use Goat\Domain\EventStore\NameMap;
+use Goat\EventStore\NameMap;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Serializer\Encoder\DecoderInterface;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;

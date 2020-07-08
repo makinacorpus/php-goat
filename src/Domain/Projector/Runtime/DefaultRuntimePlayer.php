@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Goat\Domain\Projector\Runtime;
 
-use Goat\Domain\EventStore\Event;
 use Goat\Domain\Projector\Projector;
 use Goat\Domain\Projector\ProjectorRegistry;
 use Goat\Domain\Projector\State\StateStore;
+use Goat\EventStore\Event;
 
 /**
  * @todo Instrument using psr/log.

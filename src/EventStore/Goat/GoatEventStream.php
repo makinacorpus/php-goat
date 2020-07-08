@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Goat\Domain\EventStore\Goat;
+namespace Goat\EventStore\Goat;
 
-use Goat\Domain\EventStore\Event;
-use Goat\Domain\EventStore\EventStream;
+use Goat\EventStore\Event;
+use Goat\EventStore\EventStream;
 use Goat\Runner\ResultIterator;
 
 final class GoatEventStream implements \IteratorAggregate, EventStream

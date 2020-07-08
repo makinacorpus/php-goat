@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Goat\Domain\Tests\Projector\Runtime;
 
-use Goat\Domain\EventStore\Event;
 use Goat\Domain\Projector\ProjectorRegistry;
 use Goat\Domain\Projector\Projector\BrokenProjector;
 use Goat\Domain\Projector\Projector\CallbackProjector;
 use Goat\Domain\Projector\Runtime\DefaultRuntimePlayer;
 use Goat\Domain\Projector\State\ArrayStateStore;
+use Goat\EventStore\Event;
 use PHPUnit\Framework\TestCase;
 
 class DefaultRuntimeTest extends TestCase

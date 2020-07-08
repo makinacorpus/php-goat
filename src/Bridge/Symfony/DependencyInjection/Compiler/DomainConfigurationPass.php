@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Goat\Bridge\Symfony\DependencyInjection\Compiler;
 
-use Goat\Domain\EventStore\AbstractEventStore;
 use Goat\Domain\Messenger\NameMapMessengerSerializer;
 use Goat\Domain\Serializer\NameMapSerializer;
+use Goat\EventStore\AbstractEventStore;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;

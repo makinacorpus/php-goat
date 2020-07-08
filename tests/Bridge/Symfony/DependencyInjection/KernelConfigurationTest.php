@@ -6,7 +6,7 @@ namespace Goat\Bridge\Symfony\Tests\DependencyInjection;
 
 use Goat\Bridge\Symfony\DependencyInjection\GoatExtension;
 use Goat\Domain\Event\Dispatcher;
-use Goat\Domain\EventStore\EventStore;
+use Goat\EventStore\EventStore;
 use Goat\Lock\LockManager;
 use Goat\MessageBroker\MessageBroker;
 use Goat\Query\Symfony\GoatQueryBundle;

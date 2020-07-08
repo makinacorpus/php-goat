@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Goat\Domain\Projector;
 
-use Goat\Domain\EventStore\Event;
+use Goat\EventStore\Event;
 
 /**
  * Projectors will be process after an event has been consumed.

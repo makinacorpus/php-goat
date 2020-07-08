@@ -6,8 +6,8 @@ namespace Goat\MessageBroker;
 
 use Goat\Domain\Event\BrokenMessage;
 use Goat\Domain\Event\MessageEnvelope;
-use Goat\Domain\EventStore\Property;
 use Goat\Domain\Serializer\MimeTypeConverter;
+use Goat\EventStore\Property;
 use Goat\Runner\Runner;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;

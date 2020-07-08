@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Goat\Preferences\Command;
 
-use Goat\Domain\EventStore\NameMap;
+use Goat\EventStore\NameMap;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputOption;
 

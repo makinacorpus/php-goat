@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Goat\Domain\EventStore;
+namespace Goat\EventStore;
 
 /**
  * @var \Goat\Domain\Event\Event[]

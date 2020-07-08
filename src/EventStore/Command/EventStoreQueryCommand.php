@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace Goat\EventStore\Command;
 
-use Goat\Domain\EventStore\EventStore;
-use Goat\Domain\EventStore\Property;
+use Goat\EventStore\Event;
+use Goat\EventStore\EventStore;
+use Goat\EventStore\Property;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Input\InputInterface;
@@ -81,8 +82,9 @@ final class EventStoreQueryCommand extends Command
             'fail',
         ]);
 
-        /** @var \Goat\Domain\EventStore\Event $event */
         foreach ($stream as $event) {
+            \assert($event instanceof Event);
+
             $table->addRow([
                 $event->getPosition(),
                 $event->createdAt()->format('Y-m-d H:i:s'),

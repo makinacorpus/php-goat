@@ -6,7 +6,7 @@ namespace Goat\Domain\Event\Decorator;
 
 use Goat\Domain\Event\Dispatcher;
 use Goat\Domain\Event\MessageEnvelope;
-use Goat\Domain\EventStore\Property;
+use Goat\EventStore\Property;
 
 final class ProfilingDispatcherDecorator implements Dispatcher
 {

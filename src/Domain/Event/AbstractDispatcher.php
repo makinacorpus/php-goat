@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Goat\Domain\Event;
 
-use Goat\Domain\EventStore\Property;
 use Goat\Domain\Event\Error\DispatcherError;
 use Goat\Domain\Event\Error\DispatcherRetryableError;
 use Goat\Driver\Error\TransactionError;
+use Goat\EventStore\Property;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\NullLogger;

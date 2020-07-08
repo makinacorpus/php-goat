@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Goat\Domain\Tests\EventStore;
 
-use Goat\Domain\EventStore\DefaultNameMap;
-use Goat\Domain\EventStore\NameMap;
+use Goat\EventStore\DefaultNameMap;
+use Goat\EventStore\NameMap;
 use PHPUnit\Framework\TestCase;
 
 /**

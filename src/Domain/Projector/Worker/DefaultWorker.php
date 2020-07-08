@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Goat\Domain\Projector\Worker;
 
-use Goat\Domain\EventStore\Event;
-use Goat\Domain\EventStore\EventStore;
 use Goat\Domain\Projector\Projector;
 use Goat\Domain\Projector\ProjectorNotReplyableError;
 use Goat\Domain\Projector\ProjectorRegistry;
@@ -13,6 +11,8 @@ use Goat\Domain\Projector\ReplayableProjector;
 use Goat\Domain\Projector\State\ProjectorLockedError;
 use Goat\Domain\Projector\State\State;
 use Goat\Domain\Projector\State\StateStore;
+use Goat\EventStore\Event;
+use Goat\EventStore\EventStore;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 

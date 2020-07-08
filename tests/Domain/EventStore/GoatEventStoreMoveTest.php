@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Goat\Domain\Tests\EventStore;
 
-use Goat\Domain\EventStore\Event;
-use Goat\Domain\EventStore\EventStore;
-use Goat\Domain\EventStore\Property;
 use Goat\Domain\Tests\Event\MockMessage;
+use Goat\EventStore\Event;
+use Goat\EventStore\EventStore;
+use Goat\EventStore\Property;
 use Goat\Runner\Testing\TestDriverFactory;
 use Ramsey\Uuid\Uuid;
 use Ramsey\Uuid\UuidInterface;

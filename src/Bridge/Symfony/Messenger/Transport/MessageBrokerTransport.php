@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Goat\Bridge\Symfony\Messenger\Transport;
 
 use Goat\Domain\Event\MessageEnvelope;
-use Goat\Domain\EventStore\Property;
+use Goat\EventStore\Property;
 use Goat\MessageBroker\MessageBroker;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Stamp;
