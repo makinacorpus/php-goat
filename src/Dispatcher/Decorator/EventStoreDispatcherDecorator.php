@@ -6,8 +6,8 @@ namespace Goat\Dispatcher\Decorator;
 
 use Goat\Dispatcher\Dispatcher;
 use Goat\Dispatcher\MessageEnvelope;
-use Goat\Domain\Projector\Runtime\RuntimePlayer;
 use Goat\EventStore\EventStore;
+use Goat\Projector\Runtime\RuntimePlayer;
 
 final class EventStoreDispatcherDecorator implements Dispatcher
 {
