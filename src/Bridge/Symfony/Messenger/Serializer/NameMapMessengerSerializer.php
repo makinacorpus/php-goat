@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Goat\Bridge\Symfony\Messenger\Serializer;
 
-use Goat\EventStore\NameMap;
+use Goat\Normalization\NameMap;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Transport\Serialization\SerializerInterface;
 
@@ -14,11 +14,8 @@ use Symfony\Component\Messenger\Transport\Serialization\SerializerInterface;
  */
 final class NameMapMessengerSerializer implements SerializerInterface
 {
-    /** @var NameMap */
-    private $nameMap;
-
-    /** @var SerializerInterface */
-    private $decorated;
+    private NameMap $nameMap;
+    private SerializerInterface $decorated;
 
     /**
      * Default constructor

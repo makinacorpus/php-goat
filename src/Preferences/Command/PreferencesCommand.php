@@ -4,23 +4,15 @@ declare(strict_types=1);
 
 namespace Goat\Preferences\Command;
 
-use Goat\EventStore\NameMap;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputOption;
 
+/**
+ * @codeCoverageIgnore
+ */
 final class PreferencesCommand extends Command
 {
     protected static $defaultName = 'preferences:manage';
-
-    /**
-     * Default constructor
-     */
-    public function __construct(NameMap $nameMap)
-    {
-        parent::__construct();
-
-        $this->nameMap = $nameMap;
-    }
 
     /**
      * {@inheritdoc}

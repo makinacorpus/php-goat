@@ -8,7 +8,10 @@ use Goat\Query\SelectQuery;
 use Goat\Runner\Runner;
 
 /**
- * Default implementation for the writable repository trait
+ * Default implementation for the writable repository trait.
+ *
+ * @codeCoverageIgnore
+ * @deprecated
  */
 class WritableSelectRepository extends WritableDefaultRepository
 {

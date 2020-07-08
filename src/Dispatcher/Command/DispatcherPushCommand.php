@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Goat\Dispatcher\Command;
 
 use Goat\Dispatcher\Dispatcher;
-use Goat\EventStore\DefaultNameMap;
-use Goat\EventStore\NameMap;
+use Goat\Normalization\DefaultNameMap;
+use Goat\Normalization\NameMap;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -14,22 +14,17 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Serializer\SerializerInterface;
 
+/**
+ * @codeCoverageIgnore
+ */
 final class DispatcherPushCommand extends Command
 {
     protected static $defaultName = 'dispatcher:push';
 
-    /** @var Dispatcher */
-    private $dispatcher;
+    private Dispatcher $dispatcher;
+    private SerializerInterface $serializer;
+    private NameMap $nameMap;
 
-    /** @var SerializerInterface */
-    private $serializer;
-
-    /** @var NameMap */
-    private $nameMap;
-
-    /**
-     * Default constructor
-     */
     public function __construct(Dispatcher $dispatcher, SerializerInterface $serializer, ?NameMap $nameMap = null)
     {
         parent::__construct();

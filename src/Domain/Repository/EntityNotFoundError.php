@@ -5,7 +5,10 @@ declare(strict_types=1);
 namespace Goat\Domain\Repository;
 
 /**
- * One or more entities could not be found in the database
+ * One or more entities could not be found in the database.
+ *
+ * @codeCoverageIgnore
+ * @deprecated
  */
 class EntityNotFoundError extends \RuntimeException
 {

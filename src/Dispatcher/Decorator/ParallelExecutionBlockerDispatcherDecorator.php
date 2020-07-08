@@ -6,7 +6,7 @@ namespace Goat\Dispatcher\Decorator;
 
 use Goat\Dispatcher\Dispatcher;
 use Goat\Dispatcher\MessageEnvelope;
-use Goat\Dispatcher\UnparallelizableMessage;
+use Goat\Dispatcher\Message\UnparallelizableMessage;
 use Goat\Lock\LockManager;
 
 final class ParallelExecutionBlockerDispatcherDecorator implements Dispatcher

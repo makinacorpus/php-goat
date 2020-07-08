@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Goat\MessageBroker;
 
-use Goat\Dispatcher\BrokenMessage;
 use Goat\Dispatcher\MessageEnvelope;
+use Goat\Dispatcher\Message\BrokenMessage;
 use Goat\EventStore\MimeTypeConverter;
 use Goat\EventStore\Property;
 use Goat\Runner\Runner;

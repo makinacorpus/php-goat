@@ -4,27 +4,26 @@ declare(strict_types=1);
 
 namespace Goat\Dispatcher\Command;
 
-use Goat\Dispatcher\WithDescription;
+use Goat\Dispatcher\Message\WithDescription;
 use Goat\Domain\Generator\MessageExtractor;
 use Goat\Domain\Generator\MessageInformation;
 use Goat\Domain\Generator\MessageRstFormatter;
-use Goat\EventStore\NameMap;
+use Goat\Normalization\NameMap;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
+/**
+ * @codeCoverageIgnore
+ */
 final class DispatcherListCommand extends Command
 {
     protected static $defaultName = 'dispatcher:list';
 
-    /** @var NameMap */
-    private $nameMap;
+    private NameMap $nameMap;
 
-    /**
-     * Default constructor
-     */
     public function __construct(NameMap $nameMap)
     {
         parent::__construct();

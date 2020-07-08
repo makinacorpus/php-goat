@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Goat\Domain\Generator;
 
-use Goat\EventStore\NameMap;
+use Goat\Normalization\NameMap;
 use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Helper\TableSeparator;
 use Symfony\Component\Console\Helper\TableStyle;
@@ -18,17 +18,14 @@ use phpDocumentor\Reflection\DocBlockFactory;
  *
  * @experimental
  * @codeCoverageIgnore
- *
- * @todo
- *   Implement whitelist
+ * @deprecated
+ * @todo Re-implement.
  */
 final class MessageExtractor
 {
-    /** @var NameMap */
-    private $nameMap;
-
+    private NameMap $nameMap;
     /** @var string[] */
-    private $groups = [];
+    private array $groups = [];
 
     /**
      * Default constructor

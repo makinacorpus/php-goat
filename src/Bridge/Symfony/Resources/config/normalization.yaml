@@ -2,13 +2,13 @@ services:
 
     goat.name_map:
         public: false
-        class: Goat\EventStore\DefaultNameMap
+        class: Goat\Normalization\DefaultNameMap
         arguments: [[], []]
 
-    Goat\EventStore\NameMap:
+    Goat\Normalization\NameMap:
         public: false
         alias: goat.name_map
 
-    Goat\EventStore\TypeMap:
+    Goat\Normalization\TypeMap:
         public: false
         alias: goat.name_map

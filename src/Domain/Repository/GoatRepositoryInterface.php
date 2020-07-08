@@ -15,6 +15,9 @@ use Goat\Runner\Runner;
  *
  * Insertion, update and delete should happen at the table level, and will not
  * be handled by the repository interface.
+ *
+ * @codeCoverageIgnore
+ * @deprecated
  */
 interface GoatRepositoryInterface extends RepositoryInterface
 {

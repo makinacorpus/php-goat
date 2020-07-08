@@ -2,10 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Goat\EventStore\Tests;
+namespace Goat\Normalization\Tests;
 
-use Goat\EventStore\DefaultNameMap;
-use Goat\EventStore\NameMap;
+use Goat\EventStore\Tests\MockMessage1;
+use Goat\EventStore\Tests\MockMessage2;
+use Goat\EventStore\Tests\MockMessage3;
+use Goat\Normalization\DefaultNameMap;
+use Goat\Normalization\NameMap;
 use PHPUnit\Framework\TestCase;
 
 /**

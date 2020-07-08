@@ -73,9 +73,9 @@ actual data.
 
 In both case, it will be plugged onto the message bus, and store every message
 or domain event that happen to the system. For this to work gracefully, your
-own events should implement the `Goat\Dispatcher\Message` interface in order
-for the event store to be able to identify every aggregate or entity that gets
-created or update within the system and keep track of objects life time.
+own events should implement the `Goat\Dispatcher\Message\Message` interface in
+order for the event store to be able to identify every aggregate or entity that
+gets created or update within the system and keep track of objects life time.
 
 It doesn't matter if you actually identify creation or modification, only a
 UUID is necessary, if it doesn't exist in the index, a new event stream will

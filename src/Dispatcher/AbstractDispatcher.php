@@ -6,6 +6,7 @@ namespace Goat\Dispatcher;
 
 use Goat\Dispatcher\Error\DispatcherError;
 use Goat\Dispatcher\Error\DispatcherRetryableError;
+use Goat\Dispatcher\Message\RetryableMessage;
 use Goat\Driver\Error\TransactionError;
 use Goat\EventStore\Property;
 use Psr\Log\LoggerAwareInterface;

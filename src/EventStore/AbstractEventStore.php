@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Goat\EventStore;
 
-use Goat\Dispatcher\BrokenMessage;
+use Goat\Dispatcher\Message\BrokenMessage;
+use Goat\Normalization\DefaultNameMap;
+use Goat\Normalization\NameMap;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\NullLogger;

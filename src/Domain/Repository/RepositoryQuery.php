@@ -12,6 +12,10 @@ use Goat\Query\Where;
 use Goat\Runner\QueryPagerResultIterator;
 use Goat\Runner\ResultIterator;
 
+/**
+ * @codeCoverageIgnore
+ * @deprecated
+ */
 final class RepositoryQuery
 {
     private $select;

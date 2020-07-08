@@ -12,6 +12,9 @@ use Goat\Runner\ResultIterator;
  *
  * Insertion, update and delete should happen at the table level, and will not
  * be handled by the repository interface.
+ *
+ * @codeCoverageIgnore
+ * @deprecated
  */
 interface RepositoryInterface
 {

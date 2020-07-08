@@ -26,6 +26,9 @@ use Goat\Query\MergeQuery;
 /**
  * Table repository is a simple model implementation that works on an arbitrary
  * select query.
+ *
+ * @codeCoverageIgnore
+ * @deprecated
  */
 class DefaultRepository implements GoatRepositoryInterface
 {

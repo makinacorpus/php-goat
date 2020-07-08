@@ -10,7 +10,10 @@ use Goat\Query\Query;
 use Goat\Query\UpdateQuery;
 
 /**
- * Default implementation for the writable repository
+ * Default implementation for the writable repository.
+ *
+ * @codeCoverageIgnore
+ * @deprecated
  */
 class WritableDefaultRepository extends DefaultRepository implements WritableRepositoryInterface
 {

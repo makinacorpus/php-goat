@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Goat\Bridge\Symfony\Serializer;
 
-use Goat\EventStore\NameMap;
+use Goat\Normalization\NameMap;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Serializer\Encoder\DecoderInterface;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
@@ -45,9 +45,7 @@ final class NameMapSerializer implements
     NormalizerInterface,
     SerializerInterface
 {
-    /** @var NameMap */
-    private $nameMap;
-
+    private NameMap $nameMap;
     /** @var \Symfony\Component\Serializer\Serializer */
     private $decorated;
 

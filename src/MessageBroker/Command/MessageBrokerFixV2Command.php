@@ -6,8 +6,8 @@ namespace Goat\MessageBroker\Command;
 
 use Goat\Bridge\Symfony\Messenger\Transport\MessageBrokerTransport;
 use Goat\EventStore\MimeTypeConverter;
-use Goat\EventStore\NameMap;
 use Goat\EventStore\Property;
+use Goat\Normalization\NameMap;
 use Goat\Query\ExpressionValue;
 use Goat\Query\Where;
 use Goat\Runner\Runner;
@@ -21,6 +21,11 @@ use Symfony\Component\Messenger\Exception\MessageDecodingFailedException;
 use Symfony\Component\Messenger\Transport\Serialization\PhpSerializer;
 use Symfony\Component\Serializer\SerializerInterface;
 
+/**
+ * @codeCoverageIgnore
+ * @deprecated
+ *   This code should probably be deleted.
+ */
 final class MessageBrokerFixV2Command extends Command
 {
     const ROW_FAIL = -1;

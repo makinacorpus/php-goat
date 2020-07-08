@@ -6,13 +6,15 @@ namespace Goat\Domain\Repository;
 
 use Goat\Query\DeleteQuery;
 use Goat\Query\InsertQuery;
-use Goat\Query\InsertValuesQuery;
 use Goat\Query\UpdateQuery;
 
 /**
  * Add update and insert functions to repositories.
  *
  * Be aware that this can only write on a single relation at once.
+ *
+ * @codeCoverageIgnore
+ * @deprecated
  */
 interface WritableRepositoryInterface extends RepositoryInterface
 {

@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace Goat\Domain\Repository;
 
+/**
+ * @codeCoverageIgnore
+ * @deprecated
+ */
 abstract class AbstractLazyCollection implements \IteratorAggregate, LazyCollection
 {
     private $expanded;

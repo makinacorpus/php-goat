@@ -40,7 +40,7 @@ goat:
         # enabled.
         #
         # This will only block concurrent processing of commands implementing the
-        # \Goat\Dispatcher\UnparallelizableMessage interface.
+        # \Goat\Dispatcher\Message\UnparallelizableMessage interface.
         #
         with_lock: false
 

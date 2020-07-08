@@ -35,14 +35,12 @@
             "Goat\\EventStore\\" : "src/EventStore/",
             "Goat\\Lock\\" : "src/Lock/",
             "Goat\\MessageBroker\\" : "src/MessageBroker/",
+            "Goat\\Normalization\\" : "src/Normalization/",
             "Goat\\Preferences\\" : "src/Preferences",
             "Goat\\Projector\\" : "src/Projector/"
         },
         "classmap": [
-            "src/Dispatcher/Error.php",
-            "src/Dispatcher/Message.php",
             "src/Domain/Generator/MessageDocumentation.php",
-            "src/EventStore/Mapping.php",
             "src/Preferences/Domain/Handler.php",
             "src/Preferences/Domain/Message.php",
             "src/Preferences/Domain/Model.php",
@@ -57,6 +55,7 @@
             "Goat\\EventStore\\Tests\\": "tests/EventStore/",
             "Goat\\Lock\\Tests\\": "tests/Lock/",
             "Goat\\MessageBroker\\Tests\\": "tests/MessageBroker/",
+            "Goat\\Normalization\\Tests\\": "tests/Normalization/",
             "Goat\\Preferences\\Tests\\": "tests/Preferences/",
             "Goat\\Projector\\Tests\\": "tests/Projector/"
         }

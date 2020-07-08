@@ -10,6 +10,9 @@ use Goat\Runner\Runner;
 /**
  * Extend the default table repository by working with an arbitrary given user
  * select query.
+ *
+ * @codeCoverageIgnore
+ * @deprecated
  */
 class SelectRepository extends DefaultRepository
 {
