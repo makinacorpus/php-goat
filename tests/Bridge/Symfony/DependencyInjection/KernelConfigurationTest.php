@@ -7,7 +7,7 @@ namespace Goat\Bridge\Symfony\Tests\DependencyInjection;
 use Goat\Bridge\Symfony\DependencyInjection\GoatExtension;
 use Goat\Domain\Event\Dispatcher;
 use Goat\Domain\EventStore\EventStore;
-use Goat\Domain\Service\LockService;
+use Goat\Lock\LockManager;
 use Goat\MessageBroker\MessageBroker;
 use Goat\Query\Symfony\GoatQueryBundle;
 use Goat\Runner\Runner;
@@ -114,7 +114,7 @@ final class KernelConfigurationTest extends TestCase
         self::assertTrue($container->hasDefinition('goat.dispatcher'));
 
         // Ensure lock configuration
-        self::assertTrue($container->hasAlias(LockService::class));
+        self::assertTrue($container->hasAlias(LockManager::class));
         self::assertTrue($container->hasDefinition('goat.lock'));
 
         // And message broker configuration

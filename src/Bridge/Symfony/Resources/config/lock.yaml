@@ -2,9 +2,9 @@ services:
 
     goat.lock:
         public: false
-        class: Goat\Domain\Service\LockService
+        class: Goat\Lock\LockManager
         tags: [{ name: "monolog.logger", channel: "goat_dispatcher" }]
         arguments: ['@goat.runner.default']
 
-    Goat\Domain\Service\LockService:
+    Goat\Lock\LockManager:
         alias: goat.lock

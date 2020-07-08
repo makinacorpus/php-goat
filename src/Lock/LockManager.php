@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Goat\Domain\Service;
+namespace Goat\Lock;
 
 use Goat\Domain\Event\Error\ParallelExecutionError;
 use Goat\Runner\Runner;
@@ -15,7 +15,7 @@ use Psr\Log\NullLogger;
  * a semaphore, something that can ensure your stuff is running in one place
  * only.
  */
-final class LockService implements LoggerAwareInterface
+final class LockManager implements LoggerAwareInterface
 {
     use LoggerAwareTrait;
 

@@ -7,14 +7,14 @@ namespace Goat\Domain\Event\Decorator;
 use Goat\Domain\Event\Dispatcher;
 use Goat\Domain\Event\MessageEnvelope;
 use Goat\Domain\Event\UnparallelizableMessage;
-use Goat\Domain\Service\LockService;
+use Goat\Lock\LockManager;
 
 final class ParallelExecutionBlockerDispatcherDecorator implements Dispatcher
 {
     private Dispatcher $decorated;
-    private LockService $lockService;
+    private LockManager $lockService;
 
-    public function __construct(Dispatcher $decorated, LockService $lockService)
+    public function __construct(Dispatcher $decorated, LockManager $lockService)
     {
         $this->decorated = $decorated;
         $this->lockService = $lockService;
