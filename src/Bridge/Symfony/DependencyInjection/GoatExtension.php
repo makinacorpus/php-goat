@@ -89,7 +89,7 @@ final class GoatExtension extends Extension
     private function configureDispatcher(ContainerBuilder $container, array $config): void
     {
         if ($config['with_profiling']) {
-            $decoratedInnerId = 'goat.dispatcher.inner';
+            $decoratedInnerId = 'goat.dispatcher.profiling.inner';
             $decoratorDef = new Definition();
             $decoratorDef->setClass(ProfilingDispatcherDecorator::class);
             $decoratorDef->setDecoratedService('goat.dispatcher', $decoratedInnerId, 1000);
@@ -104,7 +104,7 @@ final class GoatExtension extends Extension
                 throw new InvalidArgumentException("You must set goat.lock.enabled to true in order to be able to enable goat.dispatcher.with_lock");
             }
 
-            $decoratedInnerId = 'goat.dispatcher.inner';
+            $decoratedInnerId = 'goat.dispatcher.event_store.inner';
             $decoratorDef = new Definition();
             $decoratorDef->setClass(EventStoreDispatcherDecorator::class);
             $decoratorDef->setDecoratedService('goat.dispatcher', $decoratedInnerId, 800);
@@ -120,7 +120,7 @@ final class GoatExtension extends Extension
                 throw new InvalidArgumentException("You must set goat.lock.enabled to true in order to be able to enable goat.dispatcher.with_lock");
             }
 
-            $decoratedInnerId = 'goat.dispatcher.inner';
+            $decoratedInnerId = 'goat.dispatcher.lock.inner';
             $decoratorDef = new Definition();
             $decoratorDef->setClass(ParallelExecutionBlockerDispatcherDecorator::class);
             $decoratorDef->setDecoratedService('goat.dispatcher', $decoratedInnerId, 600);

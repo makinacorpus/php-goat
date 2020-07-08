@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Goat\Domain\Tests\MessageBroker;
 
-use Goat\Domain\MessageBroker\MessageBroker;
-use Goat\Domain\MessageBroker\PgSQLMessageBroker;
+use Goat\MessageBroker\MessageBroker;
+use Goat\MessageBroker\PgSQLMessageBroker;
 use Goat\Runner\Runner;
 
 final class PgSQLMessageBrokerTest extends AbstractMessageBrokerTest

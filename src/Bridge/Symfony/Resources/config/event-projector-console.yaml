@@ -1,15 +1,20 @@
 services:
 
-    Goat\Domain\Command\ProjectorListCommand:
+    Goat\Projector\Command\ProjectorListCommand:
         public: false
         arguments:
             - "@goat.projector.registry"
             - "@goat.projector.state_store"
         tags: ["console.command"]
 
-    Goat\Domain\Command\ProjectorPlayCommand:
+    Goat\Projector\Command\ProjectorPlayCommand:
         public: false
         arguments:
             - "@goat.projector.registry"
             - "@goat.projector.worker"
+        tags: ["console.command"]
+
+    Goat\MessageBroker\Command\MessageBrokerFixV2Command:
+        public: false
+        arguments: ["@goat.runner.default", "@serializer", "@goat.name_map"]
         tags: ["console.command"]

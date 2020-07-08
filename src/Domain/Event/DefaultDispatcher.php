@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Goat\Domain\Event;
 
-use Goat\Domain\MessageBroker\MessageBroker;
+use Goat\MessageBroker\MessageBroker;
 use Symfony\Component\Messenger\Handler\HandlersLocatorInterface;
 
 final class DefaultDispatcher extends AbstractDirectDispatcher

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Goat\Domain\Command;
+namespace Goat\Projector\Command;
 
 use Goat\Domain\Projector\NoRuntimeProjector;
 use Goat\Domain\Projector\Projector;

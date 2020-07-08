@@ -7,10 +7,11 @@ namespace Goat\Domain\Tests\MessageBroker;
 use Goat\Domain\Event\BrokenMessage;
 use Goat\Domain\Event\MessageEnvelope;
 use Goat\Domain\EventStore\Property;
-use Goat\Domain\MessageBroker\MessageBroker;
 use Goat\Domain\Serializer\UuidNormalizer;
 use Goat\Domain\Tests\Event\MockMessage;
 use Goat\Domain\Tests\Event\MockRetryableMessage;
+use Goat\MessageBroker\MessageBroker;
+use Goat\Query\ExpressionValue;
 use Goat\Runner\Runner;
 use Goat\Runner\Testing\DatabaseAwareQueryTest;
 use Goat\Runner\Testing\TestDriverFactory;
@@ -23,7 +24,6 @@ use Symfony\Component\Serializer\Encoder\XmlEncoder;
 use Symfony\Component\Serializer\Normalizer\ArrayDenormalizer;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Serializer\Normalizer\PropertyNormalizer;
-use Goat\Query\ExpressionValue;
 
 abstract class AbstractMessageBrokerTest extends DatabaseAwareQueryTest
 {

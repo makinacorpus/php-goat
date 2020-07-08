@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Goat\Domain\MessageBroker;
+namespace Goat\MessageBroker;
 
 use Goat\Domain\Event\MessageEnvelope;
 

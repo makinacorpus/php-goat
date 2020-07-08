@@ -6,10 +6,9 @@ namespace Goat\Bridge\Symfony\Messenger\Transport;
 
 use Goat\Domain\Event\MessageEnvelope;
 use Goat\Domain\EventStore\Property;
-use Goat\Domain\MessageBroker\MessageBroker;
+use Goat\MessageBroker\MessageBroker;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Stamp;
-use Symfony\Component\Messenger\Stamp\StampInterface;
 use Symfony\Component\Messenger\Transport\TransportInterface;
 
 final class MessageBrokerTransport implements TransportInterface

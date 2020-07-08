@@ -7,20 +7,24 @@ namespace Goat\Bridge\Symfony\Tests\DependencyInjection;
 use Goat\Bridge\Symfony\DependencyInjection\GoatExtension;
 use Goat\Domain\Event\Dispatcher;
 use Goat\Domain\EventStore\EventStore;
-use Goat\Domain\MessageBroker\MessageBroker;
 use Goat\Domain\Service\LockService;
+use Goat\MessageBroker\MessageBroker;
 use Goat\Query\Symfony\GoatQueryBundle;
+use Goat\Runner\Runner;
 use PHPUnit\Framework\TestCase;
 use Symfony\Bundle\MonologBundle\MonologBundle;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBag;
+use Symfony\Component\Messenger\Handler\HandlersLocatorInterface;
+use Symfony\Component\Serializer\Serializer;
 
 final class KernelConfigurationTest extends TestCase
 {
     private function getContainer()
     {
         // Code inspired by the SncRedisBundle, all credits to its authors.
-        return new ContainerBuilder(new ParameterBag([
+        $container = new ContainerBuilder(new ParameterBag([
             'kernel.debug'=> false,
             'kernel.bundles' => [
                 GoatQueryBundle::class => ['all' => true],
@@ -30,6 +34,30 @@ final class KernelConfigurationTest extends TestCase
             'kernel.environment' => 'test',
             'kernel.root_dir' => \dirname(__DIR__),
         ]));
+
+        // OK, we will need this.
+        $runnerDefinition = new Definition();
+        $runnerDefinition->setClass(Runner::class);
+        $runnerDefinition->setSynthetic(true);
+        $container->setDefinition('goat.runner.default', $runnerDefinition);
+        $container->setAlias(Runner::class, 'goat.runner.default');
+
+        // And this.
+        $serializerDefinition = new Definition();
+        $serializerDefinition->setClass(Serializer::class);
+        $serializerDefinition->setSynthetic(true);
+        $container->setDefinition('serializer', $serializerDefinition);
+        $container->setAlias(Serializer::class, 'serializer');
+
+        // And this.
+        // @todo Drop this dependency.
+        $handlersLocatorDefinition = new Definition();
+        $handlersLocatorDefinition->setClass(HandlersLocatorInterface::class);
+        $handlersLocatorDefinition->setSynthetic(true);
+        $container->setDefinition('messenger.bus.sync.messenger.handlers_locator', $handlersLocatorDefinition);
+        $container->setAlias(HandlersLocatorInterface::class, 'messenger.bus.sync.messenger.handlers_locator');
+
+        return $container;
     }
 
     private function getMinimalConfig(): array
@@ -92,5 +120,7 @@ final class KernelConfigurationTest extends TestCase
         // And message broker configuration
         self::assertTrue($container->hasAlias(MessageBroker::class));
         self::assertTrue($container->hasDefinition('goat.message_broker.default'));
+
+        $container->compile();
     }
 }

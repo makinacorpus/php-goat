@@ -78,7 +78,7 @@ services:
     #      service to co-exist, one for each queue.
     goat.message_broker.default:
         public: false
-        class: Goat\Domain\MessageBroker\PgSQLMessageBroker
+        class: Goat\MessageBroker\PgSQLMessageBroker
         arguments: ["@goat.runner.message_broker", "@serializer"]
         tags: [{ name: "monolog.logger", channel: "goat_dispatcher" }]
 
@@ -89,7 +89,7 @@ services:
     goat.message_broker:
         alias: goat.message_broker.default
 
-    Goat\Domain\MessageBroker\MessageBroker:
+    Goat\MessageBroker\MessageBroker:
         alias: goat.message_broker
 
     goat.event_store:

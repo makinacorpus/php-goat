@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Goat\Domain\Command;
+namespace Goat\Projector\Command;
 
 use Goat\Domain\Projector\ProjectorRegistry;
 use Goat\Domain\Projector\ReplayableProjector;

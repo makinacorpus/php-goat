@@ -1,16 +1,11 @@
 services:
 
-    Goat\Domain\Command\DispatcherListCommand:
+    Goat\Dispatcher\Command\DispatcherListCommand:
         public: false
         arguments: ["@goat.name_map"]
         tags: ["console.command"]
 
-    Goat\Domain\Command\DispatcherPushCommand:
+    Goat\Dispatcher\Command\DispatcherPushCommand:
         public: false
         arguments: ["@goat.dispatcher", "@serializer", "@goat.name_map"]
-        tags: ["console.command"]
-
-    Goat\Domain\Command\MessageBrokerFixV2Command:
-        public: false
-        arguments: ["@goat.runner.default", "@serializer", "@goat.name_map"]
         tags: ["console.command"]

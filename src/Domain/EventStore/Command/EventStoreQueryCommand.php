@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Goat\Domain\Command;
+namespace Goat\EventStore\Command;
 
 use Goat\Domain\EventStore\EventStore;
 use Goat\Domain\EventStore\Property;

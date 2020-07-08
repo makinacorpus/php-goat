@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Goat\Domain\Command;
+namespace Goat\Event\Command;
 
 use Goat\Domain\Event\Dispatcher;
 use Goat\Domain\EventStore\DefaultNameMap;

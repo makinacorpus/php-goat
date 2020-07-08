@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Goat\Domain\Command;
+namespace Goat\MessageBroker\Command;
 
 use Goat\Bridge\Symfony\Messenger\Transport\MessageBrokerTransport;
 use Goat\Domain\EventStore\NameMap;

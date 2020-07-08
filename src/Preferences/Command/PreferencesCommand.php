@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Goat\Domain\Command;
+namespace Goat\Preferences\Command;
 
 use Goat\Domain\EventStore\NameMap;
 use Symfony\Component\Console\Command\Command;

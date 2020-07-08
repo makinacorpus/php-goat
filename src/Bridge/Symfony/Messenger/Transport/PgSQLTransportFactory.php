@@ -2,7 +2,7 @@
 
 namespace Goat\Bridge\Symfony\Messenger\Transport;
 
-use Goat\Domain\MessageBroker\MessageBroker;
+use Goat\MessageBroker\MessageBroker;
 use Symfony\Component\Messenger\Transport\TransportFactoryInterface;
 use Symfony\Component\Messenger\Transport\TransportInterface;
 use Symfony\Component\Messenger\Transport\Serialization\SerializerInterface as MessengerSerializer;
