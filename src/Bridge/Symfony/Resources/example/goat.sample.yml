@@ -1,4 +1,79 @@
+#
+# Goat various components configuration.
+#
+# This file explicits all existing configuration parameters, all values
+# documented within this file are set to defaults, except for normalization
+# and preferences example values.
+#
 goat:
+
+    dispatcher:
+        #
+        # Enable the custom event dispatcher.
+        #
+        enabled: false
+
+        #
+        # Profiling simply store command process time in milliseconds within
+        # the message envelope properties.
+        #
+        # If you plug the event store altogether, timings will be stored in the
+        # event store stored event properties as well, allowing you to analyze
+        # performance restrospectively.
+        #
+        with_profiling: true
+
+        #
+        # Set this to plug event store on the dispatcher: every processed
+        # command will be stored into the event store.
+        #
+        # Use this if your application does not segregate commands vs domain
+        # events (CQS but not CQRS) and you wish to log every incomming command
+        # and their execution status in your system.
+        #
+        # If event store is not enabled, this will raise errors.
+        #
+        with_event_store: false
+
+        #
+        # Set this to true to enable concurrent processing of the same command
+        # enabled.
+        #
+        # This will only block concurrent processing of commands implementing the
+        # \Goat\Domain\Event\UnparallelizableMessage interface.
+        #
+        with_lock: false
+
+    event_store:
+        #
+        # Enable the event store.
+        #
+        # By itself, this setting doesn't do anything except registering the
+        # event store service into the container.
+        #
+        enabled: false
+
+    lock:
+        #
+        # Enable the lock service.
+        #
+        enabled: false
+
+    monolog:
+        #
+        # Registers a custom monolog  formatter that will add process PID to
+        # log output lines.
+        #
+        log_pid: true
+
+        #
+        # Force monolog to include stack traces into logs when appliable.
+        # Set this to true implies we harcode within container configuration the
+        # \Monolog\Formatter\LineFormatter::includeStacktraces() method call to
+        # enable exception stack trace collection.
+        #
+        always_log_stacktrace: false
+
     normalization:
         #
         # PHP native type to normalized type name
@@ -38,45 +113,12 @@ goat:
             my_app.legacy_normalized_name: Php\Native\Type
             my_app.other_legacy_normalized_name: my_app.normalized_name
 
-    domain:
-        #
-        # Enable the custom event dispatcher.
-        #
-        event_dispatcher: true
-
-        #
-        # Enable the event store, plugged over the event dispatcher and Symfony
-        # messenger, which will log all messages.
-        #
-        event_store: true
-
-        #
-        # Enable the lock service that locks mutually exclusive event processing
-        # within the messenger bus. This is compatible with PostgreSQL >= 9 only.
-        #
-        lock_service: true
-
-    monolog:
-        #
-        # Registers a custom monolog  formatter that will add process PID to
-        # log output lines.
-        #
-        log_pid: true
-
-        #
-        # Force monolog to include stack traces into logs when appliable.
-        # Set this to true implies we harcode within container configuration the
-        # \Monolog\Formatter\LineFormatter::includeStacktraces() method call to
-        # enable exception stack trace collection.
-        #
-        always_log_stacktrace: false
-
     preferences:
         #
         # Preferences - a key-value/registry like user configuration storage
         # that restitutes values as environement variable in your container.
         #
-        enabled: true
+        enabled: false
 
         #
         # Define a schema.

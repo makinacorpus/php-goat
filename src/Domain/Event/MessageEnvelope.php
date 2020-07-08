@@ -61,17 +61,15 @@ final class MessageEnvelope
      */
     public function withProperties(array $properties): self
     {
-        $ret = clone $this;
-
         foreach ($properties as $key => $value) {
             if (null === $value || '' === $value) {
-                unset($ret->properties[$key]);
+                unset($this->properties[$key]);
             } else {
-                $ret->properties[$key] = (string)$value;
+                $this->properties[$key] = (string)$value;
             }
         }
 
-        return $ret;
+        return $this;
     }
 
     /**

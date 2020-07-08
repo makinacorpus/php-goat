@@ -3,13 +3,13 @@ services:
     Goat\Domain\Command\ProjectorListCommand:
         public: false
         arguments:
-            - "@goat.domain.projector_registry"
-            - "@goat.domain.projector_state_store"
+            - "@goat.projector.registry"
+            - "@goat.projector.state_store"
         tags: ["console.command"]
 
     Goat\Domain\Command\ProjectorPlayCommand:
         public: false
         arguments:
-            - "@goat.domain.projector_registry"
-            - "@goat.domain.projector_worker"
+            - "@goat.projector.registry"
+            - "@goat.projector.worker"
         tags: ["console.command"]

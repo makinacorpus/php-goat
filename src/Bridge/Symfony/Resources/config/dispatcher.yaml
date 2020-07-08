@@ -4,23 +4,23 @@ services:
     Symfony\Component\Messenger\Handler\HandlersLocatorInterface:
         alias: messenger.bus.sync.messenger.handlers_locator
 
-    goat.domain.dispatcher:
+    goat.dispatcher:
         public: false
         class: Goat\Domain\Event\DefaultDispatcher
-        arguments: ['@messenger.bus.sync.messenger.handlers_locator', '@goat.domain.message_broker']
+        arguments: ['@messenger.bus.sync.messenger.handlers_locator', '@goat.message_broker']
         tags: [{ name: "monolog.logger", channel: "goat_dispatcher" }]
 
-    goat.domain.dispatcher_middleware:
+    goat.dispatcher.middleware:
         public: false
         class: Goat\Domain\Messenger\DispatcherMiddleware
-        arguments: ['@goat.domain.dispatcher']
+        arguments: ['@goat.dispatcher']
 
-    goat.domain.transaction_handler.goat:
+    goat.transaction_handler.goat:
         public: false
         class: Goat\Domain\Event\GoatTransactionHandler
         arguments: ['@goat.runner.default']
-        tags: [{ name: "goat.domain.transaction_handler" }]
+        tags: [{ name: "goat.transaction_handler" }]
 
     Goat\Domain\Event\Dispatcher:
         public: true
-        alias: goat.domain.dispatcher
+        alias: goat.dispatcher

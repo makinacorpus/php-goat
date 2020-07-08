@@ -1,7 +1,10 @@
 services:
 
-    goat.domain.lock_service:
+    goat.lock:
         public: false
         class: Goat\Domain\Service\LockService
         tags: [{ name: "monolog.logger", channel: "goat_dispatcher" }]
         arguments: ['@goat.runner.default']
+
+    Goat\Domain\Service\LockService:
+        alias: goat.lock

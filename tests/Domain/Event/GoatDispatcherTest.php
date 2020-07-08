@@ -6,6 +6,7 @@ namespace Goat\Domain\Tests\Event;
 
 use Goat\Domain\Event\MessageEnvelope;
 use Goat\Domain\EventStore\Event;
+use Goat\Domain\Event\Decorator\EventStoreDispatcherDecorator;
 use Goat\Domain\Event\Error\DispatcherError;
 use Goat\Domain\Tests\EventStore\AbstractEventStoreTest;
 use Goat\Runner\Testing\TestDriverFactory;
@@ -22,7 +23,7 @@ final class GoatDispatcherTest extends AbstractEventStoreTest
 
         $eventStore = $this->createEventStore($runner, $factory->getSchema());
 
-        $dispatcher = new MockDispatcher(
+        $decorated = new MockDispatcher(
             function (MessageEnvelope $message) {
                 return new Envelope($message);
             },
@@ -30,7 +31,7 @@ final class GoatDispatcherTest extends AbstractEventStoreTest
                 throw new \Exception("This should be processed synchronously");
             }
         );
-        $dispatcher->setEventStore($eventStore);
+        $dispatcher = new EventStoreDispatcherDecorator($decorated, $eventStore);
 
         $id = $this->createUuid();
         self::assertNull($this->findLastEventOf($eventStore, $id));
@@ -54,7 +55,7 @@ final class GoatDispatcherTest extends AbstractEventStoreTest
 
         $eventStore = $this->createEventStore($runner, $factory->getSchema());
 
-        $dispatcher = new MockDispatcher(
+        $decorated = new MockDispatcher(
             function (MessageEnvelope $message) {
                 return new Envelope($message);
             },
@@ -62,7 +63,7 @@ final class GoatDispatcherTest extends AbstractEventStoreTest
                 throw new \Exception("This should be processed synchronously");
             }
         );
-        $dispatcher->setEventStore($eventStore);
+        $dispatcher = new EventStoreDispatcherDecorator($decorated, $eventStore);
 
         $id = $this->createUuid();
         self::assertNull($this->findLastEventOf($eventStore, $id));
@@ -86,7 +87,7 @@ final class GoatDispatcherTest extends AbstractEventStoreTest
 
         $eventStore = $this->createEventStore($runner, $factory->getSchema());
 
-        $dispatcher = new MockDispatcher(
+        $decorated = new MockDispatcher(
             function (MessageEnvelope $message) {
                 throw new \Exception("This is a failure", 12);
             },
@@ -94,7 +95,7 @@ final class GoatDispatcherTest extends AbstractEventStoreTest
                 throw new \Exception("This should be processed synchronously");
             }
         );
-        $dispatcher->setEventStore($eventStore);
+        $dispatcher = new EventStoreDispatcherDecorator($decorated, $eventStore);
 
         $id = $this->createUuid();
         self::assertNull($this->findLastEventOf($eventStore, $id));
@@ -121,7 +122,7 @@ final class GoatDispatcherTest extends AbstractEventStoreTest
 
         $eventStore = $this->createEventStore($runner, $factory->getSchema());
 
-        $dispatcher = new MockDispatcher(
+        $decorated = new MockDispatcher(
             function (MessageEnvelope $message) {
                 throw new \Exception("This is a failure", 12);
             },
@@ -129,7 +130,7 @@ final class GoatDispatcherTest extends AbstractEventStoreTest
                 throw new \Exception("This should be processed synchronously");
             }
         );
-        $dispatcher->setEventStore($eventStore);
+        $dispatcher = new EventStoreDispatcherDecorator($decorated, $eventStore);
 
         $id = $this->createUuid();
         self::assertNull($this->findLastEventOf($eventStore, $id));

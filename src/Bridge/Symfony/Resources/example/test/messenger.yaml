@@ -1,11 +1,11 @@
 services:
 
-    goat.domain.dispatcher.test:
+    goat.dispatcher.test:
         public: true
         class: App\Tests\Functionnal\Domain\MockDispatcher
-        decorates: goat.domain.dispatcher
-        arguments: ['@goat.domain.dispatcher.test.inner']
+        decorates: goat.dispatcher
+        arguments: ['@goat.dispatcher.test.inner']
 
     Goat\Domain\Event\Dispatcher:
         public: true
-        alias: goat.domain.dispatcher
+        alias: goat.dispatcher

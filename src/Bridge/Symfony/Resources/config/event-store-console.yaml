@@ -2,5 +2,5 @@ services:
 
     Goat\Domain\Command\EventStoreQueryCommand:
         public: false
-        arguments: ["@goat.domain.event_store"]
+        arguments: ["@goat.event_store"]
         tags: ["console.command"]

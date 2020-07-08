@@ -30,12 +30,12 @@ final class DomainConfigurationPass implements CompilerPassInterface
      * Default constructor
      */
     public function __construct(
-        string $dispatcherId = 'goat.domain.dispatcher',
-        string $projectorTag = 'goat.domain.projector',
-        string $projectorRegistryId = 'goat.domain.projector_registry',
-        string $transactionHandlerTag = 'goat.domain.transaction_handler',
-        string $eventStoreId = 'goat.domain.event_store',
-        string $lockServiceId = 'goat.domain.lock_service',
+        string $dispatcherId = 'goat.dispatcher',
+        string $projectorTag = 'goat.projector',
+        string $projectorRegistryId = 'goat.projector.registry',
+        string $transactionHandlerTag = 'goat.transaction_handler',
+        string $eventStoreId = 'goat.event_store',
+        string $lockServiceId = 'goat.lock',
         string $messengerSerializerServiceId = 'messenger.transport.symfony_serializer'
     ) {
         $this->dispatcherId = $dispatcherId;
@@ -100,8 +100,8 @@ final class DomainConfigurationPass implements CompilerPassInterface
             $definition = new Definition();
             $definition->setClass(NameMapSerializer::class);
             $definition->setDecoratedService($serializerServiceId, $decoratorInnerId);
-            $definition->setArguments([new Reference('goat.domain.name_map'), new Reference($decoratorInnerId)]);
-            $container->setDefinition('goat.domain.name_map.serializer', $definition);
+            $definition->setArguments([new Reference('goat.name_map'), new Reference($decoratorInnerId)]);
+            $container->setDefinition('goat.name_map.serializer', $definition);
         }
 
         if ($container->hasDefinition($this->messengerSerializerServiceId)) {
@@ -109,8 +109,8 @@ final class DomainConfigurationPass implements CompilerPassInterface
             $definition = new Definition();
             $definition->setClass(NameMapMessengerSerializer::class);
             $definition->setDecoratedService($this->messengerSerializerServiceId, $decoratorInnerId);
-            $definition->setArguments([new Reference('goat.domain.name_map'), new Reference($decoratorInnerId)]);
-            $container->setDefinition('goat.domain.name_map.messenger_serializer', $definition);
+            $definition->setArguments([new Reference('goat.name_map'), new Reference($decoratorInnerId)]);
+            $container->setDefinition('goat.name_map.messenger_serializer', $definition);
         }
     }
 

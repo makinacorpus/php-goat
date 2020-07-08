@@ -20,14 +20,7 @@ namespace Goat\Domain\Event;
  *
  *   - dispatchCommand() have been removed from the interface, but the default
  *     implementation on AbstractDispatcher remains for transparent backward
- *     compatibility. Consider reverting to dispatch() method instead,
- *
- *   - process() method will be dropped soon as well, the choice between
- *     synchronicity and asynchronicity should be done at the infrastructure
- *     level and be determined automatically depending upon the context.
- *
- * @todo
- *   - Remove process() as well.
+ *     compatibility. Consider reverting to dispatch() method instead.
  */
 interface Dispatcher
 {

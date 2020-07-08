@@ -63,12 +63,4 @@ class MockDispatcher extends AbstractDispatcher
     {
         \call_user_func($this->asyncProcessCallback, $envelope);
     }
-
-    /**
-     * {@inheritdoc}
-     */
-    protected function doAsynchronousEventDispatch(MessageEnvelope $envelope): void
-    {
-        \call_user_func($this->asyncProcessCallback, $envelope);
-    }
 }

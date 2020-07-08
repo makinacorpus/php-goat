@@ -8,6 +8,7 @@ use Goat\Bridge\Symfony\DependencyInjection\GoatExtension;
 use Goat\Domain\Event\Dispatcher;
 use Goat\Domain\EventStore\EventStore;
 use Goat\Domain\MessageBroker\MessageBroker;
+use Goat\Domain\Service\LockService;
 use Goat\Query\Symfony\GoatQueryBundle;
 use PHPUnit\Framework\TestCase;
 use Symfony\Bundle\MonologBundle\MonologBundle;
@@ -34,10 +35,17 @@ final class KernelConfigurationTest extends TestCase
     private function getMinimalConfig(): array
     {
         return [
-            'domain' => [
+            'dispatcher' => [
                 'enabled' => true,
-                'event_store' => true,
-                'lock_service' => true,
+                'with_event_store' => true,
+                'with_lock' => true,
+                'with_profiling' => true,
+            ],
+            'event_store' => [
+                'enabled' => true,
+            ],
+            'lock' => [
+                'enabled' => true,
             ],
             'normalization' => [
                 'map' => [
@@ -71,14 +79,18 @@ final class KernelConfigurationTest extends TestCase
 
         // Ensure event store configuration
         self::assertTrue($container->hasAlias(EventStore::class));
-        self::assertTrue($container->hasDefinition('goat.domain.event_store'));
+        self::assertTrue($container->hasDefinition('goat.event_store'));
 
         // Ensure dispatcher configuration
         self::assertTrue($container->hasAlias(Dispatcher::class));
-        self::assertTrue($container->hasDefinition('goat.domain.dispatcher'));
+        self::assertTrue($container->hasDefinition('goat.dispatcher'));
+
+        // Ensure lock configuration
+        self::assertTrue($container->hasAlias(LockService::class));
+        self::assertTrue($container->hasDefinition('goat.lock'));
 
         // And message broker configuration
         self::assertTrue($container->hasAlias(MessageBroker::class));
-        self::assertTrue($container->hasDefinition('goat.domain.message_broker.default'));
+        self::assertTrue($container->hasDefinition('goat.message_broker.default'));
     }
 }

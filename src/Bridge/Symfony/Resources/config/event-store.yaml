@@ -63,7 +63,7 @@ services:
 
     # @todo
     #   - Autoconfigure this from user configuration
-    goat.domain.event_store.namespace_map:
+    goat.event_store.namespace_map:
         public: false
         class: Goat\Domain\EventStore\NamespaceMap
 
@@ -76,7 +76,7 @@ services:
     # @todo
     #    - As said below, later implement a registry for allow more than one
     #      service to co-exist, one for each queue.
-    goat.domain.message_broker.default:
+    goat.message_broker.default:
         public: false
         class: Goat\Domain\MessageBroker\PgSQLMessageBroker
         arguments: ["@goat.runner.message_broker", "@serializer"]
@@ -86,13 +86,13 @@ services:
     # @todo
     #   - Later allow a registry as facade, for allowing more than one to
     #     exists and fetch them on a per-queue basis.
-    goat.domain.message_broker:
-        alias: goat.domain.message_broker.default
+    goat.message_broker:
+        alias: goat.message_broker.default
 
     Goat\Domain\MessageBroker\MessageBroker:
-        alias: goat.domain.message_broker
+        alias: goat.message_broker
 
-    goat.domain.event_store:
+    goat.event_store:
         public: false
         class: Goat\Domain\EventStore\Goat\GoatEventStore
         # @todo make this configurable, allow table namespace configuration
@@ -100,9 +100,9 @@ services:
         tags:
             - { name: "monolog.logger", channel: "goat_eventstore" }
         calls:
-            - [setNamespaceMap, ["@goat.domain.event_store.namespace_map"]]
-            - [setNameMap, ["@goat.domain.name_map"]]
+            - [setNamespaceMap, ["@goat.event_store.namespace_map"]]
+            - [setNameMap, ["@goat.name_map"]]
 
     Goat\Domain\EventStore\EventStore:
         public: false
-        alias: goat.domain.event_store
+        alias: goat.event_store

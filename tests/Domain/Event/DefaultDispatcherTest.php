@@ -7,6 +7,7 @@ namespace Goat\Domain\Tests\Event;
 use Goat\Domain\Event\MessageEnvelope;
 use Goat\Domain\EventStore\Event;
 use Goat\Domain\EventStore\Property;
+use Goat\Domain\Event\Decorator\EventStoreDispatcherDecorator;
 use Goat\Domain\Event\Error\DispatcherError;
 use Goat\Domain\Event\Error\DispatcherRetryableError;
 use Goat\Domain\Tests\EventStore\AbstractEventStoreTest;
@@ -15,13 +16,13 @@ final class DefaultDispatcherTest extends AbstractEventStoreTest
 {
     public function testProcessSuccessStoresEvent(): void
     {
-        $dispatcher = new MockDispatcher(
+        $decorated = new MockDispatcher(
             static function () { /* No error means success. */ },
             static function () { throw new \BadMethodCallException(); }
         );
 
         $eventStore = new MockEventStore();
-        $dispatcher->setEventStore($eventStore);
+        $dispatcher = new EventStoreDispatcherDecorator($decorated, $eventStore);
 
         $dispatcher->process(new MockMessage());
 
@@ -41,13 +42,13 @@ final class DefaultDispatcherTest extends AbstractEventStoreTest
 
     public function testProcessFailureStoresEvent(): void
     {
-        $dispatcher = new MockDispatcher(
+        $decorated = new MockDispatcher(
             static function () { throw new \DomainException(); },
             static function () { throw new \BadMethodCallException(); }
         );
 
         $eventStore = new MockEventStore();
-        $dispatcher->setEventStore($eventStore);
+        $dispatcher = new EventStoreDispatcherDecorator($decorated, $eventStore);
 
         try {
             $dispatcher->process(new MockMessage());
@@ -77,15 +78,15 @@ final class DefaultDispatcherTest extends AbstractEventStoreTest
     {
         $count = 0;
 
-        $dispatcher = new MockDispatcher(
+        $decorated = new MockDispatcher(
             static function () { throw new \DomainException(); },
             static function () { throw new \BadMethodCallException(); }
         );
 
         $eventStore = new MockEventStore();
-        $dispatcher->setEventStore($eventStore);
+        $dispatcher = new EventStoreDispatcherDecorator($decorated, $eventStore);
 
-        $dispatcher->setProcessCallback(
+        $decorated->setProcessCallback(
             static function () use ($dispatcher, &$count) {
                 if (++$count < 3) {
                     $dispatcher->process(
@@ -231,7 +232,7 @@ final class DefaultDispatcherTest extends AbstractEventStoreTest
 
     public function testProcessStoreFailedEventWhenRetry(): void
     {
-        $dispatcher = new MockDispatcher(
+        $decorated = new MockDispatcher(
             static function () { throw new \DomainException(); },
             static function () { throw new \BadMethodCallException(); },
             static function (MessageEnvelope $envelope) {
@@ -240,7 +241,7 @@ final class DefaultDispatcherTest extends AbstractEventStoreTest
         );
 
         $eventStore = new MockEventStore();
-        $dispatcher->setEventStore($eventStore);
+        $dispatcher = new EventStoreDispatcherDecorator($decorated, $eventStore);
 
         $sentMessage = new MockRetryableMessage();
 

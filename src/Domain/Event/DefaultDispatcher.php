@@ -44,12 +44,4 @@ final class DefaultDispatcher extends AbstractDirectDispatcher
     {
         $this->messageBroker->dispatch($envelope);
     }
-
-    /**
-     * {@inheritdoc}
-     */
-    protected function doAsynchronousEventDispatch(MessageEnvelope $envelope): void
-    {
-        $this->messageBroker->dispatch($envelope);
-    }
 }

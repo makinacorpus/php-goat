@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace Goat\Bridge\Symfony\DependencyInjection;
 
-use Goat\Domain\Repository\RepositoryInterface;
+use Goat\Domain\Event\Decorator\EventStoreDispatcherDecorator;
+use Goat\Domain\Event\Decorator\ParallelExecutionBlockerDispatcherDecorator;
+use Goat\Domain\Event\Decorator\ProfilingDispatcherDecorator;
 use Goat\Preferences\Domain\Repository\ArrayPreferencesSchema;
-use Goat\Preferences\Domain\Repository\PreferencesRepository;
 use Goat\Preferences\Domain\Repository\PreferencesSchema;
 use Monolog\Formatter\LineFormatter;
 use Monolog\Processor\ProcessIdProcessor;
@@ -15,6 +16,7 @@ use Symfony\Component\Config\FileLocator;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
+use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\DependencyInjection\Exception\InvalidArgumentException;
 use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
@@ -33,45 +35,50 @@ final class GoatExtension extends Extension
         $loader = new YamlFileLoader($container, new FileLocator(\dirname(__DIR__).'/Resources/config'));
 
         $consoleEnabled = \class_exists(Command::class);
-        $domainEnabled = \interface_exists(RepositoryInterface::class) && ($config['domain']['event_dispatcher'] ?? false);
-        $preferenceEnabled = \interface_exists(PreferencesRepository::class) && ($config['preferences']['enabled'] ?? false);
         $messengerEnabled = \interface_exists(MessageBusInterface::class);
-        $eventStoreEnabled = $config['domain']['event_store'] ?? false;
-        $lockServiceEnabled = $config['domain']['lock_service'] ?? false;
 
-        if ($domainEnabled) {
-            $loader->load('domain.yaml');
-            $this->processDomainIntegration($container);
-        }
-        if ($eventStoreEnabled) {
-            $loader->load('event-store.yaml');
-            if ($consoleEnabled) {
-                $loader->load('event-store-console.yaml');
-            }
-        }
+        $dispatcherEnabled = $config['dispatcher']['enabled'] ?? false;
+        $eventStoreEnabled = $config['event_store']['enabled'] ?? false;
+        $lockEnabled = $config['lock']['enabled'] ?? false;
+        $preferenceEnabled = $config['preferences']['enabled'] ?? false;
+
         $loader->load('normalization.yaml');
         $this->processNormalization($container, $config['normalization']['map'] ?? [], $config['normalization']['aliases'] ?? []);
-        if ($lockServiceEnabled) {
+
+        if ($eventStoreEnabled) {
+            $loader->load('event-store.yaml');
+            $loader->load('event-projector.yaml');
+        }
+
+        if ($eventStoreEnabled && $consoleEnabled) {
+            $loader->load('event-store-console.yaml');
+            $loader->load('event-projector-console.yaml');
+        }
+
+        if ($lockEnabled) {
             $loader->load('lock.yaml');
         }
+
+        if ($dispatcherEnabled) {
+            $loader->load('dispatcher.yaml');
+            $this->configureDispatcher($container, $config['dispatcher'] ?? []);
+        }
+
+        if ($dispatcherEnabled && $consoleEnabled) {
+            $loader->load('dispatcher-console.yaml');
+        }
+
         if ($messengerEnabled) {
             $loader->load('messenger.yaml');
-        }
-        if ($messengerEnabled && $domainEnabled) {
-            $loader->load('event.yaml');
-            $loader->load('projector.yaml');
-            if ($consoleEnabled) {
-                $loader->load('event-console.yaml');
-                $loader->load('projector-console.yaml');
-            }
         }
 
         if ($preferenceEnabled) {
             $loader->load('preferences.yaml');
             $this->processPreferences($container, $config['preferences'] ?? []);
-            if ($messengerEnabled) {
-                $loader->load('preferences-messenger.yaml');
-            }
+        }
+
+        if ($preferenceEnabled && $messengerEnabled) {
+            $loader->load('preferences-messenger.yaml');
         }
 
         if (\in_array(MonologBundle::class, $container->getParameter('kernel.bundles'))) {
@@ -79,8 +86,57 @@ final class GoatExtension extends Extension
         }
     }
 
+    private function configureDispatcher(ContainerBuilder $container, array $config): void
+    {
+        if ($config['with_profiling']) {
+            $decoratedInnerId = 'goat.dispatcher.inner';
+            $decoratorDef = new Definition();
+            $decoratorDef->setClass(ProfilingDispatcherDecorator::class);
+            $decoratorDef->setDecoratedService('goat.dispatcher', $decoratedInnerId, 1000);
+            $decoratorDef->setArguments([
+                new Reference($decoratedInnerId),
+            ]);
+            $container->setDefinition('goat.dispatcher.decorator.profiling', $decoratorDef);
+        }
+
+        if ($config['with_event_store']) {
+            if (!$container->hasDefinition('goat.lock') && !$container->hasAlias('goat.lock')) {
+                throw new InvalidArgumentException("You must set goat.lock.enabled to true in order to be able to enable goat.dispatcher.with_lock");
+            }
+
+            $decoratedInnerId = 'goat.dispatcher.inner';
+            $decoratorDef = new Definition();
+            $decoratorDef->setClass(EventStoreDispatcherDecorator::class);
+            $decoratorDef->setDecoratedService('goat.dispatcher', $decoratedInnerId, 800);
+            $decoratorDef->setArguments([
+                new Reference($decoratedInnerId),
+                new Reference('goat.event_store'),
+            ]);
+            $container->setDefinition('goat.dispatcher.decorator.event_store', $decoratorDef);
+        }
+
+        if ($config['with_lock']) {
+            if (!$container->hasDefinition('goat.lock') && !$container->hasAlias('goat.lock')) {
+                throw new InvalidArgumentException("You must set goat.lock.enabled to true in order to be able to enable goat.dispatcher.with_lock");
+            }
+
+            $decoratedInnerId = 'goat.dispatcher.inner';
+            $decoratorDef = new Definition();
+            $decoratorDef->setClass(ParallelExecutionBlockerDispatcherDecorator::class);
+            $decoratorDef->setDecoratedService('goat.dispatcher', $decoratedInnerId, 600);
+            $decoratorDef->setArguments([
+                new Reference($decoratedInnerId),
+                new Reference('goat.lock'),
+            ]);
+            $container->setDefinition('goat.dispatcher.decorator.lock', $decoratorDef);
+        }
+    }
+
     /**
-     * Add a few bits of extra monolog configuration
+     * Add a few bits of extra monolog configuration.?
+     *
+     * @codeCoverageIgnore
+     * @todo Test this.
      */
     private function configureMonolog(ContainerBuilder $container, array $config): void
     {
@@ -112,7 +168,10 @@ final class GoatExtension extends Extension
     }
 
     /**
-     * Normalize type name, do not check for type existence
+     * Normalize type name, do not check for type existence?
+     *
+     * @codeCoverageIgnore
+     * @todo Export this into a testable class.
      */
     private function normalizeType(string $type, string $key): string
     {
@@ -134,6 +193,9 @@ final class GoatExtension extends Extension
 
     /**
      * Process type normalization map and aliases.
+     *
+     * @codeCoverageIgnore
+     * @todo Export this into a testable class.
      */
     private function processNormalization(ContainerBuilder $container, array $map, array $aliases): void
     {
@@ -171,7 +233,7 @@ final class GoatExtension extends Extension
             $aliases[$alias] = $type;
         }
 
-        $container->getDefinition('goat.domain.name_map')->setArguments([$map, $aliases]);
+        $container->getDefinition('goat.name_map')->setArguments([$map, $aliases]);
     }
 
     /**
@@ -189,14 +251,6 @@ final class GoatExtension extends Extension
             $container->setDefinition('goat.preferences.schema', $schemaDefinition);
             $container->setAlias(PreferencesSchema::class, 'goat.preferences.schema');
         }
-    }
-
-    /**
-     * Integration with makinacorpus/goat-domain package.
-     */
-    private function processDomainIntegration(ContainerBuilder $container)
-    {
-        // @todo is there actually anything to do?
     }
 
     /**
