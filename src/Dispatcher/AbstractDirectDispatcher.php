@@ -4,11 +4,6 @@ declare(strict_types=1);
 
 namespace Goat\Dispatcher;
 
-use Symfony\Component\Messenger\Envelope;
-use Symfony\Component\Messenger\Exception\NoHandlerForMessageException;
-use Symfony\Component\Messenger\Handler\HandlerDescriptor;
-use Symfony\Component\Messenger\Handler\HandlersLocatorInterface;
-use Symfony\Component\Messenger\Stamp\HandledStamp;
 
 /**
  * Directly uses the handlers locator instead of going throught the bus
@@ -27,13 +22,13 @@ use Symfony\Component\Messenger\Stamp\HandledStamp;
  */
 abstract class AbstractDirectDispatcher extends AbstractDispatcher
 {
-    private HandlersLocatorInterface $handlersLocator;
+    private HandlerLocator $handlesLocator;
 
-    public function __construct(HandlersLocatorInterface $handlersLocator)
+    public function __construct(HandlerLocator $handlerLocator)
     {
         parent::__construct();
 
-        $this->handlersLocator = $handlersLocator;
+        $this->handlesLocator = $handlerLocator;
     }
 
     /**
@@ -41,31 +36,8 @@ abstract class AbstractDirectDispatcher extends AbstractDispatcher
      */
     protected function doSynchronousProcess(MessageEnvelope $envelope): void
     {
-        $symfonyEnvelope = new Envelope($message = $envelope->getMessage());
+        $message = $envelope->getMessage();
 
-        foreach ($this->handlersLocator->getHandlers($symfonyEnvelope) as $handlerDescriptor) {
-            if ($this->messageHasAlreadyBeenHandled($symfonyEnvelope, $handlerDescriptor)) {
-                continue;
-            }
-            $handler = $handlerDescriptor->getHandler();
-            $handledStamp = HandledStamp::fromDescriptor($handlerDescriptor, $handler($message));
-            $symfonyEnvelope = $symfonyEnvelope->with($handledStamp);
-        }
-
-        if (null === $handler) {
-            throw new NoHandlerForMessageException(\sprintf('No handler for message "%s".', \get_class($message)));
-        }
-    }
-
-    private function messageHasAlreadyBeenHandled(Envelope $envelope, HandlerDescriptor $handlerDescriptor): bool
-    {
-        $some = \array_filter(
-            $envelope->all(HandledStamp::class),
-            function (HandledStamp $stamp) use ($handlerDescriptor) {
-                return $stamp->getHandlerName() === $handlerDescriptor->getName();
-            }
-        );
-
-        return \count($some) > 0;
+        ($this->handlesLocator->find($message))($message);
     }
 }

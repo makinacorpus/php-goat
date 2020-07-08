@@ -69,8 +69,14 @@ final class MessageBrokerFixV2Command extends Command
     /**
      * {@inheritdoc}
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        if (!\class_exists(Envelope::class)) {
+            $output->writeln('<error>This command requires symfony/messenger to be run</error>');
+
+            return -1;
+        }
+
         if ($output->isVeryVerbose()) {
             $this->letErrorPass = true;
         }

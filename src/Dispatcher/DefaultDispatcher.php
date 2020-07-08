@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Goat\Dispatcher;
 
 use Goat\MessageBroker\MessageBroker;
-use Symfony\Component\Messenger\Handler\HandlersLocatorInterface;
 
 final class DefaultDispatcher extends AbstractDirectDispatcher
 {
@@ -14,9 +13,9 @@ final class DefaultDispatcher extends AbstractDirectDispatcher
     /**
      * Default constructor
      */
-    public function __construct(HandlersLocatorInterface $handlersLocator, MessageBroker $messageBroker)
+    public function __construct(HandlerLocator $handlerLocator, MessageBroker $messageBroker)
     {
-        parent::__construct($handlersLocator);
+        parent::__construct($handlerLocator);
 
         $this->messageBroker = $messageBroker;
     }

@@ -13,7 +13,6 @@ use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\NullLogger;
 use Ramsey\Uuid\Uuid;
-use Symfony\Component\Messenger\Exception\TransportException;
 
 final class PgSQLMessageBroker implements MessageBroker, LoggerAwareInterface
 {
@@ -118,7 +117,7 @@ final class PgSQLMessageBroker implements MessageBroker, LoggerAwareInterface
             } catch (\Throwable $e) {
                 $this->markAsFailed($serial);
 
-                throw new TransportException('Error while fetching messages', 0, $e);
+                throw new \RuntimeException('Error while fetching messages', 0, $e);
             }
         }
 

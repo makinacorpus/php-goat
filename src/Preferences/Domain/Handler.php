@@ -17,11 +17,8 @@ use Symfony\Component\Messenger\Handler\MessageSubscriberInterface;
  */
 final class PreferencesHandler implements MessageSubscriberInterface
 {
-    /** @var PreferencesRepository */
-    private $repository;
-
-    /** @var null|PreferencesSchema */
-    private $schema;
+    private PreferencesRepository $repository;
+    private ?PreferencesSchema $schema = null;
 
     /**
      * Default constructor
