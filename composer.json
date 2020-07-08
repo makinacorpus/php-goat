@@ -71,23 +71,22 @@
         "makinacorpus/goat-query": "^2.1.1",
         "php" : ">=7.4",
         "psr/log": "^1.0",
-        "ramsey/uuid": "^3.8 || ^4"
+        "ramsey/uuid": "^3.8 || ^4",
+        "symfony/event-dispatcher": ">=4.4"
     },
     "require-dev" : {
         "makinacorpus/generated-hydrator-bundle": "^1.0@alpha",
         "makinacorpus/goat-query-bundle": "^2.0",
         "phpunit/phpunit" : "7.*",
         "symfony/config": "^5.0",
-        "symfony/console": "^4.0 || ^5.0",
-        "symfony/dependency-injection": "^4.4 || ^5.0",
-        "symfony/event-dispatcher": "^4.4 || ^5.0",
-        "symfony/form": "^4 || ^5.0",
-        "symfony/http-kernel": "^4.4 || ^5.0",
+        "symfony/console": ">=4.4",
+        "symfony/dependency-injection": ">=4.4",
+        "symfony/http-kernel": ">=4.4",
         "symfony/messenger": "^5.0",
         "symfony/monolog-bundle": "^3.5",
         "symfony/serializer-pack": "^1.0|^5.0",
-        "symfony/validator": "^5.0",
-        "symfony/yaml": "^4.2 || ^5.0",
+        "symfony/validator": ">=4.4",
+        "symfony/yaml": ">=4.2",
         "twig/twig": "^2.5 || ^3.0"
     },
     "suggest" : {
