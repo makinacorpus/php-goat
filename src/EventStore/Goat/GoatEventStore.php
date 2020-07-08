@@ -44,7 +44,6 @@ final class GoatEventStore extends AbstractEventStore
      * Get index table relation
      *
      * @internal
-     *   For \Goat\Domain\Event\Goat\GoatEventQuery usage only.
      */
     public function getIndexRelation(): ExpressionRelation
     {
@@ -55,7 +54,6 @@ final class GoatEventStore extends AbstractEventStore
      * Get namespace-specific relation.
      *
      * @internal
-     *   For \Goat\Domain\Event\Goat\GoatEventQuery usage only.
      */
     public function getEventRelation(string $namespace): ExpressionRelation
     {
@@ -66,7 +64,6 @@ final class GoatEventStore extends AbstractEventStore
      * Get runner.
      *
      * @internal
-     *   For \Goat\Domain\Event\Goat\GoatEventQuery usage only.
      */
     public function getRunner(): Runner
     {
@@ -77,7 +74,6 @@ final class GoatEventStore extends AbstractEventStore
      * Hydrate event from raw database row values.
      *
      * @internal
-     *   For \Goat\Domain\Event\Goat\GoatEventQuery usage only.
      */
     public function hydrateEvent(array $row): Event
     {

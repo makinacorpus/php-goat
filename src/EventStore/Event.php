@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Goat\EventStore;
 
-use Goat\Domain\Event\Message;
+use Goat\Dispatcher\Message;
 use Ramsey\Uuid\Uuid;
 use Ramsey\Uuid\UuidInterface;
 

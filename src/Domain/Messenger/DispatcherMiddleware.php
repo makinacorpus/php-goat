@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Goat\Domain\Messenger;
 
-use Goat\Domain\Event\Dispatcher;
+use Goat\Dispatcher\Dispatcher;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Middleware\MiddlewareInterface;
 use Symfony\Component\Messenger\Middleware\StackInterface;

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Goat\MessageBroker;
 
-use Goat\Domain\Event\MessageEnvelope;
+use Goat\Dispatcher\MessageEnvelope;
 
 /**
  * We have our own message broker interface, instead of using symfony/messenger

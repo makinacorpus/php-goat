@@ -8,7 +8,7 @@ use Goat\EventStore\Event;
 use Goat\EventStore\EventStream;
 
 /**
- * @var \Goat\Domain\Event\Event[]
+ * @var \Goat\EventStore\Event[]
  */
 class DummyArrayEventStream implements EventStream, \Iterator
 {

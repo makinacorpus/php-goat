@@ -6,6 +6,6 @@ services:
         decorates: goat.dispatcher
         arguments: ['@goat.dispatcher.test.inner']
 
-    Goat\Domain\Event\Dispatcher:
+    Goat\Dispatcher\Dispatcher:
         public: true
         alias: goat.dispatcher

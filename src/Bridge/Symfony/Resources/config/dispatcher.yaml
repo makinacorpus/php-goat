@@ -6,7 +6,7 @@ services:
 
     goat.dispatcher:
         public: false
-        class: Goat\Domain\Event\DefaultDispatcher
+        class: Goat\Dispatcher\DefaultDispatcher
         arguments: ['@messenger.bus.sync.messenger.handlers_locator', '@goat.message_broker']
         tags: [{ name: "monolog.logger", channel: "goat_dispatcher" }]
 
@@ -17,10 +17,10 @@ services:
 
     goat.transaction_handler.goat:
         public: false
-        class: Goat\Domain\Event\GoatTransactionHandler
+        class: Goat\Dispatcher\GoatTransactionHandler
         arguments: ['@goat.runner.default']
         tags: [{ name: "goat.transaction_handler" }]
 
-    Goat\Domain\Event\Dispatcher:
+    Goat\Dispatcher\Dispatcher:
         public: true
         alias: goat.dispatcher

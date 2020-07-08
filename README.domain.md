@@ -73,7 +73,7 @@ actual data.
 
 In both case, it will be plugged onto the message bus, and store every message
 or domain event that happen to the system. For this to work gracefully, your
-own events should implement the `Goat\Domain\Event\Message` interface in order
+own events should implement the `Goat\Dispatcher\Message` interface in order
 for the event store to be able to identify every aggregate or entity that gets
 created or update within the system and keep track of objects life time.
 

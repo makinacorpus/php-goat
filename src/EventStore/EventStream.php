@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Goat\EventStore;
 
 /**
- * @var \Goat\Domain\Event\Event[]
+ * @var \Goat\EventStore\Event[]
  */
 interface EventStream extends \Traversable, \Countable
 {

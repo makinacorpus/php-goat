@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Goat\Lock;
 
-use Goat\Domain\Event\Error\ParallelExecutionError;
+use Goat\Dispatcher\Error\ParallelExecutionError;
 use Goat\Runner\Runner;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;

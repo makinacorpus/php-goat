@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Goat\Bridge\Symfony\DependencyInjection;
 
-use Goat\Domain\Event\Decorator\EventStoreDispatcherDecorator;
-use Goat\Domain\Event\Decorator\ParallelExecutionBlockerDispatcherDecorator;
-use Goat\Domain\Event\Decorator\ProfilingDispatcherDecorator;
+use Goat\Dispatcher\Decorator\EventStoreDispatcherDecorator;
+use Goat\Dispatcher\Decorator\ParallelExecutionBlockerDispatcherDecorator;
+use Goat\Dispatcher\Decorator\ProfilingDispatcherDecorator;
 use Goat\Preferences\Domain\Repository\ArrayPreferencesSchema;
 use Goat\Preferences\Domain\Repository\PreferencesSchema;
 use Monolog\Formatter\LineFormatter;

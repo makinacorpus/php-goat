@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Goat\Bridge\Symfony\Tests\DependencyInjection;
 
 use Goat\Bridge\Symfony\DependencyInjection\GoatExtension;
-use Goat\Domain\Event\Dispatcher;
+use Goat\Dispatcher\Dispatcher;
 use Goat\EventStore\EventStore;
 use Goat\Lock\LockManager;
 use Goat\MessageBroker\MessageBroker;

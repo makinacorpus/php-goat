@@ -39,8 +39,8 @@
             "Goat\\Projector\\" : "src/Projector/"
         },
         "classmap": [
-            "src/Domain/Event/Error.php",
-            "src/Domain/Event/Message.php",
+            "src/Dispatcher/Error.php",
+            "src/Dispatcher/Message.php",
             "src/Domain/Generator/MessageDocumentation.php",
             "src/EventStore/Mapping.php",
             "src/Preferences/Domain/Handler.php",
