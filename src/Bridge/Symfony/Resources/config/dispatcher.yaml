@@ -1,13 +1,15 @@
 services:
 
-    # Symfony 4.2: this service is not aliased with its interface.
-    Symfony\Component\Messenger\Handler\HandlersLocatorInterface:
-        alias: messenger.bus.sync.messenger.handlers_locator
+    goat.dispatcher.handler_locator:
+        synthetic: true
+
+    Goat\Dispatcher\HandlerLocator:
+        alias: goat.dispatcher.handler_locator
 
     goat.dispatcher:
         public: false
         class: Goat\Dispatcher\DefaultDispatcher
-        arguments: ['@messenger.bus.sync.messenger.handlers_locator', '@goat.message_broker']
+        arguments: ['@goat.dispatcher.handler_locator', '@goat.message_broker']
         tags: [{ name: "monolog.logger", channel: "goat_dispatcher" }]
 
     goat.dispatcher.middleware:

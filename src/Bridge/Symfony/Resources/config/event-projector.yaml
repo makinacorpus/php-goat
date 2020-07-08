@@ -5,39 +5,39 @@ services:
     goat.runner.projector_state:
         alias: "goat.runner.default"
 
-    goat.projector_registry:
+    goat.projector.registry:
         public: false
         class: Goat\Projector\ProjectorRegistry
 
-    goat.projector_state_store.goat:
+    goat.projector.state_store.goat:
         public: false
         class: Goat\Projector\State\GoatStateStore
         arguments:
             - "@goat.runner.projector_state"
 
-    goat.projector_state_store:
-        alias: goat.projector_state_store.goat
+    goat.projector.state_store:
+        alias: goat.projector.state_store.goat
 
     Goat\Projector\State\StateStore:
-        alias: goat.projector_state_store
+        alias: goat.projector.state_store
 
-    goat.projector_worker:
+    goat.projector.worker:
         public: false
         class: Goat\Projector\Worker\DefaultWorker
         arguments:
-            - "@goat.projector_registry"
+            - "@goat.projector.registry"
             - "@goat.event_store"
-            - "@goat.projector_state_store"
+            - "@goat.projector.state_store"
 
     Goat\Projector\Worker\Worker:
-        alias: goat.projector_worker
+        alias: goat.projector.worker
 
-    goat.projector_player:
+    goat.projector.player:
         public: false
         class: Goat\Projector\Runtime\DefaultRuntimePlayer
         arguments:
-            - "@goat.projector_registry"
-            - "@goat.projector_state_store"
+            - "@goat.projector.registry"
+            - "@goat.projector.state_store"
 
     Goat\Projector\Runtime\RuntimePlayer:
-        alias: goat.projector_player
+        alias: goat.projector.player

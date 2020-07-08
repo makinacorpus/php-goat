@@ -79,7 +79,7 @@ services:
     goat.message_broker.default:
         public: false
         class: Goat\MessageBroker\PgSQLMessageBroker
-        arguments: ["@goat.runner.message_broker", "@serializer"]
+        arguments: ["@goat.runner.message_broker", "@goat.serializer"]
         tags: [{ name: "monolog.logger", channel: "goat_dispatcher" }]
 
     # Give a generic identifier for message broker.

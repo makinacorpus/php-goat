@@ -1,6 +1,6 @@
 services:
 
-    Goat\Projector\Command\EventStoreQueryCommand:
+    Goat\EventStore\Command\EventStoreQueryCommand:
         public: false
         arguments: ["@goat.event_store"]
         tags: ["console.command"]

@@ -14,7 +14,9 @@ services:
             - "@goat.projector.worker"
         tags: ["console.command"]
 
-    Goat\MessageBroker\Command\MessageBrokerFixV2Command:
-        public: false
-        arguments: ["@goat.runner.default", "@serializer", "@goat.name_map"]
-        tags: ["console.command"]
+    # @todo Temporary disabling this one, cause it crashes when
+    #   symfony/messenger component is not installed.
+    # Goat\MessageBroker\Command\MessageBrokerFixV2Command:
+    #     public: false
+    #     arguments: ["@goat.runner.default", "@goat.serializer", "@goat.name_map"]
+    #     tags: ["console.command"]
