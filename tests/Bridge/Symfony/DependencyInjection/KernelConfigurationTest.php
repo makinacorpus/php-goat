@@ -9,6 +9,7 @@ use Goat\Dispatcher\Dispatcher;
 use Goat\EventStore\EventStore;
 use Goat\Lock\LockManager;
 use Goat\MessageBroker\MessageBroker;
+use Goat\Normalization\Serializer;
 use Goat\Query\Symfony\GoatQueryBundle;
 use Goat\Runner\Runner;
 use PHPUnit\Framework\TestCase;
@@ -17,7 +18,7 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBag;
 use Symfony\Component\Messenger\Handler\HandlersLocatorInterface;
-use Symfony\Component\Serializer\Serializer;
+use Symfony\Component\Serializer\Serializer as SymfonySerializer;
 
 final class KernelConfigurationTest extends TestCase
 {
@@ -44,10 +45,10 @@ final class KernelConfigurationTest extends TestCase
 
         // And this.
         $serializerDefinition = new Definition();
-        $serializerDefinition->setClass(Serializer::class);
+        $serializerDefinition->setClass(SymfonySerializer::class);
         $serializerDefinition->setSynthetic(true);
         $container->setDefinition('serializer', $serializerDefinition);
-        $container->setAlias(Serializer::class, 'serializer');
+        $container->setAlias(SymfonySerializer::class, 'serializer');
 
         // And this.
         // @todo Drop this dependency.
@@ -105,21 +106,25 @@ final class KernelConfigurationTest extends TestCase
         $config = $this->getMinimalConfig();
         $extension->load([$config], $container = $this->getContainer());
 
-        // Ensure event store configuration
+        // Ensure event store configuration.
         self::assertTrue($container->hasAlias(EventStore::class));
         self::assertTrue($container->hasDefinition('goat.event_store'));
 
-        // Ensure dispatcher configuration
+        // Ensure dispatcher configuration.
         self::assertTrue($container->hasAlias(Dispatcher::class));
         self::assertTrue($container->hasDefinition('goat.dispatcher'));
 
-        // Ensure lock configuration
+        // Ensure lock configuration.
         self::assertTrue($container->hasAlias(LockManager::class));
         self::assertTrue($container->hasDefinition('goat.lock'));
 
-        // And message broker configuration
+        // And message broker.
         self::assertTrue($container->hasAlias(MessageBroker::class));
         self::assertTrue($container->hasDefinition('goat.message_broker.default'));
+
+        // And custom serializer.
+        self::assertTrue($container->hasAlias(Serializer::class));
+        self::assertTrue($container->hasDefinition('goat.serializer'));
 
         $container->compile();
     }

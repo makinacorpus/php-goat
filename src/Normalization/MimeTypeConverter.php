@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Goat\EventStore;
+namespace Goat\Normalization;
 
 final class MimeTypeConverter
 {

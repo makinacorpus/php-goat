@@ -5,6 +5,11 @@ services:
         class: Goat\Normalization\DefaultNameMap
         arguments: [[], []]
 
+    goat.serializer:
+        public: false
+        class: Goat\Bridge\Symfony\Serializer\GoatSerializerAdapter
+        arguments: ["@serializer"]
+
     Goat\Normalization\NameMap:
         public: false
         alias: goat.name_map
@@ -12,3 +17,7 @@ services:
     Goat\Normalization\TypeMap:
         public: false
         alias: goat.name_map
+
+    Goat\Normalization\Serializer:
+        public: false
+        alias: goat.serializer

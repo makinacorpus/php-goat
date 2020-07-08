@@ -6,15 +6,14 @@ namespace Goat\MessageBroker;
 
 use Goat\Dispatcher\MessageEnvelope;
 use Goat\Dispatcher\Message\BrokenMessage;
-use Goat\EventStore\MimeTypeConverter;
 use Goat\EventStore\Property;
+use Goat\Normalization\Serializer;
 use Goat\Runner\Runner;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\NullLogger;
 use Ramsey\Uuid\Uuid;
 use Symfony\Component\Messenger\Exception\TransportException;
-use Symfony\Component\Serializer\SerializerInterface;
 
 final class PgSQLMessageBroker implements MessageBroker, LoggerAwareInterface
 {
@@ -26,9 +25,9 @@ final class PgSQLMessageBroker implements MessageBroker, LoggerAwareInterface
     private string $queue;
     private array $options;
     private Runner $runner;
-    private SerializerInterface $serializer;
+    private Serializer $serializer;
 
-    public function __construct(Runner $runner, SerializerInterface $serializer, array $options = [])
+    public function __construct(Runner $runner, Serializer $serializer, array $options = [])
     {
         $this->contentType = $options['content_type'] ?? Property::DEFAULT_CONTENT_TYPE;
         $this->logger = new NullLogger();
@@ -109,14 +108,7 @@ final class PgSQLMessageBroker implements MessageBroker, LoggerAwareInterface
                 }
 
                 if ($contentType && $type) {
-                    $message = $this
-                        ->serializer
-                        ->deserialize(
-                            $body,
-                            $type,
-                            MimeTypeConverter::mimetypeToSerializer($contentType)
-                        )
-                    ;
+                    $message = $this->serializer->unserialize($type, $contentType, $body);
                 } else {
                     $message = new BrokenMessage(null, null, $body, $type);
                 }
@@ -218,7 +210,7 @@ final class PgSQLMessageBroker implements MessageBroker, LoggerAwareInterface
             $contentType = $envelope->getProperty('Content-Type', $this->contentType);
         }
 
-        $data = $this->serializer->serialize($message, MimeTypeConverter::mimetypeToSerializer($contentType));
+        $data = $this->serializer->serialize($message, $contentType);
 
         $this->runner->execute(
             <<<SQL

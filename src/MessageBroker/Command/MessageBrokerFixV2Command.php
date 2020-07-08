@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Goat\MessageBroker\Command;
 
 use Goat\Bridge\Symfony\Messenger\Transport\MessageBrokerTransport;
-use Goat\EventStore\MimeTypeConverter;
 use Goat\EventStore\Property;
 use Goat\Normalization\NameMap;
+use Goat\Normalization\Serializer;
 use Goat\Query\ExpressionValue;
 use Goat\Query\Where;
 use Goat\Runner\Runner;
@@ -19,7 +19,6 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\Exception\MessageDecodingFailedException;
 use Symfony\Component\Messenger\Transport\Serialization\PhpSerializer;
-use Symfony\Component\Serializer\SerializerInterface;
 
 /**
  * @codeCoverageIgnore
@@ -37,7 +36,7 @@ final class MessageBrokerFixV2Command extends Command
     private NameMap $nameMap;
     private PhpSerializer $phpSerializer;
     private Runner $runner;
-    private SerializerInterface $serializer;
+    private Serializer $serializer;
 
     private bool $letErrorPass = false;
     private bool $dryRun = true;
@@ -45,7 +44,7 @@ final class MessageBrokerFixV2Command extends Command
     /**
      * Default constructor
      */
-    public function __construct(Runner $runner, SerializerInterface $serializer, NameMap $nameMap)
+    public function __construct(Runner $runner, Serializer $serializer, NameMap $nameMap)
     {
         parent::__construct();
 
@@ -229,7 +228,7 @@ final class MessageBrokerFixV2Command extends Command
         }
 
         try {
-            $row['body'] = $this->serializer->serialize($object, MimeTypeConverter::mimetypeToSerializer($contentType));
+            $row['body'] = $this->serializer->serialize($object, $contentType);
             $row['headers'][Property::CONTENT_TYPE] = $contentType;
             $row['headers'][Property::CONTENT_ENCODING] = Property::DEFAULT_CONTENT_ENCODING;
             $row['content_type'] = $contentType;

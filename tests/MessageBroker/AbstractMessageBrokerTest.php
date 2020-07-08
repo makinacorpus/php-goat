@@ -4,29 +4,24 @@ declare(strict_types=1);
 
 namespace Goat\Tests\MessageBroker;
 
-use Goat\Bridge\Symfony\Serializer\UuidNormalizer;
 use Goat\Dispatcher\MessageEnvelope;
 use Goat\Dispatcher\Message\BrokenMessage;
 use Goat\Dispatcher\Tests\MockMessage;
 use Goat\Dispatcher\Tests\MockRetryableMessage;
 use Goat\EventStore\Property;
 use Goat\MessageBroker\MessageBroker;
+use Goat\Normalization\Tests\WithSerializerTestTrait;
 use Goat\Query\ExpressionValue;
 use Goat\Runner\Runner;
 use Goat\Runner\Testing\DatabaseAwareQueryTest;
 use Goat\Runner\Testing\TestDriverFactory;
 use Ramsey\Uuid\Uuid;
 use Ramsey\Uuid\UuidInterface;
-use Symfony\Component\Serializer\Serializer;
-use Symfony\Component\Serializer\SerializerInterface;
-use Symfony\Component\Serializer\Encoder\JsonEncoder;
-use Symfony\Component\Serializer\Encoder\XmlEncoder;
-use Symfony\Component\Serializer\Normalizer\ArrayDenormalizer;
-use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
-use Symfony\Component\Serializer\Normalizer\PropertyNormalizer;
 
 abstract class AbstractMessageBrokerTest extends DatabaseAwareQueryTest
 {
+    use WithSerializerTestTrait;
+
     /**
      * @dataProvider runnerDataProvider
      */
@@ -349,16 +344,5 @@ abstract class AbstractMessageBrokerTest extends DatabaseAwareQueryTest
     final protected function createUuid(): UuidInterface
     {
         return Uuid::uuid4();
-    }
-
-    /**
-     * Create Symfony serializer
-     */
-    final protected function createSerializer(): SerializerInterface
-    {
-        $encoders = [new XmlEncoder(), new JsonEncoder()];
-        $normalizers = [new ArrayDenormalizer(), new UuidNormalizer(), new PropertyNormalizer(), new ObjectNormalizer()];
-
-        return new Serializer($normalizers, $encoders);
     }
 }

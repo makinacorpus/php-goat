@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Goat\EventStore;
 
+use Goat\Normalization\Serializer;
 use Ramsey\Uuid\UuidInterface;
-use Symfony\Component\Serializer\SerializerInterface;
 
 interface EventStore
 {
@@ -17,7 +17,7 @@ interface EventStore
     /**
      * Set serializer.
      */
-    public function setSerializer(SerializerInterface $serializer, ?string $format = null): void;
+    public function setSerializer(Serializer $serializer, ?string $format = null): void;
 
     /**
      * Append new event.

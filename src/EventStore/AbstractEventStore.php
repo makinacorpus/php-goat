@@ -7,11 +7,11 @@ namespace Goat\EventStore;
 use Goat\Dispatcher\Message\BrokenMessage;
 use Goat\Normalization\DefaultNameMap;
 use Goat\Normalization\NameMap;
+use Goat\Normalization\Serializer;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\NullLogger;
 use Ramsey\Uuid\UuidInterface;
-use Symfony\Component\Serializer\SerializerInterface;
 
 /**
  * Implementors, please note that the only operation that needs to be atomic
@@ -44,7 +44,7 @@ abstract class AbstractEventStore implements EventStore, LoggerAwareInterface
 
     private NameMap $nameMap;
     private NamespaceMap $namespaceMap;
-    private SerializerInterface $serializer;
+    private Serializer $serializer;
     private ?string $serializerFormat = null;
 
     public function __construct()
@@ -55,7 +55,7 @@ abstract class AbstractEventStore implements EventStore, LoggerAwareInterface
     /**
      * {@inheritdoc}
      */
-    final public function setSerializer(SerializerInterface $serializer, ?string $format = null): void
+    final public function setSerializer(Serializer $serializer, ?string $format = null): void
     {
         $this->serializer = $serializer;
         $this->serializerFormat = $format;
@@ -318,12 +318,7 @@ abstract class AbstractEventStore implements EventStore, LoggerAwareInterface
      */
     final protected function messageToString(Event $event): string
     {
-        return $this->getSerializer()->serialize(
-            $event->getMessage(),
-            MimeTypeConverter::mimetypeToSerializer(
-                $this->getSerializationFormat()
-            )
-        );
+        return $this->getSerializer()->serialize($event->getMessage(), $this->getSerializationFormat());
     }
 
     /**
@@ -341,12 +336,10 @@ abstract class AbstractEventStore implements EventStore, LoggerAwareInterface
             return $data;
         }
 
-        return $this->serializer->deserialize(
-            \is_resource($data) ? \stream_get_contents($data) : $data,
+        return $this->serializer->unserialize(
             $properties[Property::MESSAGE_TYPE] ?? $eventName,
-            MimeTypeConverter::mimetypeToSerializer(
-                $properties[Property::CONTENT_TYPE] ?? $defaultFormat
-            )
+            $properties[Property::CONTENT_TYPE] ?? $defaultFormat,
+            \is_resource($data) ? \stream_get_contents($data) : $data
         );
     }
 
@@ -383,7 +376,7 @@ abstract class AbstractEventStore implements EventStore, LoggerAwareInterface
     /**
      * Get namespace for aggregate type.
      */
-    final protected function getSerializer(): SerializerInterface
+    final protected function getSerializer(): Serializer
     {
         return $this->serializer;
     }

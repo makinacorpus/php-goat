@@ -4,24 +4,20 @@ declare(strict_types=1);
 
 namespace Goat\EventStore\Tests;
 
-use Goat\Bridge\Symfony\Serializer\UuidNormalizer;
 use Goat\EventStore\Event;
 use Goat\EventStore\EventStore;
 use Goat\EventStore\EventStream;
 use Goat\EventStore\Goat\GoatEventStore;
+use Goat\Normalization\Tests\WithSerializerTestTrait;
 use Goat\Runner\Runner;
 use Goat\Runner\Testing\DatabaseAwareQueryTest;
 use Ramsey\Uuid\Uuid;
 use Ramsey\Uuid\UuidInterface;
-use Symfony\Component\Serializer\Serializer;
-use Symfony\Component\Serializer\SerializerInterface;
-use Symfony\Component\Serializer\Encoder\JsonEncoder;
-use Symfony\Component\Serializer\Encoder\XmlEncoder;
-use Symfony\Component\Serializer\Normalizer\ArrayDenormalizer;
-use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 
 abstract class AbstractEventStoreTest extends DatabaseAwareQueryTest
 {
+    use WithSerializerTestTrait;
+
     /**
      * {@inheritdoc}
      *
@@ -98,17 +94,6 @@ SQL
     final protected function createUuid(): UuidInterface
     {
         return Uuid::uuid4();
-    }
-
-    /**
-     * Create Symfony serializer
-     */
-    final protected function createSerializer(): SerializerInterface
-    {
-        $encoders = [new XmlEncoder(), new JsonEncoder()];
-        $normalizers = [new ArrayDenormalizer(), new UuidNormalizer(), new ObjectNormalizer()];
-
-        return new Serializer($normalizers, $encoders);
     }
 
     /**

@@ -17,10 +17,11 @@ final class DomainConfigurationPass implements CompilerPassInterface
 {
     use PriorityTaggedServiceTrait;
 
-    private string $projectorTag;
-    private string $projectorRegistryId;
     private string $eventStoreId;
     private string $messengerSerializerServiceId;
+    private string $projectorRegistryId;
+    private string $projectorTag;
+    private string $serializerId;
     private string $transactionHandlerTag;
 
     /**
@@ -32,12 +33,14 @@ final class DomainConfigurationPass implements CompilerPassInterface
         string $transactionHandlerTag = 'goat.transaction_handler',
         string $eventStoreId = 'goat.event_store',
         string $lockServiceId = 'goat.lock',
+        string $serializerId = 'goat.serializer',
         string $messengerSerializerServiceId = 'messenger.transport.symfony_serializer'
     ) {
         $this->projectorTag = $projectorTag;
         $this->projectorRegistryId = $projectorRegistryId;
         $this->eventStoreId = $eventStoreId;
         $this->messengerSerializerServiceId = $messengerSerializerServiceId;
+        $this->serializerId = $serializerId;
         $this->transactionHandlerTag = $transactionHandlerTag;
     }
 
@@ -53,7 +56,7 @@ final class DomainConfigurationPass implements CompilerPassInterface
             $eventStoreDef = $container->getDefinition($this->eventStoreId);
             if (\is_subclass_of($eventStoreDef->getClass(), AbstractEventStore::class)) {
                 if ($container->has('serializer')) {
-                    $eventStoreDef->addMethodCall('setSerializer', [new Reference('serializer')]);
+                    $eventStoreDef->addMethodCall('setSerializer', [new Reference($this->serializerId)]);
                 }
             }
         }

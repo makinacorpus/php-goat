@@ -7,12 +7,12 @@ namespace Goat\Dispatcher\Command;
 use Goat\Dispatcher\Dispatcher;
 use Goat\Normalization\DefaultNameMap;
 use Goat\Normalization\NameMap;
+use Goat\Normalization\Serializer;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Serializer\SerializerInterface;
 
 /**
  * @codeCoverageIgnore
@@ -22,10 +22,10 @@ final class DispatcherPushCommand extends Command
     protected static $defaultName = 'dispatcher:push';
 
     private Dispatcher $dispatcher;
-    private SerializerInterface $serializer;
+    private Serializer $serializer;
     private NameMap $nameMap;
 
-    public function __construct(Dispatcher $dispatcher, SerializerInterface $serializer, ?NameMap $nameMap = null)
+    public function __construct(Dispatcher $dispatcher, Serializer $serializer, ?NameMap $nameMap = null)
     {
         parent::__construct();
 
@@ -58,7 +58,7 @@ final class DispatcherPushCommand extends Command
         $data = $input->getOption('content');
 
         if ($data) {
-            $message = $this->serializer->deserialize($data, $type, $format);
+            $message = $this->serializer->unserialize($type, $format, $data);
         } else {
             $className = $this->nameMap->getType($type);
             if (!\class_exists($className)) {
