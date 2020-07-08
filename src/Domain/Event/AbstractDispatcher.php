@@ -415,20 +415,6 @@ abstract class AbstractDispatcher implements Dispatcher, LoggerAwareInterface
     /**
      * {@inheritdoc}
      */
-    final public function dispatchCommand($message, array $properties = []): void
-    {
-        $id = ++self::$commandCount;
-        try {
-            $this->logger->debug("Dispatcher BEGIN ({id}) DISPATCH command", ['id' => $id, 'message' => $message, 'properties' => $properties]);
-            $this->doAsynchronousCommandDispatch(MessageEnvelope::wrap($message, $properties));
-        } finally {
-            $this->logger->debug("Dispatcher END ({id}) DISPATCH command", ['id' => $id]);
-        }
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     final public function dispatch($message, array $properties = []): void
     {
         $id = ++self::$commandCount;

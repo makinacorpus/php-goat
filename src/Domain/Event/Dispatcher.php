@@ -9,19 +9,30 @@ namespace Goat\Domain\Event;
  * This piece is centric within the application.
  *
  * It also will dispatch differently if there are pending transactions.
+ *
+ * Major breaking changes from previous versions:
+ *
+ *   - all dependency setters has been removed from the interface, compiler
+ *     passes and extension are now smarter and inject those only in case
+ *     it's necessary,
+ *
+ *   - dispatchEvent() method has been removed, nobody ever used it,
+ *
+ *   - dispatchCommand() have been removed from the interface, but the default
+ *     implementation on AbstractDispatcher remains for transparent backward
+ *     compatibility. Consider reverting to dispatch() method instead,
+ *
+ *   - process() method will be dropped soon as well, the choice between
+ *     synchronicity and asynchronicity should be done at the infrastructure
+ *     level and be determined automatically depending upon the context.
+ *
+ * @todo
+ *   - Remove process() as well.
  */
 interface Dispatcher
 {
     /**
      * Dispatch command asynchronously (via the bus).
-     */
-    public function dispatchCommand($message, array $properties = []): void;
-
-    /**
-     * Dispatch command asynchronously (via the bus).
-     *
-     * @deprecated
-     * @see self::dispatchCommand()
      */
     public function dispatch($message, array $properties = []): void;
 
