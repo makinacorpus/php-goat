@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Goat\Domain\DependencyInjection\Compiler;
 
+use Goat\Domain\Event\AbstractDispatcher;
 use Goat\Domain\EventStore\AbstractEventStore;
 use Goat\Domain\Messenger\NameMapMessengerSerializer;
 use Goat\Domain\Serializer\NameMapSerializer;
@@ -77,17 +78,19 @@ final class DomainConfigurationPass implements CompilerPassInterface
 
         if ($hasDispatcher) {
             $dispatcherDef = $container->getDefinition($this->dispatcherId);
-            if ($references = $this->findAndSortTaggedServices($this->transactionHandlerTag, $container)) {
-                $dispatcherDef->addMethodCall('setTransactionHandlers', [$references]);
-            }
-            if ($hasProjectorRegistry) {
-                $dispatcherDef->addMethodCall('setProjectorRegistry', [$projectorRegistryDef]);
-            }
-            if ($hasEventStore) {
-                $dispatcherDef->addMethodCall('setEventStore', [new Reference($this->eventStoreId)]);
-            }
-            if ($hasLockService) {
-                $dispatcherDef->addMethodCall('setLockService', [new Reference($this->lockServiceId)]);
+            if ($this->containerIsSubtypeOf($container, $dispatcherDef, AbstractDispatcher::class)) {
+                if ($references = $this->findAndSortTaggedServices($this->transactionHandlerTag, $container)) {
+                    $dispatcherDef->addMethodCall('setTransactionHandlers', [$references]);
+                }
+                if ($hasProjectorRegistry) {
+                    $dispatcherDef->addMethodCall('setProjectorRegistry', [$projectorRegistryDef]);
+                }
+                if ($hasEventStore) {
+                    $dispatcherDef->addMethodCall('setEventStore', [new Reference($this->eventStoreId)]);
+                }
+                if ($hasLockService) {
+                    $dispatcherDef->addMethodCall('setLockService', [new Reference($this->lockServiceId)]);
+                }
             }
         }
 
@@ -109,5 +112,13 @@ final class DomainConfigurationPass implements CompilerPassInterface
             $definition->setArguments([new Reference('goat.domain.name_map'), new Reference($decoratorInnerId)]);
             $container->setDefinition('goat.domain.name_map.messenger_serializer', $definition);
         }
+    }
+
+    private function containerIsSubtypeOf(ContainerBuilder $container, Definition $definition, string $parentClassOrInterface): bool
+    {
+        $class = $container->getParameterBag()->resolveValue($definition->getClass());
+        $refClass = $container->getReflectionClass($class);
+
+        return $refClass->implementsInterface($parentClassOrInterface) || $refClass->isSubclassOf($parentClassOrInterface);
     }
 }

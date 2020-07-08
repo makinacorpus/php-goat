@@ -47,7 +47,9 @@ abstract class AbstractDispatcher implements Dispatcher, LoggerAwareInterface
     }
 
     /**
-     * {@inheritdoc}
+     * Set lock service.
+     *
+     * @internal
      */
     final public function setLockService(LockService $lockService): void
     {
@@ -55,7 +57,9 @@ abstract class AbstractDispatcher implements Dispatcher, LoggerAwareInterface
     }
 
     /**
-     * {@inheritdoc}
+     * Set transaction handlers.
+     *
+     * @internal
      */
     final public function setTransactionHandlers(iterable $transactionHandlers): void
     {
@@ -66,7 +70,9 @@ abstract class AbstractDispatcher implements Dispatcher, LoggerAwareInterface
     }
 
     /**
-     * {@inheritdoc}
+     * Set projector registry.
+     *
+     * @internal
      */
     final public function setProjectorRegistry(ProjectorRegistry $projectorRegistry): void
     {
@@ -74,7 +80,9 @@ abstract class AbstractDispatcher implements Dispatcher, LoggerAwareInterface
     }
 
     /**
-     * {@inheritdoc}
+     * Set event store.
+     *
+     * @internal
      */
     public function setEventStore(EventStore $eventStore): void
     {
@@ -401,20 +409,6 @@ abstract class AbstractDispatcher implements Dispatcher, LoggerAwareInterface
             $this->updateEventWithFailure($envelope, $event, $e);
 
             throw $e;
-        }
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    final public function dispatchEvent($message, array $properties = []): void
-    {
-        $id = ++self::$commandCount;
-        try {
-            $this->logger->debug("Dispatcher BEGIN {id} DISPATCH event", ['id' => $id, 'message' => $message, 'properties' => $properties]);
-            $this->doAsynchronousEventDispatch(MessageEnvelope::wrap($message, $properties));
-        } finally {
-            $this->logger->debug("Dispatcher END {id} DISPATCH event", ['id' => $id]);
         }
     }
 
