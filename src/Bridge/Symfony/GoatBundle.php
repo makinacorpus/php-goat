@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Goat\Bridge\Symfony;
 
 use Goat\Bridge\Symfony\DependencyInjection\GoatExtension;
+use Goat\Bridge\Symfony\DependencyInjection\Compiler\DomainConfigurationPass;
 use Goat\Bridge\Symfony\DependencyInjection\Compiler\MonologConfigurationPass;
-use Goat\Domain\DependencyInjection\Compiler\DomainConfigurationPass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 

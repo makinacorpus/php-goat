@@ -2,9 +2,8 @@
 
 declare(strict_types=1);
 
-namespace Goat\Domain\DependencyInjection\Compiler;
+namespace Goat\Bridge\Symfony\DependencyInjection\Compiler;
 
-use Goat\Domain\Event\AbstractDispatcher;
 use Goat\Domain\EventStore\AbstractEventStore;
 use Goat\Domain\Messenger\NameMapMessengerSerializer;
 use Goat\Domain\Serializer\NameMapSerializer;
@@ -18,11 +17,9 @@ final class DomainConfigurationPass implements CompilerPassInterface
 {
     use PriorityTaggedServiceTrait;
 
-    private string $dispatcherId;
     private string $projectorTag;
     private string $projectorRegistryId;
     private string $eventStoreId;
-    private string $lockServiceId;
     private string $messengerSerializerServiceId;
     private string $transactionHandlerTag;
 
@@ -30,7 +27,6 @@ final class DomainConfigurationPass implements CompilerPassInterface
      * Default constructor
      */
     public function __construct(
-        string $dispatcherId = 'goat.dispatcher',
         string $projectorTag = 'goat.projector',
         string $projectorRegistryId = 'goat.projector.registry',
         string $transactionHandlerTag = 'goat.transaction_handler',
@@ -38,11 +34,9 @@ final class DomainConfigurationPass implements CompilerPassInterface
         string $lockServiceId = 'goat.lock',
         string $messengerSerializerServiceId = 'messenger.transport.symfony_serializer'
     ) {
-        $this->dispatcherId = $dispatcherId;
         $this->projectorTag = $projectorTag;
         $this->projectorRegistryId = $projectorRegistryId;
         $this->eventStoreId = $eventStoreId;
-        $this->lockServiceId = $lockServiceId;
         $this->messengerSerializerServiceId = $messengerSerializerServiceId;
         $this->transactionHandlerTag = $transactionHandlerTag;
     }
@@ -52,9 +46,7 @@ final class DomainConfigurationPass implements CompilerPassInterface
      */
     public function process(ContainerBuilder $container)
     {
-        $hasDispatcher = $container->has($this->dispatcherId);
         $hasEventStore = $container->has($this->eventStoreId);
-        $hasLockService = $container->has($this->lockServiceId);
         $hasProjectorRegistry =  $container->has($this->projectorRegistryId);
 
         if ($hasEventStore) {
@@ -73,24 +65,6 @@ final class DomainConfigurationPass implements CompilerPassInterface
             } else {
                 // Avoid it to crash.
                 $projectorRegistryDef->addMethodCall('setProjectors', [[]]);
-            }
-        }
-
-        if ($hasDispatcher) {
-            $dispatcherDef = $container->getDefinition($this->dispatcherId);
-            if ($this->containerIsSubtypeOf($container, $dispatcherDef, AbstractDispatcher::class)) {
-                if ($references = $this->findAndSortTaggedServices($this->transactionHandlerTag, $container)) {
-                    $dispatcherDef->addMethodCall('setTransactionHandlers', [$references]);
-                }
-                if ($hasProjectorRegistry) {
-                    $dispatcherDef->addMethodCall('setProjectorRegistry', [$projectorRegistryDef]);
-                }
-                if ($hasEventStore) {
-                    $dispatcherDef->addMethodCall('setEventStore', [new Reference($this->eventStoreId)]);
-                }
-                if ($hasLockService) {
-                    $dispatcherDef->addMethodCall('setLockService', [new Reference($this->lockServiceId)]);
-                }
             }
         }
 
