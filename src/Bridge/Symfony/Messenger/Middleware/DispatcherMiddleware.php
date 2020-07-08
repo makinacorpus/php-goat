@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Goat\Domain\Messenger;
+namespace Goat\Bridge\Symfony\Messenger\Middleware;
 
 use Goat\Dispatcher\Dispatcher;
 use Symfony\Component\Messenger\Envelope;

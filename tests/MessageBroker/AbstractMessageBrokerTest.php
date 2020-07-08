@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Goat\Tests\MessageBroker;
 
+use Goat\Bridge\Symfony\Serializer\UuidNormalizer;
 use Goat\Dispatcher\BrokenMessage;
 use Goat\Dispatcher\MessageEnvelope;
 use Goat\Dispatcher\Tests\MockMessage;
 use Goat\Dispatcher\Tests\MockRetryableMessage;
-use Goat\Domain\Serializer\UuidNormalizer;
 use Goat\EventStore\Property;
 use Goat\MessageBroker\MessageBroker;
 use Goat\Query\ExpressionValue;

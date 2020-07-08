@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Goat\Domain\Serializer;
+namespace Goat\Bridge\Symfony\Serializer;
 
 use Ramsey\Uuid\Uuid;
 use Ramsey\Uuid\UuidInterface;

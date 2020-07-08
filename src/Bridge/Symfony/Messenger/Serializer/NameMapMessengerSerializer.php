@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Goat\Domain\Messenger;
+namespace Goat\Bridge\Symfony\Messenger\Serializer;
 
 use Goat\EventStore\NameMap;
 use Symfony\Component\Messenger\Envelope;

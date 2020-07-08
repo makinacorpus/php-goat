@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Goat\MessageBroker\Command;
 
 use Goat\Bridge\Symfony\Messenger\Transport\MessageBrokerTransport;
-use Goat\Domain\Serializer\MimeTypeConverter;
+use Goat\EventStore\MimeTypeConverter;
 use Goat\EventStore\NameMap;
 use Goat\EventStore\Property;
 use Goat\Query\ExpressionValue;

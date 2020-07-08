@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Goat\EventStore\Tests;
 
-use Goat\Domain\Serializer\UuidNormalizer;
+use Goat\Bridge\Symfony\Serializer\UuidNormalizer;
 use Goat\EventStore\Event;
 use Goat\EventStore\EventStore;
 use Goat\EventStore\EventStream;

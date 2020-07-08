@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Goat\Domain\Serializer;
+namespace Goat\Bridge\Symfony\Serializer;
 
 use Goat\EventStore\NameMap;
 use Symfony\Component\Serializer\SerializerInterface;
