@@ -40,11 +40,7 @@
             "Goat\\Projector\\" : "src/Projector/"
         },
         "classmap": [
-            "src/Domain/Generator/MessageDocumentation.php",
-            "src/Preferences/Domain/Handler.php",
-            "src/Preferences/Domain/Message.php",
-            "src/Preferences/Domain/Model.php",
-            "src/Preferences/Domain/Repository.php"
+            "src/Domain/Generator/MessageDocumentation.php"
         ],
         "files": [
             "lib/compat.php"

@@ -13,7 +13,7 @@ use Goat\Preferences\Domain\Model\ValueValidator;
 final class ArrayPreferencesRepository implements PreferencesRepository
 {
     /** @var mixed[] */
-    private $data;
+    private array $data;
 
     /**
      * Default constructor
@@ -69,7 +69,7 @@ final class ArrayPreferencesRepository implements PreferencesRepository
     /**
      * {@inheritdoc}
      */
-    public function delete(string $name)
+    public function delete(string $name): void
     {
         unset($this->data[$name]);
     }

@@ -77,10 +77,6 @@ final class GoatExtension extends Extension
             $this->processPreferences($container, $config['preferences'] ?? []);
         }
 
-        if ($preferenceEnabled && $messengerEnabled) {
-            $loader->load('preferences-messenger.yaml');
-        }
-
         if (\in_array(MonologBundle::class, $container->getParameter('kernel.bundles'))) {
             $this->configureMonolog($container, $config['monolog'] ?? []);
         }

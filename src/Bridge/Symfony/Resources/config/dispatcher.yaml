@@ -1,7 +1,10 @@
 services:
 
+    goat.dispatcher.handler_locator.default:
+        class: Goat\Dispatcher\HandlerLocator\DefaultHandlerLocator
+
     goat.dispatcher.handler_locator:
-        synthetic: true
+        alias: goat.dispatcher.handler_locator.default
 
     Goat\Dispatcher\HandlerLocator:
         alias: goat.dispatcher.handler_locator

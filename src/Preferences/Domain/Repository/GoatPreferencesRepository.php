@@ -17,11 +17,8 @@ final class GoatPreferencesRepository implements PreferencesRepository
 {
     const TABLE_NAME_DEFAULT = 'preferences';
 
-    /** @var Runner */
-    private $runner;
-
-    /** @var string */
-    private $tableName = self::TABLE_NAME_DEFAULT;
+    private Runner $runner;
+    private string $tableName = self::TABLE_NAME_DEFAULT;
 
     /**
      * Default constructor
@@ -178,7 +175,7 @@ final class GoatPreferencesRepository implements PreferencesRepository
     /**
      * {@inheritdoc}
      */
-    public function delete(string $name)
+    public function delete(string $name): void
     {
         $this
             ->runner

@@ -6,6 +6,7 @@ namespace Goat\Bridge\Symfony;
 
 use Goat\Bridge\Symfony\DependencyInjection\GoatExtension;
 use Goat\Bridge\Symfony\DependencyInjection\Compiler\DomainConfigurationPass;
+use Goat\Bridge\Symfony\DependencyInjection\Compiler\HandlerLocatorRegistrationPass;
 use Goat\Bridge\Symfony\DependencyInjection\Compiler\MonologConfigurationPass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
@@ -20,9 +21,8 @@ final class GoatBundle extends Bundle
      */
     public function build(ContainerBuilder $container)
     {
-        if (\class_exists(DomainConfigurationPass::class)) {
-            $container->addCompilerPass(new DomainConfigurationPass());
-        }
+        $container->addCompilerPass(new DomainConfigurationPass());
+        $container->addCompilerPass(new HandlerLocatorRegistrationPass());
         $container->addCompilerPass(new MonologConfigurationPass());
     }
 

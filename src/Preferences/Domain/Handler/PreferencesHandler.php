@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 namespace Goat\Preferences\Domain\Handler;
 
+use Goat\Dispatcher\Handler;
 use Goat\Preferences\Domain\Message\PreferenceValueDelete;
 use Goat\Preferences\Domain\Message\PreferenceValueSet;
 use Goat\Preferences\Domain\Message\PreferenceValueSetMany;
 use Goat\Preferences\Domain\Model\ValueValidator;
 use Goat\Preferences\Domain\Repository\PreferencesRepository;
 use Goat\Preferences\Domain\Repository\PreferencesSchema;
-use Symfony\Component\Messenger\Handler\MessageSubscriberInterface;
 
 /**
  * Handle preference set messages when plugged over the symfony messenger.
  */
-final class PreferencesHandler implements MessageSubscriberInterface
+final class PreferencesHandler implements Handler
 {
     private PreferencesRepository $repository;
     private ?PreferencesSchema $schema = null;
@@ -27,18 +27,6 @@ final class PreferencesHandler implements MessageSubscriberInterface
     {
         $this->repository = $repository;
         $this->schema = $schema;
-    }
-
-    /**
-     * {@ineritdoc}
-     */
-    public static function getHandledMessages(): iterable
-    {
-        return [
-            PreferenceValueDelete::class => 'doDelete',
-            PreferenceValueSet::class => 'doSet',
-            PreferenceValueSetMany::class => 'doSetMany',
-        ];
     }
 
     /**
@@ -62,7 +50,7 @@ final class PreferencesHandler implements MessageSubscriberInterface
     /**
      * Handler
      */
-    public function doSet(PreferenceValueSet $command)
+    public function doSet(PreferenceValueSet $command): void
     {
         ($this->handleValue($command->getName(), $command->getValue()))();
     }
@@ -70,7 +58,7 @@ final class PreferencesHandler implements MessageSubscriberInterface
     /**
      * Handler
      */
-    public function doSetMany(PreferenceValueSetMany $command)
+    public function doSetMany(PreferenceValueSetMany $command): void
     {
         $callables = [];
 
@@ -89,7 +77,7 @@ final class PreferencesHandler implements MessageSubscriberInterface
     /**
      * Handler
      */
-    public function doDelete(PreferenceValueDelete $command)
+    public function doDelete(PreferenceValueDelete $command): void
     {
         $this->repository->delete($command->getName());
     }

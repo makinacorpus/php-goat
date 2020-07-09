@@ -31,3 +31,9 @@ services:
         class: Goat\Preferences\DependencyInjection\PreferencesEnvVarProcessor
         arguments: ["@goat.preferences"]
         tags: ["container.env_var_processor"]
+
+    goat.preferences.handler:
+        public: false
+        class: Goat\Preferences\Domain\Handler\PreferencesHandler
+        arguments: ['@goat.preferences.repository', '@?goat.preferences.schema']
+        tags: ['goat.message_handler']

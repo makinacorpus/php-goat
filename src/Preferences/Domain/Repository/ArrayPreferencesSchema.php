@@ -13,7 +13,7 @@ use Goat\Preferences\Domain\Model\DefaultValueSchema;
 final class ArrayPreferencesSchema implements PreferencesSchema
 {
     /** @var mixed[] */
-    private $data;
+    private array $data;
 
     /**
      * Default constructor
