@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Goat\Dispatcher;
 
-
 /**
  * Directly uses the handlers locator instead of going throught the bus
  * since we handle transaction and logging ourself, there's no need to

@@ -1,0 +1,13 @@
+services:
+
+    goat.dispatcher.message_descriptor:
+        class: Goat\Dispatcher\MessageDescriptor\DefaultMessageDescriptor
+
+    Goat\Dispatcher\MessageDescriptor\MessageDescriptor:
+        alias: goat.dispatcher.message_descriptor
+
+    goat.twig_extension:
+        public: false
+        class: Goat\Bridge\Symfony\Twig\GoatTwigExtension
+        arguments: ['@goat.dispatcher.message_descriptor', '@goat.serializer', '%kernel.debug%']
+        tags: ['twig.extension']

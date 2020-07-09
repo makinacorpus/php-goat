@@ -21,6 +21,7 @@ use Symfony\Component\DependencyInjection\Exception\InvalidArgumentException;
 use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 use Symfony\Component\Messenger\MessageBusInterface;
+use Twig\Environment;
 
 final class GoatExtension extends Extension
 {
@@ -41,6 +42,7 @@ final class GoatExtension extends Extension
         $eventStoreEnabled = $config['event_store']['enabled'] ?? false;
         $lockEnabled = $config['lock']['enabled'] ?? false;
         $preferenceEnabled = $config['preferences']['enabled'] ?? false;
+        $twigEnabled = \class_exists(Environment::class);
 
         $loader->load('normalization.yaml');
         $this->processNormalization($container, $config['normalization']['map'] ?? [], $config['normalization']['aliases'] ?? []);
@@ -75,6 +77,10 @@ final class GoatExtension extends Extension
         if ($preferenceEnabled) {
             $loader->load('preferences.yaml');
             $this->processPreferences($container, $config['preferences'] ?? []);
+        }
+
+        if ($twigEnabled) {
+            $loader->load('twig.yaml');
         }
 
         if (\in_array(MonologBundle::class, $container->getParameter('kernel.bundles'))) {
