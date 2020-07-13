@@ -8,11 +8,10 @@ use Goat\EventStore\Property;
 use Goat\EventStore\WithPropertiesTrait;
 use Ramsey\Uuid\Uuid;
 
-final class MessageEnvelope
+class MessageEnvelope
 {
     use WithPropertiesTrait;
 
-    private bool $asynchronous = false;
     private object $message;
 
     /**
@@ -23,15 +22,15 @@ final class MessageEnvelope
     }
 
     /**
-     * Create instance from message
+     * Create instance from message.
      */
-    public static function wrap($message, array $properties = [])
+    public static function wrap($message, array $properties = []): MessageEnvelope
     {
         if (!\is_object($message)) {
             throw new \TypeError(sprintf('Invalid argument provided to "%s()": expected object, but got %s.', __METHOD__, \gettype($message)));
         }
 
-        if ($message instanceof self) {
+        if ($message instanceof static) {
             if (!$message->hasProperty(Property::MESSAGE_ID)) {
                 $properties[Property::MESSAGE_ID] = (string)Uuid::uuid4();
             }
@@ -42,7 +41,7 @@ final class MessageEnvelope
             $properties[Property::MESSAGE_ID] = (string)Uuid::uuid4();
         }
 
-        $ret = new self;
+        $ret = new static();
         $ret->message = $message;
 
         foreach ($properties as $key => $value) {
@@ -57,9 +56,11 @@ final class MessageEnvelope
     }
 
     /**
-     * Override properties
+     * Override properties.
+     *
+     * @return $this
      */
-    public function withProperties(array $properties): self
+    public function withProperties(array $properties): MessageEnvelope
     {
         foreach ($properties as $key => $value) {
             if (null === $value || '' === $value) {
