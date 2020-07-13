@@ -230,7 +230,18 @@ final class GoatStateStore implements StateStore
             }
         }
 
-        return $query->setOption('class', State::class);
+        return $query->setOption('hydrator', fn (array $row) => new State(
+            $row['id'],
+            $row['createdAt'],
+            $row['updatedAt'],
+            $row['date'],
+            $row['position'],
+            $row['isLocked'],
+            $row['isError'],
+            $row['errorCode'],
+            $row['errorMessage'],
+            $row['errorTrace']
+        ));
     }
 
     private function table(): ExpressionRelation
