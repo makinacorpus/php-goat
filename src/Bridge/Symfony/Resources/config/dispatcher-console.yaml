@@ -1,5 +1,10 @@
 services:
 
+    Goat\Dispatcher\Command\DispatcherRunCommand:
+        public: false
+        arguments: ["@goat.dispatcher", "@goat.message_broker"]
+        tags: ["console.command"]
+
     Goat\Dispatcher\Command\DispatcherListCommand:
         public: false
         arguments: ["@goat.name_map"]
