@@ -13,7 +13,7 @@ use Goat\Preferences\Domain\Model\ValueValidator;
 final class ArrayPreferencesRepository implements PreferencesRepository
 {
     /** @var mixed[] */
-    private array $data;
+    private array $data = [];
 
     /**
      * Default constructor
@@ -23,7 +23,7 @@ final class ArrayPreferencesRepository implements PreferencesRepository
      */
     public function __construct(?array $data = null)
     {
-        $this->data = $data;
+        $this->data = $data ?? [];
     }
 
     /**

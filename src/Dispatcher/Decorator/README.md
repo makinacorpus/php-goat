@@ -9,6 +9,8 @@ in decorators to ensure transactions do well:
    decisions on switching process() for dispatch() or vice-versa,
    WARNING: This is not extracted from abstract dispatcher yet.
 
+ - TransactionDispatcherDecorator: handles SQL transaction,
+
  - EventStoreDispatcherDecorator: must be outside of the transaction, stores
    commands as events, along with success or failure status, and handles
    projectors as well,

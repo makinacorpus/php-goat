@@ -25,7 +25,7 @@ final class ParallelExecutionBlockerDispatcherDecorator implements Dispatcher
      *
      * {@inheritdoc}
      */
-    public function process($message, array $properties = [], bool $withTransaction = true): void
+    public function process($message, array $properties = []): void
     {
         $envelope = MessageEnvelope::wrap($message, $properties);
         $message = $envelope->getMessage();
@@ -36,14 +36,14 @@ final class ParallelExecutionBlockerDispatcherDecorator implements Dispatcher
             try {
                 $this->lockService->getLockOrDie($lockId, \get_class($message));
                 $acquired = true;
-                $this->decorated->process($envelope, [], $withTransaction);
+                $this->decorated->process($envelope);
             } finally {
                 if ($acquired) {
                     $this->lockService->release($lockId);
                 }
             }
         } else {
-            $this->decorated->process($envelope, [], $withTransaction);
+            $this->decorated->process($envelope);
         }
     }
 

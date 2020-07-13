@@ -4,8 +4,12 @@ declare(strict_types=1);
 
 namespace Goat\Dispatcher\Tests;
 
+use Goat\Dispatcher\Dispatcher;
 use Goat\Dispatcher\MessageEnvelope;
+use Goat\Dispatcher\TransactionHandler;
 use Goat\Dispatcher\Decorator\EventStoreDispatcherDecorator;
+use Goat\Dispatcher\Decorator\ProfilingDispatcherDecorator;
+use Goat\Dispatcher\Decorator\TransactionDispatcherDecorator;
 use Goat\Dispatcher\Error\DispatcherError;
 use Goat\Dispatcher\Error\DispatcherRetryableError;
 use Goat\EventStore\Event;
@@ -23,6 +27,7 @@ final class DefaultDispatcherTest extends AbstractEventStoreTest
 
         $eventStore = new MockEventStore();
         $dispatcher = new EventStoreDispatcherDecorator($decorated, $eventStore);
+        $dispatcher = $this->decorate($dispatcher);
 
         $dispatcher->process(new MockMessage());
 
@@ -49,6 +54,7 @@ final class DefaultDispatcherTest extends AbstractEventStoreTest
 
         $eventStore = new MockEventStore();
         $dispatcher = new EventStoreDispatcherDecorator($decorated, $eventStore);
+        $dispatcher = $this->decorate($dispatcher);
 
         try {
             $dispatcher->process(new MockMessage());
@@ -85,6 +91,7 @@ final class DefaultDispatcherTest extends AbstractEventStoreTest
 
         $eventStore = new MockEventStore();
         $dispatcher = new EventStoreDispatcherDecorator($decorated, $eventStore);
+        $dispatcher = $this->decorate($dispatcher);
 
         $decorated->setProcessCallback(
             static function () use ($dispatcher, &$count) {
@@ -117,6 +124,7 @@ final class DefaultDispatcherTest extends AbstractEventStoreTest
             static function () { throw new \DomainException(); },
             static function () { throw new \BadMethodCallException(); }
         );
+        $dispatcher = $this->decorate($dispatcher);
 
         try {
             $dispatcher->process(new MockMessage());
@@ -138,6 +146,7 @@ final class DefaultDispatcherTest extends AbstractEventStoreTest
                throw new \BadMethodCallException("This should not have been called.");
             }
         );
+        $dispatcher = $this->decorate($dispatcher);
 
         try {
             $dispatcher->process(new MockMessage());
@@ -156,6 +165,7 @@ final class DefaultDispatcherTest extends AbstractEventStoreTest
                 $retries[] = $envelope;
             }
         );
+        $dispatcher = $this->decorate($dispatcher);
 
         $sentMessage = new MockMessage();
 
@@ -186,6 +196,7 @@ final class DefaultDispatcherTest extends AbstractEventStoreTest
                 $retries[] = $envelope;
             }
         );
+        $dispatcher = $this->decorate($dispatcher);
 
         $sentMessage = new MockRetryableMessage();
 
@@ -216,6 +227,7 @@ final class DefaultDispatcherTest extends AbstractEventStoreTest
                $IWasHere = true;
             }
         );
+        $dispatcher = $this->decorate($dispatcher);
 
         $sentEnvelope = MessageEnvelope::wrap(new MockRetryableMessage(), [
             Property::RETRY_MAX => 4,
@@ -242,6 +254,7 @@ final class DefaultDispatcherTest extends AbstractEventStoreTest
 
         $eventStore = new MockEventStore();
         $dispatcher = new EventStoreDispatcherDecorator($decorated, $eventStore);
+        $dispatcher = $this->decorate($dispatcher);
 
         $sentMessage = new MockRetryableMessage();
 
@@ -263,5 +276,30 @@ final class DefaultDispatcherTest extends AbstractEventStoreTest
         self::assertSame("1", $envelope->getProperty(Property::RETRY_COUNT));
         self::assertTrue($envelope->hasProperty(Property::RETRY_DELAI));
         self::assertTrue($envelope->hasProperty(Property::RETRY_MAX));
+    }
+
+    private function decorate(Dispatcher $decorated): Dispatcher
+    {
+        return new ProfilingDispatcherDecorator(
+            new TransactionDispatcherDecorator(
+                $decorated,
+                [
+                    new class implements TransactionHandler
+                    {
+                        public function commit(): void
+                        {
+                        }
+
+                        public function rollback(?\Throwable $previous = null): void
+                        {
+                        }
+
+                        public function start(): void
+                        {
+                        }
+                    },
+                ]
+            )
+        );;
     }
 }

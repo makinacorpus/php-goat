@@ -29,6 +29,7 @@ final class GoatConfiguration implements ConfigurationInterface
                     ->children()
                         ->booleanNode('enabled')->defaultFalse()->end()
                         ->booleanNode('with_profiling')->defaultTrue()->end()
+                        ->booleanNode('with_transaction')->defaultTrue()->end()
                         ->booleanNode('with_event_store')->defaultFalse()->end()
                         ->booleanNode('with_lock')->defaultFalse()->end()
                     ->end()

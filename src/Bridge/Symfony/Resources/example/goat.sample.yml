@@ -24,6 +24,18 @@ goat:
         with_profiling: true
 
         #
+        # Enable transaction support.
+        #
+        # Transaction will decorate all other dispatcher decorators, hence
+        # they will be all or nothing (including event store). In case of any
+        # failure, everything will be rollbacked.
+        #
+        # Default transaction level is SERIALIZABLE (level 4), beware of the
+        # potential performance impact.
+        #
+        with_transaction: true
+
+        #
         # Set this to plug event store on the dispatcher: every processed
         # command will be stored into the event store.
         #

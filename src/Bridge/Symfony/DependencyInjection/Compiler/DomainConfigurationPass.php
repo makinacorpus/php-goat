@@ -71,6 +71,17 @@ final class DomainConfigurationPass implements CompilerPassInterface
             }
         }
 
+        /*
+         * @todo proper transaction support.
+         *
+        if ($hasDispatcher) {
+            $dispatcherDef = $container->getDefinition($this->dispatcherId);
+            if ($references = $this->findAndSortTaggedServices($this->transactionHandlerTag, $container)) {
+                $dispatcherDef->addMethodCall('setTransactionHandlers', [$references]);
+            }
+        }
+         */
+
         $serializerServiceId = 'serializer';
         if ($container->hasDefinition($serializerServiceId)) {
             $decoratorInnerId = $serializerServiceId.'.inner';

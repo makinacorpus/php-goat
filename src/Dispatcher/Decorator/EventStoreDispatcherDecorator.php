@@ -32,7 +32,7 @@ final class EventStoreDispatcherDecorator implements Dispatcher
      *
      * {@inheritdoc}
      */
-    public function process($message, array $properties = [], bool $withTransaction = true): void
+    public function process($message, array $properties = []): void
     {
         $envelope = MessageEnvelope::wrap($message, $properties);
 
@@ -44,7 +44,7 @@ final class EventStoreDispatcherDecorator implements Dispatcher
         ;
 
         try {
-            $this->decorated->process($envelope, [], $withTransaction);
+            $this->decorated->process($envelope);
 
             // Updating the event is necessary because other decorators might
             // have added meta-data in the event properties, we do not want to

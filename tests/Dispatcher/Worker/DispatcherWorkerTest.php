@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Goat\Dispatcher\Tests;
+namespace Goat\Dispatcher\Tests\Worker;
 
 use Goat\Dispatcher\Dispatcher;
 use Goat\Dispatcher\MessageEnvelope;
@@ -22,7 +22,7 @@ final class DispatcherWorkerTest extends TestCase
                 throw new \BadMethodCallException("I shall not be called.");
             }
 
-            public function process($message, array $properties = [], bool $withTransaction = true): void
+            public function process($message, array $properties = []): void
             {
                 throw new \DomainException("I am the expected error.");
             }
@@ -82,7 +82,7 @@ final class DispatcherWorkerTest extends TestCase
                 throw new \BadMethodCallException("I shall not be called.");
             }
 
-            public function process($message, array $properties = [], bool $withTransaction = true): void
+            public function process($message, array $properties = []): void
             {
                 throw new \DomainException("I am the expected error.");
             }

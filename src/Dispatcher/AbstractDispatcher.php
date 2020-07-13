@@ -18,53 +18,11 @@ abstract class AbstractDispatcher implements Dispatcher, LoggerAwareInterface
     use LoggerAwareTrait;
 
     private static int $commandCount = 0;
-
-    private ?DispatcherTransaction $transaction = null;
-    private iterable $transactionHandlers = [];
-    private bool $transactionHandlersSet = false;
-
     private int $confRetryMax = 4;
 
     public function __construct()
     {
         $this->logger = new NullLogger();
-    }
-
-    /**
-     * Set transaction handlers.
-     *
-     * @internal
-     */
-    final public function setTransactionHandlers(iterable $transactionHandlers): void
-    {
-        if ($this->transactionHandlersSet) {
-            throw new \BadMethodCallException("Transactions handlers are already set");
-        }
-        $this->transactionHandlers = $transactionHandlers;
-    }
-
-    /**
-     * Is there a transaction running?
-     */
-    final protected function isTransactionRunning(): bool
-    {
-        return $this->transaction && $this->transaction->isRunning();
-    }
-
-    /**
-     * Run a new transaction or return the active one.
-     */
-    final protected function startTransaction(): Transaction
-    {
-        if ($this->isTransactionRunning()) {
-            $this->logger->debug("Dispatcher TRANSACTION SKIP (already running)");
-
-            return $this->transaction;
-        }
-
-        $this->logger->debug("Dispatcher TRANSACTION START");
-
-        return $this->transaction = new DispatcherTransaction($this->transactionHandlers);
     }
 
     /**
@@ -139,9 +97,9 @@ abstract class AbstractDispatcher implements Dispatcher, LoggerAwareInterface
     }
 
     /**
-     * Call doSynchronousProcess but checks for Parallel/Lock potential problems before
+     * Handles errors that raise during internal message handling.
      */
-    private function synchronousProcess(MessageEnvelope $envelope): void
+    private function doProcessWithErrorHandling(MessageEnvelope $envelope): void
     {
         try {
             $this->doSynchronousProcess($envelope);
@@ -167,51 +125,21 @@ abstract class AbstractDispatcher implements Dispatcher, LoggerAwareInterface
     }
 
     /**
-     * Process synchronously with a transaction.
+     * Process and handle retry.
      */
-    private function processInTransaction(MessageEnvelope $envelope): void
+    private function doProcess(MessageEnvelope $envelope): void
     {
-        if ($this->isTransactionRunning()) {
-            // We already have a transaction, we are running within a greater
-            // transaction, we let the root transaction handle commit and
-            // rollback.
-            $this->processWithoutTransaction($envelope);
-
-            return;
-        }
-
-        $transaction = null;
-        $atCommit = false;
-
         try {
-            $transaction = $this->startTransaction();
-            $this->synchronousProcess($envelope);
-            $atCommit = true;
-            $transaction->commit();
-            $this->logger->debug("Dispatcher transaction COMMIT");
+            $this->doProcessWithErrorHandling($envelope);
         } catch (\Throwable $e) {
-            // Log as meaningful as we can, this is a very hard part to debug
-            // so output the most as we can for future developers that will
-            // try to guess what happened in production.
-            if ($transaction) {
-                if ($atCommit) {
-                    $this->logger->error("Dispatcher transaction FAIL (at commit), attempting ROLLBACK", ['exception' => $e]);
-                } else {
-                    $this->logger->error("Dispatcher transaction FAIL (before commit), attempting ROLLBACK", ['exception' => $e]);
-                }
-                $transaction->rollback();
-            } else {
-                $this->logger->error("Dispatcher transaction FAIL, no pending transaction");
-            }
-
             // Attempt retry if possible.
             try {
                 if ($e instanceof DispatcherRetryableError) {
                     $this->requeue($envelope);
-                    $this->logger->debug("Dispatcher requeue");
+                    $this->logger->debug("Dispatcher REQUEUE");
                 } else {
                     $this->reject($envelope);
-                    $this->logger->debug("Dispatcher reject");
+                    $this->logger->debug("Dispatcher REJECT");
                 }
             } catch (\Throwable $nested) {
                 $this->logger->error("Dispatcher re-queue FAIL", ['exception' => $nested]);
@@ -219,14 +147,6 @@ abstract class AbstractDispatcher implements Dispatcher, LoggerAwareInterface
 
             throw $e;
         }
-    }
-
-    /**
-     * Process without transaction, in most case this means send an asynchronous message.
-     */
-    private function processWithoutTransaction(MessageEnvelope $envelope): void
-    {
-        $this->synchronousProcess($envelope);
     }
 
     /**
@@ -246,17 +166,12 @@ abstract class AbstractDispatcher implements Dispatcher, LoggerAwareInterface
     /**
      * {@inheritdoc}
      */
-    final public function process($message, array $properties = [], bool $withTransaction = true): void
+    final public function process($message, array $properties = []): void
     {
         $id = ++self::$commandCount;
         try {
             $this->logger->debug("Dispatcher BEGIN ({id}) PROCESS message", ['id' => $id, 'message' => $message, 'properties' => $properties]);
-            $envelope = MessageEnvelope::wrap($message, $properties);
-            if ($withTransaction) {
-                $this->processInTransaction($envelope);
-            } else {
-                $this->processWithoutTransaction($envelope);
-            }
+            $this->doProcess(MessageEnvelope::wrap($message, $properties));
         } finally {
             $this->logger->debug("Dispatcher END ({id}) PROCESS message", ['id' => $id]);
         }

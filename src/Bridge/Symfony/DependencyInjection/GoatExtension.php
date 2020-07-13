@@ -101,6 +101,17 @@ final class GoatExtension extends Extension
             $container->setDefinition('goat.dispatcher.decorator.profiling', $decoratorDef);
         }
 
+        if ($config['with_transaction']) {
+//             $decoratedInnerId = 'goat.dispatcher.profiling.inner';
+//             $decoratorDef = new Definition();
+//             $decoratorDef->setClass(ProfilingDispatcherDecorator::class);
+//             $decoratorDef->setDecoratedService('goat.dispatcher', $decoratedInnerId, 1000);
+//             $decoratorDef->setArguments([
+//                 new Reference($decoratedInnerId),
+//             ]);
+//             $container->setDefinition('goat.dispatcher.decorator.profiling', $decoratorDef);
+        }
+
         if ($config['with_event_store']) {
             if (!$container->hasDefinition('goat.lock') && !$container->hasAlias('goat.lock')) {
                 throw new InvalidArgumentException("You must set goat.lock.enabled to true in order to be able to enable goat.dispatcher.with_lock");

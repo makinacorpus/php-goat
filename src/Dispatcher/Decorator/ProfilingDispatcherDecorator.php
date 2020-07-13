@@ -24,13 +24,13 @@ final class ProfilingDispatcherDecorator implements Dispatcher
      *
      * {@inheritdoc}
      */
-    public function process($message, array $properties = [], bool $withTransaction = true): void
+    public function process($message, array $properties = []): void
     {
         $timerStart = \hrtime(true);
         $envelope = MessageEnvelope::wrap($message, $properties);
 
         try {
-            $this->decorated->process($envelope, [], $withTransaction);
+            $this->decorated->process($envelope);
         } finally {
             $envelope->withProperties([
                 Property::PROCESS_DURATION => self::nsecToMsec(\hrtime(true) - $timerStart) . ' ms',

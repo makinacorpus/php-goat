@@ -35,5 +35,5 @@ interface Dispatcher
      * It can work only if the command was meant to be consumed within the same
      * application, otherwise it will be rejected, and fail.
      */
-    public function process($message, array $properties = [], bool $withTransaction = true): void;
+    public function process($message, array $properties = []): void;
 }
