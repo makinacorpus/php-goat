@@ -14,7 +14,7 @@ use PHPUnit\Framework\TestCase;
 /**
  * Ces tests servent surtout à avoir du coverage
  */
-final class NameMapTest extends TestCase
+final class DefaultNameMapTest extends TestCase
 {
     private $map;
 
@@ -36,53 +36,48 @@ final class NameMapTest extends TestCase
 
     public function testMessageNameWithNull()
     {
-        $this->assertSame(NameMap::TYPE_NULL, $this->map->getMessageType(null));
-        $this->assertSame(NameMap::TYPE_NULL, $this->map->getMessageName(null));
+        $this->assertSame(NameMap::TYPE_NULL, $this->map->getTypeOf(null));
+        $this->assertSame(NameMap::TYPE_NULL, $this->map->getAliasOf(null));
     }
 
     public function testMessageNameWithString()
     {
-        $this->assertSame(NameMap::TYPE_STRING, $this->map->getMessageType("foo"));
-        $this->assertSame('varchar', $this->map->getMessageName("foo"));
+        $this->assertSame(NameMap::TYPE_STRING, $this->map->getTypeOf("foo"));
+        $this->assertSame('varchar', $this->map->getAliasOf("foo"));
     }
 
     public function testMessageNameWithArray()
     {
-        $this->assertSame(NameMap::TYPE_ARRAY, $this->map->getMessageType(["bar", "baz"]));
-        $this->assertSame('dict', $this->map->getMessageName(["bar", "baz"]));
+        $this->assertSame(NameMap::TYPE_ARRAY, $this->map->getTypeOf(["bar", "baz"]));
+        $this->assertSame('dict', $this->map->getAliasOf(["bar", "baz"]));
     }
 
     public function testMessageNameMapExisting()
     {
-        $this->assertSame(MockMessage1::class, $this->map->getMessageType(new MockMessage1(1, 2, 3)));
-        $this->assertSame('mock_message_1', $this->map->getMessageName(new MockMessage1(1, 2, 3)));
+        $this->assertSame(MockMessage1::class, $this->map->getTypeOf(new MockMessage1(1, 2, 3)));
+        $this->assertSame('mock_message_1', $this->map->getAliasOf(new MockMessage1(1, 2, 3)));
     }
 
     public function testMessageNameMapNonExisting()
     {
-        $this->assertSame(MockMessage2::class, $this->map->getMessageType(new MockMessage2(1, 2)));
-        $this->assertSame(MockMessage2::class, $this->map->getMessageName(new MockMessage2(1, 2)));
+        $this->assertSame(MockMessage2::class, $this->map->getTypeOf(new MockMessage2(1, 2)));
+        $this->assertSame(MockMessage2::class, $this->map->getAliasOf(new MockMessage2(1, 2)));
     }
 
     public function testMessageNameMapAliasedExisting()
     {
-        $this->assertSame(MockMessage3::class, $this->map->getMessageType(new MockMessage3()));
-        $this->assertSame('mock_message_3', $this->map->getMessageName(new MockMessage3()));
+        $this->assertSame(MockMessage3::class, $this->map->getTypeOf(new MockMessage3()));
+        $this->assertSame('mock_message_3', $this->map->getAliasOf(new MockMessage3()));
     }
 
     public function testNameTypeWithExisting()    
     {
-        $this->assertSame('mock_message_3', $this->map->getName(MockMessage3::class));
+        $this->assertSame('mock_message_3', $this->map->getAlias(MockMessage3::class));
     }
 
     public function testGetNameWithNonExisting()
     {
-        $this->assertSame(MockMessage2::class, $this->map->getName(MockMessage2::class));
-    }
-
-    public function testGetNameWithAliasedExisting()
-    {
-        $this->markTestSkipped("I am not sure this will ever be useful");
+        $this->assertSame(MockMessage2::class, $this->map->getAlias(MockMessage2::class));
     }
 
     public function testGetTypeWithExisting()

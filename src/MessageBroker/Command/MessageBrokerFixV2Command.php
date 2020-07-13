@@ -246,7 +246,7 @@ final class MessageBrokerFixV2Command extends Command
         }
 
         // And now, handle message type.
-        $row['type'] = $row['headers'][Property::MESSAGE_TYPE] = $this->nameMap->getMessageName($object);
+        $row['type'] = $row['headers'][Property::MESSAGE_TYPE] = $this->nameMap->getAliasOf($object);
 
         return self::ROW_SUCCESS;
     }

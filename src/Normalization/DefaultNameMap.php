@@ -10,17 +10,13 @@ namespace Goat\Normalization;
 final class DefaultNameMap implements NameMap
 {
     /** @var string[] */
-    private $aliases = [];
-
+    private array $aliases = [];
     /** @var string[] */
-    private $nameToTypeMap = [];
-
+    private array $nameToTypeMap = [];
     /** @var string[] */
-    private $typeToNameMap = [];
+    private array $typeToNameMap = [];
 
     /**
-     * Default constructor
-     *
      * @param string $map[]
      *   Keys are message normalize names, values are PHP native types to
      *   convert the messages to, this is a 1:1 map where a PHP message will
@@ -44,7 +40,17 @@ final class DefaultNameMap implements NameMap
     /**
      * {@inheritdoc}
      */
-    public function getMessageType($message): string
+    public function getAliasOf($message): string
+    {
+        $type = $this->getTypeOf($message);
+
+        return $this->typeToNameMap[$type] ?? $type;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getTypeOf($message): string
     {
         if (null === $message) {
             return NameMap::TYPE_NULL;
@@ -73,17 +79,7 @@ final class DefaultNameMap implements NameMap
     /**
      * {@inheritdoc}
      */
-    public function getMessageName($message): string
-    {
-        $type = $this->getMessageType($message);
-
-        return $this->typeToNameMap[$type] ?? $type;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getName(string $type): string
+    public function getAlias(string $type): string
     {
         return $this->typeToNameMap[$type] ?? $type;
     }
@@ -91,11 +87,11 @@ final class DefaultNameMap implements NameMap
     /**
      * {@inheritdoc}
      */
-    public function getType(string $name): string
+    public function getType(string $alias): string
     {
-        $name = $this->aliases[$name] ?? $name;
+        $alias = $this->aliases[$alias] ?? $alias;
 
-        return $this->nameToTypeMap[$name] ?? $name;
+        return $this->nameToTypeMap[$alias] ?? $alias;
     }
 
     /**
@@ -109,8 +105,8 @@ final class DefaultNameMap implements NameMap
     /**
      * {@inheritdoc}
      */
-    public function getTypeAliases(): iterable
+    public function getAliasesMap(): iterable
     {
-        return $this->alias;
+        return $this->aliases;
     }
 }

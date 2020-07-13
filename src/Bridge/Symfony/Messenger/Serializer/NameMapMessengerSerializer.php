@@ -34,7 +34,7 @@ final class NameMapMessengerSerializer implements SerializerInterface
         $ret = $this->decorated->encode($envelope);
 
         if (isset($ret['headers']['type'])) {
-            $ret['headers']['type'] = $this->nameMap->getName($ret['headers']['type']);
+            $ret['headers']['type'] = $this->nameMap->getAlias($ret['headers']['type']);
         }
 
         return $ret;

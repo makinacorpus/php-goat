@@ -118,15 +118,15 @@ abstract class AbstractEventStore implements EventStore, LoggerAwareInterface
 
             // Compute normalized aggregate type, otherwise the PHP native class
             // or type name would be stored in database, we sure don't want that.
-            $aggregateType = $nameMap->getName($aggregateType ?? $event->getAggregateType());
+            $aggregateType = $nameMap->getAlias($aggregateType ?? $event->getAggregateType());
 
             // Compute normalized event name. If event name was given by the
             // caller normalize it before registering it into the properties
             // array. Otherwise, use the name map directly to guess it.
             if ($eventName) {
-                $eventName = $nameMap->getName($eventName);
+                $eventName = $nameMap->getAlias($eventName);
             } else {
-                $eventName = $nameMap->getMessageName($message);
+                $eventName = $nameMap->getAliasOf($message);
             }
 
             // Compute necessary common properties. Custom properties from

@@ -66,7 +66,7 @@ final class GoatEventQuery extends AbstractEventQuery
         if ($this->names) {
             $conditions = [];
             foreach ($this->names as $name) {
-                if ($name !== ($value = $nameMap->getName($name))) {
+                if ($name !== ($value = $nameMap->getAlias($name))) {
                     $conditions[] = $value;
                     $conditions[] = $name;
                 } else if ($name !== ($value = $nameMap->getType($name))) {
