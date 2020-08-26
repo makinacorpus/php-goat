@@ -29,6 +29,11 @@ interface Dispatcher
     public function setEventStore(EventStore $eventStore): void;
 
     /**
+     * Set retry strategy
+     */
+    public function setRetryStrategy(RetryStrategy $retryStrategy): void;
+
+    /**
      * Set Locking Service
      */
     public function setLockService(LockService $lockService): void;

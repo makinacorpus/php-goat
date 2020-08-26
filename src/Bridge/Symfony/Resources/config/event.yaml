@@ -4,6 +4,11 @@ services:
     Symfony\Component\Messenger\Handler\HandlersLocatorInterface:
         alias: messenger.bus.sync.messenger.handlers_locator
 
+    # Override or decorate this service depending upon your own needs.
+    goat.domain.dispatcher.retry_strategy:
+        public: false
+        class: Goat\Domain\Event\DefaultRetryStrategy
+
     goat.domain.dispatcher:
         public: false
         class: Goat\Domain\Event\DefaultDispatcher

@@ -35,6 +35,8 @@ final class Property
     const RETRY_DELAI = 'x-retry-delai';
     /** Maximum number of retries (AMQP would use a TTL instead). */
     const RETRY_MAX = 'x-retry-max';
+    /** Why should it retry? */
+    const RETRY_REASON = 'x-retry-reason';
 
     /** Event was modified, this contains arbitrary text. */
     const MODIFIED_BY = 'x-goat-modified-by';

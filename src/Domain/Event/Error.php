@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Goat\Domain\Event\Error;
 
+use Goat\Domain\Event\RetryStrategyResponse;
+
 /**
  * Errors related to runtime errors while processing events.
  */
@@ -50,6 +52,28 @@ class DispatcherError extends \RuntimeException
  */
 class DispatcherRetryableError extends DispatcherError implements HandlerEventError
 {
+    private ?RetryStrategyResponse $response = null;
+
+    /**
+     * Create instance from retry strategy response.
+     */
+    public static function fromResponse(RetryStrategyResponse $response, \Throwable $e): self
+    {
+        if ($e instanceof self) {
+            $ret = $e;
+        } else {
+            $ret = new static($e->getMessage(), $e->getCode(), $e);
+        }
+
+        $ret->response = $response;
+
+        return $ret;
+    }
+
+    public function getRetryStrategyResponse(): RetryStrategyResponse
+    {
+        return $this->response ?? RetryStrategyResponse::retry();
+    }
 }
 
 /**

@@ -23,6 +23,7 @@ final class DomainConfigurationPass implements CompilerPassInterface
     private string $eventStoreId;
     private string $lockServiceId;
     private string $messengerSerializerServiceId;
+    private string $retryStrategyServiceId;
     private string $transactionHandlerTag;
 
     /**
@@ -35,7 +36,8 @@ final class DomainConfigurationPass implements CompilerPassInterface
         string $transactionHandlerTag = 'goat.domain.transaction_handler',
         string $eventStoreId = 'goat.domain.event_store',
         string $lockServiceId = 'goat.domain.lock_service',
-        string $messengerSerializerServiceId = 'messenger.transport.symfony_serializer'
+        string $messengerSerializerServiceId = 'messenger.transport.symfony_serializer',
+        string $retryStrategyServiceId = 'goat.domain.dispatcher.retry_strategy'
     ) {
         $this->dispatcherId = $dispatcherId;
         $this->projectorTag = $projectorTag;
@@ -43,6 +45,7 @@ final class DomainConfigurationPass implements CompilerPassInterface
         $this->eventStoreId = $eventStoreId;
         $this->lockServiceId = $lockServiceId;
         $this->messengerSerializerServiceId = $messengerSerializerServiceId;
+        $this->retryStrategyServiceId = $retryStrategyServiceId;
         $this->transactionHandlerTag = $transactionHandlerTag;
     }
 
@@ -77,6 +80,7 @@ final class DomainConfigurationPass implements CompilerPassInterface
 
         if ($hasDispatcher) {
             $dispatcherDef = $container->getDefinition($this->dispatcherId);
+            $dispatcherDef->addMethodCall('setRetryStrategy', [new Reference($this->retryStrategyServiceId)]);
             if ($references = $this->findAndSortTaggedServices($this->transactionHandlerTag, $container)) {
                 $dispatcherDef->addMethodCall('setTransactionHandlers', [$references]);
             }
