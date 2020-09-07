@@ -8,6 +8,7 @@ use Goat\EventStore\AbstractEventQuery;
 use Goat\EventStore\EventStream;
 use Goat\Query\ExpressionLike;
 use Goat\Query\ExpressionRaw;
+use Goat\Query\ExpressionValue;
 use Goat\Query\Query;
 use Goat\Query\SelectQuery;
 
@@ -113,6 +114,25 @@ final class GoatEventQuery extends AbstractEventQuery
         }
         if (null !== $this->failed) {
             $where->condition('event.has_failed', $this->failed);
+        }
+
+        // @todo make goat-query evolve to support JSON expressions better than that.
+        if ($this->properties) {
+            foreach ($this->properties as $propName => $values) {
+                $values = \array_filter($values, fn ($value) => null !== $value);
+
+                if ($values) {
+                    throw new \Exception("Not implemented yet.");
+                    // $select->expression("properties->>? in ()", ExpressionValue::create($value, 'varchar'));
+                } else {
+                    $select->expression("properties->>? is not null", ExpressionValue::create($propName, 'varchar'));
+                }
+            }
+        }
+        if ($this->withoutProperties) {
+            foreach (\array_keys($this->withoutProperties) as $propName) {
+                $select->expression("properties->>? is null", ExpressionValue::create($propName, 'varchar'));
+            }
         }
 
         if ($this->reverse) {

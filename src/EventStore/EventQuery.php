@@ -60,6 +60,16 @@ interface EventQuery
     public function withSearchData($data): EventQuery;
 
     /**
+     * Fetch with the property, if value is set it will lookup for the given value as well.
+     */
+    public function withProperty(string $name, ?string $value = null): EventQuery;
+
+    /**
+     * Fetch for which the property is not set or is null.
+     */
+    public function withoutProperty(string $name): EventQuery;
+
+    /**
      * Fetch events starting from date, ignored if date bounds are already set using betweenDate()
      */
     public function fromDate(\DateTimeInterface $from): EventQuery;

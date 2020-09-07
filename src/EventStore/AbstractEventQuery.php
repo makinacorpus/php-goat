@@ -22,6 +22,8 @@ abstract class AbstractEventQuery implements EventQuery
     protected ?int $position = null;
     protected bool $reverse = false;
     protected ?int $revision = null;
+    protected array $properties = [];
+    protected array $withoutProperties = [];
 
     /**
      * Convert value to UUID, raise exception in case of failure
@@ -128,6 +130,32 @@ abstract class AbstractEventQuery implements EventQuery
     public function withSearchData($data): EventQuery
     {
         $this->searchData = $data;
+
+        return $this;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function withProperty(string $name, ?string $value = null): EventQuery
+    {
+        unset($this->withoutProperties[$name]);
+
+        $this->properties[$name][] = $value;
+
+        return $this;
+    }
+
+    /**
+     * Fetch for which the property is not set or is null.
+     */
+    public function withoutProperty(string $name): EventQuery
+    {
+        if (\array_key_exists($name, $this->properties)) {
+            \trigger_error(\sprintf("Query has a value set for this property using withProperty(), call is ignored"), E_USER_WARNING);
+        } else {
+            $this->withoutProperties[$name] = true;
+        }
 
         return $this;
     }
