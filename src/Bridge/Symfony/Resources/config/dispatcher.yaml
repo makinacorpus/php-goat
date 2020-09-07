@@ -9,9 +9,16 @@ services:
     Goat\Dispatcher\HandlerLocator:
         alias: goat.dispatcher.handler_locator
 
+    # Override or decorate this service depending upon your own needs.
+    goat.dispatcher.retry_strategy:
+        public: false
+        class: Goat\Dispatcher\DefaultRetryStrategy
+
     goat.dispatcher:
         public: false
         class: Goat\Dispatcher\DefaultDispatcher
+        calls:
+            - [setRetryStrategy, ["@goat.dispatcher.retry_strategy"]]
         arguments: ['@goat.dispatcher.handler_locator', '@goat.message_broker']
         tags: [{ name: "monolog.logger", channel: "goat_dispatcher" }]
 
