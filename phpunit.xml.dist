@@ -13,11 +13,29 @@
         <testsuite name="BridgeSymfony">
             <directory>./tests/Bridge/Symfony</directory>
         </testsuite>
+        <testsuite name="Dispatcher">
+            <directory>./tests/Dispatcher</directory>
+        </testsuite>
         <testsuite name="Domain">
             <directory>./tests/Domain</directory>
         </testsuite>
+        <testsuite name="EventStore">
+            <directory>./tests/EventStore</directory>
+        </testsuite>
+        <testsuite name="MessageBroker">
+            <directory>./tests/MessageBroker</directory>
+        </testsuite>
+        <testsuite name="Normalization">
+            <directory>./tests/Normalization</directory>
+        </testsuite>
         <testsuite name="Preferences">
             <directory>./tests/Preferences</directory>
+        </testsuite>
+        <testsuite name="Projector">
+            <directory>./tests/Projector</directory>
+        </testsuite>
+        <testsuite name="Repository">
+            <directory>./tests/Repository</directory>
         </testsuite>
     </testsuites>
 
