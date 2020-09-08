@@ -117,6 +117,19 @@ interface EventStore
     public function query(): EventQuery;
 
     /**
+     * Does aggregate exists.
+     */
+    public function aggregateExists(UuidInterface $aggregateId): bool;
+
+    /**
+     * Fetch single aggregate metadata if exists.
+     *
+     * @throws AggregateDoesNotExistError
+     *   If aggregate is not indexed in event store.
+     */
+    public function findAggregateMetadata(UuidInterface $aggregateId): AggregateMetadata;
+
+    /**
      * Find single event by position.
      */
     public function findByPosition(int $position): Event;

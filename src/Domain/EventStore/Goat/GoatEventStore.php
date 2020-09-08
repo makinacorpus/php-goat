@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Goat\Domain\EventStore\Goat;
 
 use Goat\Domain\EventStore\AbstractEventStore;
+use Goat\Domain\EventStore\AggregateDoesNotExistError;
+use Goat\Domain\EventStore\AggregateMetadata;
 use Goat\Domain\EventStore\Event;
 use Goat\Domain\EventStore\EventQuery;
 use Goat\Query\ExpressionRelation;
@@ -289,6 +291,79 @@ final class GoatEventStore extends AbstractEventStore
     public function query(): EventQuery
     {
         return new GoatEventQuery($this);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function aggregateExists(UuidInterface $aggregateId): bool
+    {
+        return (bool)$this
+            ->runner
+            ->getQueryBuilder()
+            ->select($this->getIndexRelation())
+            ->columnExpression('true')
+            ->where('aggregate_id', $aggregateId)
+            ->execute()
+            ->fetchField()
+        ;
+    }
+
+    /**
+     * Fetch single aggregate metadata if exists.
+     *
+     * @throws AggregateDoesNotExistError
+     *   If aggregate is not indexed in event store.
+     */
+    public function findAggregateMetadata(UuidInterface $aggregateId): AggregateMetadata
+    {
+        $ret = $this
+            ->runner
+            ->getQueryBuilder()
+            ->select($this->getIndexRelation())
+            ->column('index.aggregate_type')
+            ->column('index.aggregate_root')
+            ->column('index.created_at')
+            ->columnExpression(
+                <<<SQL
+                (
+                    SELECT
+                        COALESCE(MAX(event_default.revision), 0)
+                    FROM event_default
+                    WHERE
+                        event_default.aggregate_id = index.aggregate_id
+                ) AS current_revision
+                SQL
+            )
+            ->columnExpression(
+                <<<SQL
+                (
+                    SELECT
+                        root.aggregate_type
+                    FROM event_index root
+                    WHERE
+                        root.aggregate_id = index.aggregate_root
+                ) AS aggregate_root_type
+                SQL
+            )
+            ->where('aggregate_id', $aggregateId)
+            ->setOption('hydrator', fn (array $row) => new AggregateMetadata(
+                $aggregateId,
+                $row['aggregate_root'],
+                $row['aggregate_type'],
+                $row['aggregate_root_type'],
+                $row['created_at'],
+                $row['current_revision']
+            ))
+            ->execute()
+            ->fetch()
+        ;
+
+        if (!$ret) {
+            throw AggregateDoesNotExistError::fromAggregateId($aggregateId);
+        }
+
+        return $ret;
     }
 
     /**
