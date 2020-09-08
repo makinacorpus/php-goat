@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Goat\EventStore;
 
+use Goat\EventStore\Error\AggregateDoesNotExistError;
 use Goat\Normalization\Serializer;
 use Ramsey\Uuid\UuidInterface;
 
@@ -115,6 +116,19 @@ interface EventStore
      * Create event query.
      */
     public function query(): EventQuery;
+
+    /**
+     * Does aggregate exists.
+     */
+    public function aggregateExists(UuidInterface $aggregateId): bool;
+
+    /**
+     * Fetch single aggregate metadata if exists.
+     *
+     * @throws AggregateDoesNotExistError
+     *   If aggregate is not indexed in event store.
+     */
+    public function findAggregateMetadata(UuidInterface $aggregateId): AggregateMetadata;
 
     /**
      * Find single event by position.

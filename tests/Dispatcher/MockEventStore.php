@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Goat\Dispatcher\Tests;
 
 use Goat\EventStore\AbstractEventStore;
+use Goat\EventStore\AggregateMetadata;
 use Goat\EventStore\Event;
 use Goat\EventStore\EventQuery;
 use Ramsey\Uuid\UuidInterface;
@@ -80,6 +81,16 @@ class MockEventStore extends AbstractEventStore
      * {@inheritdoc}
      */
     public function count(EventQuery $query): ?int
+    {
+        throw new \BadMethodCallException();
+    }
+
+    public function aggregateExists(UuidInterface $aggregateId): bool
+    {
+        throw new \BadMethodCallException();
+    }
+
+    public function findAggregateMetadata(UuidInterface $aggregateId): AggregateMetadata
     {
         throw new \BadMethodCallException();
     }

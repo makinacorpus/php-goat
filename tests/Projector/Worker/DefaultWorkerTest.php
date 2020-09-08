@@ -6,6 +6,7 @@ namespace Goat\Projector\Tests\Worker;
 
 use Goat\EventStore\AbstractEventQuery;
 use Goat\EventStore\AbstractEventStore;
+use Goat\EventStore\AggregateMetadata;
 use Goat\EventStore\Event;
 use Goat\EventStore\EventQuery;
 use Goat\EventStore\EventStore;
@@ -373,6 +374,22 @@ class DefaultWorkerTest extends TestCase
              * {@inheritdoc}
              */
             public function count(EventQuery $query): ?int
+            {
+                throw new \Exception("Not implemented.");
+            }
+
+            /**
+             * {@inheritdoc}
+             */
+            public function aggregateExists(UuidInterface $aggregateId): bool
+            {
+                throw new \Exception("Not implemented.");
+            }
+
+            /**
+             * {@inheritdoc}
+             */
+            public function findAggregateMetadata(UuidInterface $aggregateId): AggregateMetadata
             {
                 throw new \Exception("Not implemented.");
             }
