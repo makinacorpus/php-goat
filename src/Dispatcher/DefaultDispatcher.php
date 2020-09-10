@@ -6,15 +6,13 @@ namespace Goat\Dispatcher;
 
 use Goat\MessageBroker\MessageBroker;
 
-final class DefaultDispatcher extends AbstractDispatcher
+final class DefaultDispatcher implements Dispatcher
 {
     private HandlerLocator $handlerLocator;
     private MessageBroker $messageBroker;
 
     public function __construct(HandlerLocator $handlerLocator, MessageBroker $messageBroker)
     {
-        parent::__construct();
-
         $this->handlerLocator = $handlerLocator;
         $this->messageBroker = $messageBroker;
     }
@@ -22,23 +20,35 @@ final class DefaultDispatcher extends AbstractDispatcher
     /**
      * {@inheritdoc}
      */
-    protected function doRequeue(MessageEnvelope $envelope): void
+    final public function dispatch($message, array $properties = []): void
     {
-        $this->messageBroker->reject($envelope);
+        $id = ++self::$commandCount;
+        try {
+            $this->logger->debug("Dispatcher BEGIN ({id}) DISPATCH message", ['id' => $id, 'message' => $message, 'properties' => $properties]);
+            $this->doDispatch(MessageEnvelope::wrap($message, $properties));
+        } finally {
+            $this->logger->debug("Dispatcher END ({id}) DISPATCH message", ['id' => $id]);
+        }
     }
 
     /**
      * {@inheritdoc}
      */
-    protected function doReject(MessageEnvelope $envelope): void
+    final public function process($message, array $properties = []): void
     {
-        $this->messageBroker->reject($envelope);
+        $id = ++self::$commandCount;
+        try {
+            $this->logger->debug("Dispatcher BEGIN ({id}) PROCESS message", ['id' => $id, 'message' => $message, 'properties' => $properties]);
+            $this->doProcess(MessageEnvelope::wrap($message, $properties));
+        } finally {
+            $this->logger->debug("Dispatcher END ({id}) PROCESS message", ['id' => $id]);
+        }
     }
 
     /**
-     * {@inheritdoc}
+     * Process message synchronously.
      */
-    protected function doSynchronousProcess(MessageEnvelope $envelope): void
+    private function doProcess(MessageEnvelope $envelope): void
     {
         $message = $envelope->getMessage();
 
@@ -46,9 +56,9 @@ final class DefaultDispatcher extends AbstractDispatcher
     }
 
     /**
-     * {@inheritdoc}
+     * Dispatch message to message broker.
      */
-    protected function doAsynchronousCommandDispatch(MessageEnvelope $envelope): void
+    private function doDispatch(MessageEnvelope $envelope): void
     {
         $this->messageBroker->dispatch($envelope);
     }

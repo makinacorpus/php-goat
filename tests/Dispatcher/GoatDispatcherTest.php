@@ -89,7 +89,7 @@ final class GoatDispatcherTest extends AbstractEventStoreTest
 
         $decorated = new MockDispatcher(
             function (MessageEnvelope $message) {
-                throw new \Exception("This is a failure", 12);
+                throw new \DomainException("This is a failure", 12);
             },
             function () {
                 throw new \Exception("This should be processed synchronously");
@@ -103,7 +103,7 @@ final class GoatDispatcherTest extends AbstractEventStoreTest
         try {
             $dispatcher->process(new MockMessage($id));
             self::fail("Exceptions must be re-thrown");
-        } catch (DispatcherError $e) {
+        } catch (\DomainException $e) {
             self::assertCount(1, $this->findEventOf($eventStore, $id));
             self::assertInstanceOf(Event::class, $event = $this->findLastEventOf($eventStore, $id));
             self::assertTrue($event->hasFailed());

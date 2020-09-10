@@ -4,31 +4,20 @@ declare(strict_types=1);
 
 namespace Goat\Dispatcher\Tests;
 
-use Goat\Dispatcher\AbstractDispatcher;
+use Goat\Dispatcher\Dispatcher;
 use Goat\Dispatcher\MessageEnvelope;
 
-class MockDispatcher extends AbstractDispatcher
+class MockDispatcher Implements Dispatcher
 {
     /** @var callable */
     private $asyncProcessCallback;
     /** @var callable */
     private $processCallback;
-    /** @var null|callable */
-    private $requeueCallback;
 
-    /**
-     * Default constructor
-     */
-    public function __construct(
-        callable $processCallback,
-        callable $asyncProcessCallback,
-        ?callable $requeueCallback = null
-    ) {
-        parent::__construct();
-
+    public function __construct(callable $processCallback, callable $asyncProcessCallback)
+    {
         $this->asyncProcessCallback = $asyncProcessCallback;
         $this->processCallback = $processCallback;
-        $this->requeueCallback = $requeueCallback;
     }
 
     public function setProcessCallback(callable $processCallback): void
@@ -37,30 +26,18 @@ class MockDispatcher extends AbstractDispatcher
     }
 
     /**
-     * Requeue message if possible.
-     *
-     * Envelope contains all retry-related properties.
+     * {@inheritdoc}
      */
-    protected function doRequeue(MessageEnvelope $envelope): void
+    public function process($message, array $properties = []): void
     {
-        if ($this->requeueCallback) {
-            \call_user_func($this->requeueCallback, $envelope);
-        }
+        \call_user_func($this->processCallback, MessageEnvelope::wrap($message, $properties));
     }
 
     /**
      * {@inheritdoc}
      */
-    protected function doSynchronousProcess(MessageEnvelope $envelope): void
+    public function dispatch($message, array $properties = []): void
     {
-        \call_user_func($this->processCallback, $envelope);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    protected function doAsynchronousCommandDispatch(MessageEnvelope $envelope): void
-    {
-        \call_user_func($this->asyncProcessCallback, $envelope);
+        \call_user_func($this->asyncProcessCallback, MessageEnvelope::wrap($message, $properties));
     }
 }

@@ -18,9 +18,7 @@ namespace Goat\Dispatcher;
  *
  *   - dispatchEvent() method has been removed, nobody ever used it,
  *
- *   - dispatchCommand() have been removed from the interface, but the default
- *     implementation on AbstractDispatcher remains for transparent backward
- *     compatibility. Consider reverting to dispatch() method instead.
+ *   - dispatchCommand() have been removed from the interface.
  */
 interface Dispatcher
 {
