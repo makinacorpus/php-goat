@@ -6,7 +6,6 @@ namespace Goat\Dispatcher\Tests;
 
 use Goat\Dispatcher\MessageEnvelope;
 use Goat\Dispatcher\Decorator\EventStoreDispatcherDecorator;
-use Goat\Dispatcher\Error\DispatcherError;
 use Goat\EventStore\Event;
 use Goat\EventStore\Tests\AbstractEventStoreTest;
 use Goat\Runner\Testing\TestDriverFactory;

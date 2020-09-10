@@ -8,6 +8,7 @@ use Goat\Dispatcher\Dispatcher;
 use Goat\Dispatcher\MessageEnvelope;
 use Goat\Dispatcher\TransactionHandler;
 use Goat\Dispatcher\Decorator\EventStoreDispatcherDecorator;
+use Goat\Dispatcher\Decorator\LoggingDispatcherDecorator;
 use Goat\Dispatcher\Decorator\ProfilingDispatcherDecorator;
 use Goat\Dispatcher\Decorator\TransactionDispatcherDecorator;
 use Goat\EventStore\Tests\AbstractEventStoreTest;
@@ -116,26 +117,28 @@ final class DefaultDispatcherTest extends AbstractEventStoreTest
 
     private function decorate(Dispatcher $decorated): Dispatcher
     {
-        return new ProfilingDispatcherDecorator(
-            new TransactionDispatcherDecorator(
-                $decorated,
-                [
-                    new class implements TransactionHandler
-                    {
-                        public function commit(): void
+        return new LoggingDispatcherDecorator(
+            new ProfilingDispatcherDecorator(
+                new TransactionDispatcherDecorator(
+                    $decorated,
+                    [
+                        new class implements TransactionHandler
                         {
-                        }
+                            public function commit(): void
+                            {
+                            }
 
-                        public function rollback(?\Throwable $previous = null): void
-                        {
-                        }
+                            public function rollback(?\Throwable $previous = null): void
+                            {
+                            }
 
-                        public function start(): void
-                        {
-                        }
-                    },
-                ]
+                            public function start(): void
+                            {
+                            }
+                        },
+                    ]
+                )
             )
-        );;
+        );
     }
 }

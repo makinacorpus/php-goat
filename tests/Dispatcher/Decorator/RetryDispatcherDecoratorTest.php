@@ -8,6 +8,7 @@ use Goat\Dispatcher\Dispatcher;
 use Goat\Dispatcher\MessageEnvelope;
 use Goat\Dispatcher\TransactionHandler;
 use Goat\Dispatcher\Decorator\EventStoreDispatcherDecorator;
+use Goat\Dispatcher\Decorator\LoggingDispatcherDecorator;
 use Goat\Dispatcher\Decorator\ProfilingDispatcherDecorator;
 use Goat\Dispatcher\Decorator\RetryDispatcherDecorator;
 use Goat\Dispatcher\Decorator\TransactionDispatcherDecorator;
@@ -194,63 +195,65 @@ final class RetryDispatcherDecoratorTest extends AbstractEventStoreTest
 
     private function decorate(Dispatcher $decorated, callable $retryCallback, callable $rejectCallback): Dispatcher
     {
-        return new ProfilingDispatcherDecorator(
-            new RetryDispatcherDecorator(
-                new TransactionDispatcherDecorator(
-                    $decorated,
-                    [
-                        new class implements TransactionHandler
+        return new LoggingDispatcherDecorator(
+            new ProfilingDispatcherDecorator(
+                new RetryDispatcherDecorator(
+                    new TransactionDispatcherDecorator(
+                        $decorated,
+                        [
+                            new class implements TransactionHandler
+                            {
+                                public function commit(): void
+                                {
+                                }
+
+                                public function rollback(?\Throwable $previous = null): void
+                                {
+                                }
+
+                                public function start(): void
+                                {
+                                }
+                            },
+                        ]
+                    ),
+                    new DefaultRetryStrategy(),
+                    new class ($retryCallback, $rejectCallback) implements MessageBroker
+                    {
+                        private $retryCallback;
+                        private $rejectCallback;
+
+                        public function __construct(callable $retryCallback, callable $rejectCallback)
                         {
-                            public function commit(): void
-                            {
+                            $this->retryCallback = $retryCallback;
+                            $this->rejectCallback = $rejectCallback;
+                        }
+
+                        public function get(): ?MessageEnvelope
+                        {
+                            throw new \BadMethodCallException("We are not testing this.");
+                        }
+
+                        public function dispatch(MessageEnvelope $envelope): void
+                        {
+                            throw new \BadMethodCallException("We are not testing this.");
+                        }
+
+                        public function ack(MessageEnvelope $envelope): void
+                        {
+                            throw new \BadMethodCallException("We are not testing this.");
+                        }
+
+                        public function reject(MessageEnvelope $envelope): void
+                        {
+                            if ($envelope->hasProperty(Property::RETRY_COUNT)) {
+                                ($this->retryCallback)($envelope);
+                            } else {
+                                ($this->rejectCallback)($envelope);
                             }
-    
-                            public function rollback(?\Throwable $previous = null): void
-                            {
-                            }
-    
-                            public function start(): void
-                            {
-                            }
-                        },
-                    ]
-                ),
-                new DefaultRetryStrategy(),
-                new class ($retryCallback, $rejectCallback) implements MessageBroker
-                {
-                    private $retryCallback;
-                    private $rejectCallback;
-
-                    public function __construct(callable $retryCallback, callable $rejectCallback)
-                    {
-                        $this->retryCallback = $retryCallback;
-                        $this->rejectCallback = $rejectCallback;
-                    }
-
-                    public function get(): ?MessageEnvelope
-                    {
-                        throw new \BadMethodCallException("We are not testing this.");
-                    }
-
-                    public function dispatch(MessageEnvelope $envelope): void
-                    {
-                        throw new \BadMethodCallException("We are not testing this.");
-                    }
-
-                    public function ack(MessageEnvelope $envelope): void
-                    {
-                        throw new \BadMethodCallException("We are not testing this.");
-                    }
-
-                    public function reject(MessageEnvelope $envelope): void
-                    {
-                        if ($envelope->hasProperty(Property::RETRY_COUNT)) {
-                            ($this->retryCallback)($envelope);
-                        } else {
-                            ($this->rejectCallback)($envelope);
                         }
                     }
-                }
+                )
             )
         );
     }
