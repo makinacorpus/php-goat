@@ -14,26 +14,19 @@ goat:
         enabled: false
 
         #
-        # Profiling simply store command process time in milliseconds within
-        # the message envelope properties.
+        # Logging emit debug log messages on message entry and exit into and
+        # from the bus, useful for debugging purpose.
         #
-        # If you plug the event store altogether, timings will be stored in the
-        # event store stored event properties as well, allowing you to analyze
-        # performance restrospectively.
-        #
-        with_profiling: true
+        with_logging: true
 
         #
-        # Enable transaction support.
+        # Set this to true to enable concurrent processing of the same command
+        # enabled.
         #
-        # Transaction will decorate all other dispatcher decorators, hence
-        # they will be all or nothing (including event store). In case of any
-        # failure, everything will be rollbacked.
+        # This will only block concurrent processing of commands implementing the
+        # \Goat\Dispatcher\Message\UnparallelizableMessage interface.
         #
-        # Default transaction level is SERIALIZABLE (level 4), beware of the
-        # potential performance impact.
-        #
-        with_transaction: true
+        with_lock: false
 
         #
         # Set this to plug event store on the dispatcher: every processed
@@ -48,13 +41,39 @@ goat:
         with_event_store: false
 
         #
-        # Set this to true to enable concurrent processing of the same command
-        # enabled.
+        # Profiling simply store command process time in milliseconds within
+        # the message envelope properties.
         #
-        # This will only block concurrent processing of commands implementing the
-        # \Goat\Dispatcher\Message\UnparallelizableMessage interface.
+        # If you plug the event store altogether, timings will be stored in the
+        # event store stored event properties as well, allowing you to analyze
+        # performance restrospectively.
         #
-        with_lock: false
+        with_profiling: true
+
+        #
+        # Retry logic will attempt to guess if a message is suitable for retry
+        # in case of failure (for example, SQL serialization errors should be
+        # retried).
+        #
+        # It will work only on messages that are asynchronously dispatched, not
+        # for synchronously processed messages, to avoid UI glitches.
+        #
+        # Retry logic can be customized by decorating or replacing the
+        # 'goat.dispatcher.retry_strategy' service.
+        #
+        with_retry: true
+
+        #
+        # Enable transaction support.
+        #
+        # Transaction will decorate all other dispatcher decorators, hence
+        # they will be all or nothing (including event store). In case of any
+        # failure, everything will be rollbacked.
+        #
+        # Default transaction level is SERIALIZABLE (level 4), beware of the
+        # potential performance impact.
+        #
+        with_transaction: true
 
     event_store:
         #

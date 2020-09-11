@@ -5,8 +5,11 @@ declare(strict_types=1);
 namespace Goat\Bridge\Symfony\DependencyInjection;
 
 use Goat\Dispatcher\Decorator\EventStoreDispatcherDecorator;
+use Goat\Dispatcher\Decorator\LoggingDispatcherDecorator;
 use Goat\Dispatcher\Decorator\ParallelExecutionBlockerDispatcherDecorator;
 use Goat\Dispatcher\Decorator\ProfilingDispatcherDecorator;
+use Goat\Dispatcher\Decorator\RetryDispatcherDecorator;
+use Goat\Dispatcher\Decorator\TransactionDispatcherDecorator;
 use Goat\Preferences\Domain\Repository\ArrayPreferencesSchema;
 use Goat\Preferences\Domain\Repository\PreferencesSchema;
 use Monolog\Formatter\LineFormatter;
@@ -90,42 +93,15 @@ final class GoatExtension extends Extension
 
     private function configureDispatcher(ContainerBuilder $container, array $config): void
     {
-        if ($config['with_profiling']) {
-            $decoratedInnerId = 'goat.dispatcher.profiling.inner';
+        if ($config['with_logging']) {
+            $decoratedInnerId = 'goat.dispatcher.logging.inner';
             $decoratorDef = new Definition();
-            $decoratorDef->setClass(ProfilingDispatcherDecorator::class);
+            $decoratorDef->setClass(LoggingDispatcherDecorator::class);
             $decoratorDef->setDecoratedService('goat.dispatcher', $decoratedInnerId, 1000);
             $decoratorDef->setArguments([
                 new Reference($decoratedInnerId),
             ]);
-            $container->setDefinition('goat.dispatcher.decorator.profiling', $decoratorDef);
-        }
-
-        if ($config['with_transaction']) {
-//             $decoratedInnerId = 'goat.dispatcher.profiling.inner';
-//             $decoratorDef = new Definition();
-//             $decoratorDef->setClass(ProfilingDispatcherDecorator::class);
-//             $decoratorDef->setDecoratedService('goat.dispatcher', $decoratedInnerId, 1000);
-//             $decoratorDef->setArguments([
-//                 new Reference($decoratedInnerId),
-//             ]);
-//             $container->setDefinition('goat.dispatcher.decorator.profiling', $decoratorDef);
-        }
-
-        if ($config['with_event_store']) {
-            if (!$container->hasDefinition('goat.lock') && !$container->hasAlias('goat.lock')) {
-                throw new InvalidArgumentException("You must set goat.lock.enabled to true in order to be able to enable goat.dispatcher.with_lock");
-            }
-
-            $decoratedInnerId = 'goat.dispatcher.event_store.inner';
-            $decoratorDef = new Definition();
-            $decoratorDef->setClass(EventStoreDispatcherDecorator::class);
-            $decoratorDef->setDecoratedService('goat.dispatcher', $decoratedInnerId, 800);
-            $decoratorDef->setArguments([
-                new Reference($decoratedInnerId),
-                new Reference('goat.event_store'),
-            ]);
-            $container->setDefinition('goat.dispatcher.decorator.event_store', $decoratorDef);
+            $container->setDefinition('goat.dispatcher.decorator.logging', $decoratorDef);
         }
 
         if ($config['with_lock']) {
@@ -136,12 +112,68 @@ final class GoatExtension extends Extension
             $decoratedInnerId = 'goat.dispatcher.lock.inner';
             $decoratorDef = new Definition();
             $decoratorDef->setClass(ParallelExecutionBlockerDispatcherDecorator::class);
-            $decoratorDef->setDecoratedService('goat.dispatcher', $decoratedInnerId, 600);
+            $decoratorDef->setDecoratedService('goat.dispatcher', $decoratedInnerId, 800);
             $decoratorDef->setArguments([
                 new Reference($decoratedInnerId),
                 new Reference('goat.lock'),
             ]);
             $container->setDefinition('goat.dispatcher.decorator.lock', $decoratorDef);
+        }
+
+        if ($config['with_event_store']) {
+            if (!$container->hasDefinition('goat.event_store') && !$container->hasAlias('goat.event_store')) {
+                throw new InvalidArgumentException("You must set goat.event_store.enabled to true in order to be able to enable goat.dispatcher.with_event_store");
+            }
+
+            $decoratedInnerId = 'goat.dispatcher.event_store.inner';
+            $decoratorDef = new Definition();
+            $decoratorDef->setClass(EventStoreDispatcherDecorator::class);
+            $decoratorDef->setDecoratedService('goat.dispatcher', $decoratedInnerId, 600);
+            $decoratorDef->setArguments([
+                new Reference($decoratedInnerId),
+                new Reference('goat.event_store'),
+            ]);
+            $container->setDefinition('goat.dispatcher.decorator.event_store', $decoratorDef);
+        }
+
+        if ($config['with_profiling']) {
+            $decoratedInnerId = 'goat.dispatcher.profiling.inner';
+            $decoratorDef = new Definition();
+            $decoratorDef->setClass(ProfilingDispatcherDecorator::class);
+            $decoratorDef->setDecoratedService('goat.dispatcher', $decoratedInnerId, 400);
+            $decoratorDef->setArguments([
+                new Reference($decoratedInnerId),
+            ]);
+            $container->setDefinition('goat.dispatcher.decorator.profiling', $decoratorDef);
+        }
+
+        if ($config['with_retry']) {
+            if (!$container->hasDefinition('goat.message_broker') && !$container->hasAlias('goat.message_broker')) {
+                throw new InvalidArgumentException("You must set goat.event_store.enabled (for message broker support) to true in order to be able to enable goat.dispatcher.with_retry");
+            }
+
+            $decoratedInnerId = 'goat.dispatcher.retry.inner';
+            $decoratorDef = new Definition();
+            $decoratorDef->setClass(RetryDispatcherDecorator::class);
+            $decoratorDef->setDecoratedService('goat.dispatcher', $decoratedInnerId, 400);
+            $decoratorDef->setArguments([
+                new Reference($decoratedInnerId),
+                new Reference('goat.dispatcher.retry_strategy'),
+                new Reference('goat.message_broker')
+            ]);
+            $container->setDefinition('goat.dispatcher.decorator.retry', $decoratorDef);
+        }
+
+        if ($config['with_transaction']) {
+            $decoratedInnerId = 'goat.dispatcher.transaction.inner';
+            $decoratorDef = new Definition();
+            $decoratorDef->setClass(TransactionDispatcherDecorator::class);
+            $decoratorDef->setDecoratedService('goat.dispatcher', $decoratedInnerId, 200);
+            $decoratorDef->setArguments([
+                new Reference($decoratedInnerId),
+                [] // @todo
+            ]);
+            $container->setDefinition('goat.dispatcher.decorator.transaction', $decoratorDef);
         }
     }
 

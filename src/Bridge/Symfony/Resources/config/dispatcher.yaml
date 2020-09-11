@@ -1,6 +1,7 @@
 services:
 
     goat.dispatcher.handler_locator.default:
+        public: false
         class: Goat\Dispatcher\HandlerLocator\DefaultHandlerLocator
 
     goat.dispatcher.handler_locator:
