@@ -13,7 +13,7 @@ services:
     # Override or decorate this service depending upon your own needs.
     goat.dispatcher.retry_strategy:
         public: false
-        class: Goat\Dispatcher\DefaultRetryStrategy
+        class: Goat\Dispatcher\RetryStrategy\DefaultRetryStrategy
 
     goat.dispatcher:
         public: false
