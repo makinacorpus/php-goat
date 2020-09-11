@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Goat\Dispatcher\Command;
 
 use Goat\Dispatcher\Dispatcher;
+use Goat\Dispatcher\MessageEnvelope;
 use Goat\Dispatcher\Worker\Worker;
 use Goat\Dispatcher\Worker\WorkerEvent;
 use Goat\MessageBroker\MessageBroker;
@@ -75,7 +76,7 @@ final class DispatcherRunCommand extends Command
             WorkerEvent::IDLE,
             function (WorkerEvent $event) use ($output, $handleTick) {
                 if ($output->isVeryVerbose()) {
-                    $output->writeln("IDLE received.");
+                    $output->writeln(\sprintf("%s - IDLE received.", self::nowAsString()));
                 }
                 $handleTick();
             }
@@ -84,8 +85,8 @@ final class DispatcherRunCommand extends Command
         $eventDispatcher->addListener(
             WorkerEvent::NEXT,
             function (WorkerEvent $event) use ($output, $handleTick) {
-                if ($output->isVeryVerbose()) {
-                    $output->writeln("NEXT message.");
+                if ($output->isVerbose()) {
+                    $output->writeln(\sprintf("%s - NEXT message: %s.", self::nowAsString(), self::messageAsString($event->getMessage())));
                 }
                 $handleTick();
             }
@@ -94,6 +95,25 @@ final class DispatcherRunCommand extends Command
         $worker->run();
 
         return 0;
+    }
+
+    private static function nowAsString(): string
+    {
+        return (new \DateTime())->format('Y-m-d H:i:s.uP');
+    }
+
+    private static function messageAsString($message): string
+    {
+        if (null === $message) {
+            return "(null)";
+        }
+        if ($message instanceof MessageEnvelope) {
+            return \sprintf("%s - %s", $message->getMessageId(), self::messageAsString($message->getMessage()));
+        }
+        if (\is_object($message)) {
+            return \sprintf("%s", \get_class($message));
+        }
+        return \sprintf("%s (%s)", \gettype($message), (string)$message);
     }
 
     /**
