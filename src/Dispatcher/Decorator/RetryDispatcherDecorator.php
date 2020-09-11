@@ -47,6 +47,11 @@ final class RetryDispatcherDecorator implements Dispatcher, LoggerAwareInterface
         try {
             $this->decorated->process($envelope);
         } catch (\Throwable $e) {
+            // Honnor retry killswitch.
+            if ($envelope->hasProperty(Property::RETRY_KILLSWITCH)) {
+                throw $e;
+            }
+
             $response = $this->retryStrategy->shouldRetry($envelope, $e);
 
             if ($response->shouldRetry()) {

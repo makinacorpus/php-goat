@@ -35,6 +35,8 @@ final class Property
     const RETRY_DELAI = 'x-retry-delai';
     /** Maximum number of retries (AMQP would use a TTL instead). */
     const RETRY_MAX = 'x-retry-max';
+    /** Set this with any value to forbid retry. */
+    const RETRY_KILLSWITCH = 'x-retry-killswitch';
     /** Why should it retry? */
     const RETRY_REASON = 'x-retry-reason';
 
