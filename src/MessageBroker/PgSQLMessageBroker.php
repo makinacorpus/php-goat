@@ -76,7 +76,7 @@ final class PgSQLMessageBroker implements MessageBroker, LoggerAwareInterface
         ;
 
         if ($data) {
-            $serial = $data['serial'];
+            $serial = (int)$data['serial'];
 
             try {
                 if (\is_resource($data['body'])) { // Bytea
@@ -101,13 +101,24 @@ final class PgSQLMessageBroker implements MessageBroker, LoggerAwareInterface
 
                 // Restore necessary properties on which we are authoritative.
                 $data['headers'][Property::MESSAGE_ID] = $data['id']->toString();
-                $data['headers'][self::PROP_SERIAL] = $serial;
+                $data['headers'][self::PROP_SERIAL] = (string)$serial;
                 if ($data['retry_count']) {
                     $data['headers'][Property::RETRY_COUNT] = (string)$data['retry_count'];
                 }
 
                 if ($contentType && $type) {
-                    $message = $this->serializer->unserialize($type, $contentType, $body);
+                    try {
+                        $message = $this->serializer->unserialize($type, $contentType, $body);
+                    } catch (\Throwable $e) {
+                        $this->markAsFailed($serial, $e);
+
+                        // Serializer can throw any kind of exceptions, it can
+                        // prove itself very unstable using symfony/serializer
+                        // which doesn't like very much types when you are not
+                        // working with doctrine entities.
+                        // @todo place instrumentation over here.
+                        $message = new BrokenMessage(null, null, $body, $type);
+                    }
                 } else {
                     $message = new BrokenMessage(null, null, $body, $type);
                 }
@@ -115,7 +126,7 @@ final class PgSQLMessageBroker implements MessageBroker, LoggerAwareInterface
                 return MessageEnvelope::wrap($message, $data['headers']);
 
             } catch (\Throwable $e) {
-                $this->markAsFailed($serial);
+                $this->markAsFailed($serial, $e);
 
                 throw new \RuntimeException('Error while fetching messages', 0, $e);
             }
@@ -260,17 +271,42 @@ final class PgSQLMessageBroker implements MessageBroker, LoggerAwareInterface
     /**
      * Mark single message as failed.
      */
-    private function markAsFailed(int $serial): void
+    private function markAsFailed(int $serial, ?\Throwable $exception = null): void
     {
         $this->runner->execute(
             <<<SQL
             UPDATE "message_broker"
             SET
-                "has_failed" = true
+                "has_failed" = true,
+                "error_code" = ?,
+                "error_message" = ?,
+                "error_trace" = ?
             WHERE
                 "serial" = ?
-            SQL
-            , [$serial]
+            SQL,
+            [
+                $exception->getCode(),
+                $exception->getMessage(),
+                $this->normalizeExceptionTrace($exception),
+                $serial,
+            ]
         );
+    }
+
+    /**
+     * Normalize exception trace.
+     */
+    private function normalizeExceptionTrace(\Throwable $exception): string
+    {
+        $output = '';
+        do {
+            if ($output) {
+                $output .= "\n";
+            }
+            $output .= \sprintf("%s: %s\n", \get_class($exception), $exception->getMessage());
+            $output .= $exception->getTraceAsString();
+        } while ($exception = $exception->getPrevious());
+
+        return $output;
     }
 }
