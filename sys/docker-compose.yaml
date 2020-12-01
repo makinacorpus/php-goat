@@ -1,0 +1,26 @@
+version: '3.7'
+services:
+    postgres13:
+        image: postgres:13.1
+        env_file: [docker.env]
+        restart: always
+
+    php74:
+        build:
+            context: .
+            dockerfile: ./php74/Dockerfile
+        restart: "no"
+        env_file: [docker.env]
+        working_dir: /var/www/html
+        volumes:
+            - "${APP_DIR}:/var/www/html"
+
+    php80:
+        build:
+            context: .
+            dockerfile: ./php80/Dockerfile
+        restart: "no"
+        env_file: [docker.env]
+        working_dir: /var/www/html
+        volumes:
+            - "${APP_DIR}:/var/www/html"
