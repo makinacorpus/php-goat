@@ -10,6 +10,7 @@ use Goat\Domain\Repository\WritableRepositoryInterface;
 use Goat\Query\ExpressionRaw;
 use Goat\Query\QueryError;
 use Goat\Query\Where;
+use Goat\Runner\DatabaseError;
 use Goat\Runner\Runner;
 use Goat\Runner\Testing\DatabaseAwareQueryTest;
 use Goat\Runner\Testing\TestDriverFactory;
@@ -177,7 +178,7 @@ abstract class AbstractRepositoryTest extends DatabaseAwareQueryTest
         try {
             $repository->findOne([1, 12]);
             $this->fail();
-        } catch (QueryError $e) {
+        } catch (DatabaseError $e) {
         }
 
         foreach ([[2, 3], [[2], [3]]] as $idList) {

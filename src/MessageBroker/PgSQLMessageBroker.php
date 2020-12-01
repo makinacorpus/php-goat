@@ -273,24 +273,39 @@ final class PgSQLMessageBroker implements MessageBroker, LoggerAwareInterface
      */
     private function markAsFailed(int $serial, ?\Throwable $exception = null): void
     {
-        $this->runner->execute(
-            <<<SQL
-            UPDATE "message_broker"
-            SET
-                "has_failed" = true,
-                "error_code" = ?,
-                "error_message" = ?,
-                "error_trace" = ?
-            WHERE
-                "serial" = ?
-            SQL,
-            [
-                $exception->getCode(),
-                $exception->getMessage(),
-                $this->normalizeExceptionTrace($exception),
-                $serial,
-            ]
-        );
+        if ($exception) {
+            $this->runner->execute(
+                <<<SQL
+                UPDATE "message_broker"
+                SET
+                    "has_failed" = true,
+                    "error_code" = ?,
+                    "error_message" = ?,
+                    "error_trace" = ?
+                WHERE
+                    "serial" = ?
+                SQL,
+                [
+                    $exception->getCode(),
+                    $exception->getMessage(),
+                    $this->normalizeExceptionTrace($exception),
+                    $serial,
+                ]
+            );
+        } else {
+            $this->runner->execute(
+                <<<SQL
+                UPDATE "message_broker"
+                SET
+                    "has_failed" = true
+                WHERE
+                    "serial" = ?
+                SQL,
+                [
+                    $serial,
+                ]
+            );
+        }
     }
 
     /**
