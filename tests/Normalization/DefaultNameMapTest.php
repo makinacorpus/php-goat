@@ -16,7 +16,7 @@ final class DefaultNameMapTest extends TestCase
 {
     private $map;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         $this->map = new DefaultNameMap();
         $this->map->setStaticNameMapFor(
