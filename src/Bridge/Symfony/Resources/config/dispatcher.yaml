@@ -23,11 +23,6 @@ services:
         arguments: ['@goat.dispatcher.handler_locator', '@goat.message_broker']
         tags: [{ name: "monolog.logger", channel: "goat_dispatcher" }]
 
-    goat.dispatcher.middleware:
-        public: false
-        class: Goat\Bridge\Symfony\Messenger\Middleware\DispatcherMiddleware
-        arguments: ['@goat.dispatcher']
-
     goat.transaction_handler.goat:
         public: false
         class: Goat\Dispatcher\GoatTransactionHandler

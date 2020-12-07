@@ -17,7 +17,6 @@ use Symfony\Bundle\MonologBundle\MonologBundle;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBag;
-use Symfony\Component\Messenger\Handler\HandlersLocatorInterface;
 use Symfony\Component\Serializer\Serializer as SymfonySerializer;
 
 final class KernelConfigurationTest extends TestCase
@@ -49,14 +48,6 @@ final class KernelConfigurationTest extends TestCase
         $serializerDefinition->setSynthetic(true);
         $container->setDefinition('serializer', $serializerDefinition);
         $container->setAlias(SymfonySerializer::class, 'serializer');
-
-        // And this.
-        // @todo Drop this dependency.
-        $handlersLocatorDefinition = new Definition();
-        $handlersLocatorDefinition->setClass(HandlersLocatorInterface::class);
-        $handlersLocatorDefinition->setSynthetic(true);
-        $container->setDefinition('messenger.bus.sync.messenger.handlers_locator', $handlersLocatorDefinition);
-        $container->setAlias(HandlersLocatorInterface::class, 'messenger.bus.sync.messenger.handlers_locator');
 
         return $container;
     }

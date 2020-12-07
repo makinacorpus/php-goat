@@ -1,6 +1,0 @@
-services:
-
-    Goat\Bridge\Symfony\Messenger\Transport\PgSQLTransportFactory:
-        public: false
-        arguments: ["@goat.message_broker"]
-        tags: [{ name: "messenger.transport_factory" }]

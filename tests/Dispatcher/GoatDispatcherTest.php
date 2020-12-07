@@ -9,7 +9,6 @@ use Goat\Dispatcher\Decorator\EventStoreDispatcherDecorator;
 use Goat\EventStore\Event;
 use Goat\EventStore\Tests\AbstractEventStoreTest;
 use Goat\Runner\Testing\TestDriverFactory;
-use Symfony\Component\Messenger\Envelope;
 
 final class GoatDispatcherTest extends AbstractEventStoreTest
 {
@@ -24,7 +23,7 @@ final class GoatDispatcherTest extends AbstractEventStoreTest
 
         $decorated = new MockDispatcher(
             function (MessageEnvelope $message) {
-                return new Envelope($message);
+                return $message;
             },
             function () {
                 throw new \Exception("This should be processed synchronously");
@@ -56,7 +55,7 @@ final class GoatDispatcherTest extends AbstractEventStoreTest
 
         $decorated = new MockDispatcher(
             function (MessageEnvelope $message) {
-                return new Envelope($message);
+                return $message;
             },
             function () {
                 throw new \Exception("This should be processed synchronously");

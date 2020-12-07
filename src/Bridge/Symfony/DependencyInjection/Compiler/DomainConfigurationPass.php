@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Goat\Bridge\Symfony\DependencyInjection\Compiler;
 
-use Goat\Bridge\Symfony\Messenger\Serializer\NameMapMessengerSerializer;
-use Goat\Bridge\Symfony\Serializer\NameMapSerializer;
 use Goat\EventStore\AbstractEventStore;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
@@ -18,7 +16,6 @@ final class DomainConfigurationPass implements CompilerPassInterface
     use PriorityTaggedServiceTrait;
 
     private string $eventStoreId;
-    private string $messengerSerializerServiceId;
     private string $projectorRegistryId;
     private string $projectorTag;
     private string $serializerId;
@@ -33,13 +30,11 @@ final class DomainConfigurationPass implements CompilerPassInterface
         string $transactionHandlerTag = 'goat.transaction_handler',
         string $eventStoreId = 'goat.event_store',
         string $lockServiceId = 'goat.lock',
-        string $serializerId = 'goat.serializer',
-        string $messengerSerializerServiceId = 'messenger.transport.symfony_serializer'
+        string $serializerId = 'goat.serializer'
     ) {
         $this->projectorTag = $projectorTag;
         $this->projectorRegistryId = $projectorRegistryId;
         $this->eventStoreId = $eventStoreId;
-        $this->messengerSerializerServiceId = $messengerSerializerServiceId;
         $this->serializerId = $serializerId;
         $this->transactionHandlerTag = $transactionHandlerTag;
     }
@@ -81,25 +76,6 @@ final class DomainConfigurationPass implements CompilerPassInterface
             }
         }
          */
-
-        $serializerServiceId = 'serializer';
-        if ($container->hasDefinition($serializerServiceId)) {
-            $decoratorInnerId = $serializerServiceId.'.inner';
-            $definition = new Definition();
-            $definition->setClass(NameMapSerializer::class);
-            $definition->setDecoratedService($serializerServiceId, $decoratorInnerId);
-            $definition->setArguments([new Reference('goat.name_map'), new Reference($decoratorInnerId)]);
-            $container->setDefinition('goat.name_map.serializer', $definition);
-        }
-
-        if ($container->hasDefinition($this->messengerSerializerServiceId)) {
-            $decoratorInnerId = $this->messengerSerializerServiceId.'.inner';
-            $definition = new Definition();
-            $definition->setClass(NameMapMessengerSerializer::class);
-            $definition->setDecoratedService($this->messengerSerializerServiceId, $decoratorInnerId);
-            $definition->setArguments([new Reference('goat.name_map'), new Reference($decoratorInnerId)]);
-            $container->setDefinition('goat.name_map.messenger_serializer', $definition);
-        }
     }
 
     private function containerIsSubtypeOf(ContainerBuilder $container, Definition $definition, string $parentClassOrInterface): bool

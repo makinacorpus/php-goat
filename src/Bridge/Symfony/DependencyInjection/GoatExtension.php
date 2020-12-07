@@ -23,7 +23,6 @@ use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\DependencyInjection\Exception\InvalidArgumentException;
 use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
-use Symfony\Component\Messenger\MessageBusInterface;
 use Twig\Environment;
 
 final class GoatExtension extends Extension
@@ -39,7 +38,6 @@ final class GoatExtension extends Extension
         $loader = new YamlFileLoader($container, new FileLocator(\dirname(__DIR__).'/Resources/config'));
 
         $consoleEnabled = \class_exists(Command::class);
-        $messengerEnabled = \interface_exists(MessageBusInterface::class);
 
         $dispatcherEnabled = $config['dispatcher']['enabled'] ?? false;
         $eventStoreEnabled = $config['event_store']['enabled'] ?? false;
@@ -71,10 +69,6 @@ final class GoatExtension extends Extension
 
         if ($dispatcherEnabled && $consoleEnabled) {
             $loader->load('dispatcher-console.yaml');
-        }
-
-        if ($messengerEnabled) {
-            $loader->load('messenger.yaml');
         }
 
         if ($preferenceEnabled) {

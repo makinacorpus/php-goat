@@ -81,7 +81,6 @@
         "symfony/console": ">=4.4",
         "symfony/dependency-injection": ">=4.4",
         "symfony/http-kernel": ">=4.4",
-        "symfony/messenger": "^5.0",
         "symfony/monolog-bundle": "^3.5",
         "symfony/serializer-pack": "^1.0|^5.0",
         "symfony/validator": ">=4.4",
@@ -96,7 +95,6 @@
         "ocramius/generated-hydrator": "For using the makinacorpus/goat-hydrator replacement",
         "psr-log": "^1.0",
         "symfony/form": "For preferences form widget usage",
-        "symfony/messenger": "For domain's event store and message publisher usage",
         "symfony/serializer-pack": "For better object serialisation and normalisation within the bus"
     }
 }

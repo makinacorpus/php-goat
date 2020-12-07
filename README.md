@@ -10,11 +10,7 @@ All tools provided can function independently.
 
 ## Event store and event dispatcher
 
-This package provide a very basic yet functionning event store component.
-
-Along with the event store a message dispatcher interface, that should hide
-`symfony/messenger` component if you use it, or allow you to plug any other
-message handling backend.
+This provides a commande bus dispatcher and event store implementations.
 
 Please see the [README.domain.md](./README.domain.md) file for more information.
 
@@ -23,14 +19,6 @@ Please see the [README.domain.md](./README.domain.md) file for more information.
 This package provide default domain objects or entities repository, with basic
 CRUD functionnality, pluged over the
 [goat-query](https://github.com/pounard/goat-query) database query builder.
-
-## Symfony messenger and serializer decorators
-
-In this package is provided a wrapper around `symfony/messenger` own
-serializer instance that maps business orientend arbitrary names to PHP
-class names, allowing external messages consumption.
-
-It also provide the equivalent feature for `symfony/serializer`.
 
 ## Preference API
 

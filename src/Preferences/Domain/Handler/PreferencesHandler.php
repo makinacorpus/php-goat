@@ -13,7 +13,7 @@ use Goat\Preferences\Domain\Repository\PreferencesRepository;
 use Goat\Preferences\Domain\Repository\PreferencesSchema;
 
 /**
- * Handle preference set messages when plugged over the symfony messenger.
+ * Handle preference commands when plugged on the bus.
  */
 final class PreferencesHandler implements Handler
 {

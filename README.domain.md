@@ -13,7 +13,6 @@ As of now, only PostgreSQL is an active target and have been tested with.
 
 # Features
 
- - build automatic extendable repositories for your domain objects,
  - build a domain event driven model, derived from DDD and CQS with a
    message broken in the middle,
  - provide an event store to save everything, and replay it.
@@ -30,17 +29,28 @@ Please document me.
 
 ## Dispatcher
 
-The **Dispatcher** is a component wrapping the `symfony/messenger` component,
-it was added in order to plug altogether the **EventStore** and the messenger
-component.
+The **Dispatcher** is a component that behaves like `symfony/messenger`
+component, it is the user facing interface for sending and consuming
+messages from a bus.
 
-Furthermore it bring two important features:
+It gives two methods:
 
- * it allows to dispatch events synchronously, in order to be able to give a
-   direct feedback to users in forms,
+ - an asynchronous message `dispatch()`, whose goal is to send messages to
+   a message broker,
 
- * it handles database transactions, and allows to embeded chain or events to
-   run in a single transaction.
+ - a synchronous message `process()` whose goal is to consume messages and
+   dispatch them to the correct message handler.
+
+Base implementation comes down to:
+
+ - `dispatch()` just passes messages to a message broker,
+ - `process()` just fetch a handler using an handler locator and executes it.
+
+All other advanced features, including event store support are implemented
+using dispatcher interface decorators.
+
+A console consumer command exists, it simply fetches messages from the message
+broker and call dispatcher's `dispatch()` method.
 
 ## Event store
 

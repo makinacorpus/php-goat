@@ -14,7 +14,7 @@ use Goat\Preferences\Domain\Repository\PreferencesRepository;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Tests the messenger message handler.
+ * Tests the message handler.
  */
 final class HandlerTest extends TestCase
 {
