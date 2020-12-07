@@ -7,16 +7,20 @@ namespace Goat\MessageBroker;
 use Goat\Dispatcher\MessageEnvelope;
 use Goat\Dispatcher\Message\BrokenMessage;
 use Goat\EventStore\Property;
+use Goat\Normalization\NameMapAware;
+use Goat\Normalization\NameMapAwareTrait;
 use Goat\Normalization\Serializer;
 use Goat\Runner\Runner;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\NullLogger;
 use Ramsey\Uuid\Uuid;
+use Goat\Normalization\NameMap;
 
-final class PgSQLMessageBroker implements MessageBroker, LoggerAwareInterface
+final class PgSQLMessageBroker implements MessageBroker, LoggerAwareInterface, NameMapAware
 {
     use LoggerAwareTrait;
+    use NameMapAwareTrait;
 
     const PROP_SERIAL = 'x-serial';
 
@@ -107,8 +111,9 @@ final class PgSQLMessageBroker implements MessageBroker, LoggerAwareInterface
                 }
 
                 if ($contentType && $type) {
+                    $className = $this->getNameMap()->logicalNameToPhpType(NameMap::CONTEXT_COMMAND, $type);
                     try {
-                        $message = $this->serializer->unserialize($type, $contentType, $body);
+                        $message = $this->serializer->unserialize($className, $contentType, $body);
                     } catch (\Throwable $e) {
                         $this->markAsFailed($serial, $e);
 
@@ -212,7 +217,11 @@ final class PgSQLMessageBroker implements MessageBroker, LoggerAwareInterface
         }
 
         $message = $envelope->getMessage();
-        $type = $envelope->getProperty(Property::MESSAGE_TYPE, \get_class($message));
+        if ($envelope->hasProperty(Property::MESSAGE_TYPE)) {
+            $type = $envelope->getProperty(Property::MESSAGE_TYPE);
+        } else {
+            $type = $this->getNameMap()->logicalNameToPhpType(NameMap::CONTEXT_COMMAND, \get_class($message));
+        }
 
         $contentType = $envelope->getProperty(Property::CONTENT_TYPE);
         if (!$contentType) {

@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace Goat\EventStore;
 
 use Goat\Dispatcher\Message\BrokenMessage;
-use Goat\Normalization\DefaultNameMap;
 use Goat\Normalization\NameMap;
+use Goat\Normalization\NameMapAware;
+use Goat\Normalization\NameMapAwareTrait;
 use Goat\Normalization\Serializer;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
@@ -38,11 +39,11 @@ use Ramsey\Uuid\UuidInterface;
  *     will always be OK within changing the revision numbers, and without
  *     risking serializations error due to revision key conflicts.
  */
-abstract class AbstractEventStore implements EventStore, LoggerAwareInterface
+abstract class AbstractEventStore implements EventStore, LoggerAwareInterface, NameMapAware
 {
     use LoggerAwareTrait;
+    use NameMapAwareTrait;
 
-    private NameMap $nameMap;
     private NamespaceMap $namespaceMap;
     private Serializer $serializer;
     private ?string $serializerFormat = null;
@@ -64,14 +65,6 @@ abstract class AbstractEventStore implements EventStore, LoggerAwareInterface
     /**
      * {@inheritdoc}
      */
-    final public function setNameMap(NameMap $nameMap): void
-    {
-        $this->nameMap = $nameMap;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     final public function setNamespaceMap(NamespaceMap $namespaceMap): void
     {
         $this->namespaceMap = $namespaceMap;
@@ -85,16 +78,6 @@ abstract class AbstractEventStore implements EventStore, LoggerAwareInterface
     final public function getNamespace(string $aggregateType): string
     {
         return $this->getNamespaceMap()->getNamespace($aggregateType);
-    }
-
-    /**
-     * Get or create empty namespace map.
-     *
-     * @internal
-     */
-    final public function getNameMap(): NameMap
-    {
-        return $this->nameMap ?? ($this->nameMap = new DefaultNameMap());
     }
 
     /**
@@ -118,16 +101,12 @@ abstract class AbstractEventStore implements EventStore, LoggerAwareInterface
 
             // Compute normalized aggregate type, otherwise the PHP native class
             // or type name would be stored in database, we sure don't want that.
-            $aggregateType = $nameMap->getAlias($aggregateType ?? $event->getAggregateType());
+            $aggregateType = $nameMap->phpTypeToLogicalName(NameMap::CONTEXT_MODEL, $aggregateType ?? $event->getAggregateType());
 
             // Compute normalized event name. If event name was given by the
             // caller normalize it before registering it into the properties
             // array. Otherwise, use the name map directly to guess it.
-            if ($eventName) {
-                $eventName = $nameMap->getAlias($eventName);
-            } else {
-                $eventName = $nameMap->getAliasOf($message);
-            }
+            $eventName = $nameMap->phpTypeToLogicalName(NameMap::CONTEXT_EVENT, $eventName ?? \get_class($message));
 
             // Compute necessary common properties. Custom properties from
             // caller might be overriden, the store is authoritative on some

@@ -49,6 +49,11 @@ final class KernelConfigurationTest extends TestCase
         $container->setDefinition('serializer', $serializerDefinition);
         $container->setAlias(SymfonySerializer::class, 'serializer');
 
+        // Strategy definition
+        $stupidStrategyDefinition = new Definition();
+        $stupidStrategyDefinition->setClass(StupidNameMappingStrategy::class);
+        $container->setDefinition(StupidNameMappingStrategy::class, $stupidStrategyDefinition);
+
         return $container;
     }
 
@@ -68,9 +73,16 @@ final class KernelConfigurationTest extends TestCase
                 'enabled' => true,
             ],
             'normalization' => [
-                'map' => [
-                    'my_app.normalized_name' => \DateTimeImmutable::class,
-                    'my_app.other_normalized_name' => \DateTime::class,
+                'strategy' => [
+                    'command' => StupidNameMappingStrategy::class,
+                ],
+                'static' => [
+                    'command' => [
+                        'map' => [
+                            'my_app.normalized_name' => \DateTimeImmutable::class,
+                            'my_app.other_normalized_name' => \DateTime::class,
+                        ],
+                    ],
                 ],
             ],
             'preferences' => [

@@ -46,7 +46,7 @@ final class GoatExtension extends Extension
         $twigEnabled = \class_exists(Environment::class);
 
         $loader->load('normalization.yaml');
-        $this->processNormalization($container, $config['normalization']['map'] ?? [], $config['normalization']['aliases'] ?? []);
+        $this->processNormalization($container, $config['normalization'] ?? []);
 
         if ($eventStoreEnabled) {
             $loader->load('event-store.yaml');
@@ -232,11 +232,21 @@ final class GoatExtension extends Extension
 
     /**
      * Process type normalization map and aliases.
-     *
-     * @codeCoverageIgnore
-     * @todo Export this into a testable class.
      */
-    private function processNormalization(ContainerBuilder $container, array $map, array $aliases): void
+    private function processNormalization(ContainerBuilder $container, array $config): void
+    {
+        foreach (($config['strategy'] ?? []) as $context => $serviceId) {
+            $container->getDefinition('goat.name_map')->addMethodCall('setNameMappingStrategryFor', [$context, new Reference($serviceId)]);
+        }
+        foreach (($config['static'] ?? []) as $context => $data) {
+            $this->processNormalizationStaticForContext($container, $context, $data['map'] ?? [], $data['aliases'] ?? []);
+        }
+    }
+
+    /**
+     * Process type normalization map and aliases.
+     */
+    private function processNormalizationStaticForContext(ContainerBuilder $container, string $context, array $map, array $aliases): void
     {
         $types = [];
         foreach ($map as $key => $type) {
@@ -272,7 +282,7 @@ final class GoatExtension extends Extension
             $aliases[$alias] = $type;
         }
 
-        $container->getDefinition('goat.name_map')->setArguments([$map, $aliases]);
+        $container->getDefinition('goat.name_map')->addMethodCall('setStaticNameMapFor', [$context, $map, $aliases]);
     }
 
     /**

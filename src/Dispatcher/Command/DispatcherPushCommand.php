@@ -53,14 +53,15 @@ final class DispatcherPushCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $type = $input->getArgument('event-name');
+        $logicalName = $input->getArgument('event-name');
         $format = $input->getOption('content-type');
         $data = $input->getOption('content');
 
+        $className = $this->nameMap->logicalNameToPhpType(NameMap::CONTEXT_COMMAND, $logicalName);
+
         if ($data) {
-            $message = $this->serializer->unserialize($type, $format, $data);
+            $message = $this->serializer->unserialize($className, $format, $data);
         } else {
-            $className = $this->nameMap->getType($type);
             if (!\class_exists($className)) {
                 throw new \InvalidArgumentException(\sprintf("No content was provided, and I cannot instanciate the '%s' class", $className));
             }
@@ -69,10 +70,10 @@ final class DispatcherPushCommand extends Command
 
         if ($input->getOption('async')) {
             $this->dispatcher->dispatch($message);
-            $output->writeln(\sprintf("<info>Message '%s' has been pushed into the asynchronous command bus successfuly</info>", $type));
+            $output->writeln(\sprintf("<info>Message '%s' has been pushed into the asynchronous command bus successfuly</info>", $logicalName));
         } else {
             $this->dispatcher->process($message);
-            $output->writeln(\sprintf("<info>Message '%s' has been processed successfuly</info>", $type));
+            $output->writeln(\sprintf("<info>Message '%s' has been processed successfuly</info>", $logicalName));
         }
 
         return 0;

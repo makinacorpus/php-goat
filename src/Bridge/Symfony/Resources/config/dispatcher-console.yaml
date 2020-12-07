@@ -5,10 +5,12 @@ services:
         arguments: ["@goat.dispatcher", "@goat.message_broker"]
         tags: ["console.command"]
 
-    Goat\Dispatcher\Command\DispatcherListCommand:
-        public: false
-        arguments: ["@goat.name_map"]
-        tags: ["console.command"]
+    # @todo
+    #   This is broken and doesn't work.
+    # Goat\Dispatcher\Command\DispatcherListCommand:
+    #     public: false
+    #     arguments: ["@goat.name_map"]
+    #     tags: ["console.command"]
 
     Goat\Dispatcher\Command\DispatcherPushCommand:
         public: false

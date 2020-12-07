@@ -1,20 +1,15 @@
 services:
 
-    goat.name_map:
-        public: false
-        class: Goat\Normalization\DefaultNameMap
-        arguments: [[], []]
-
     goat.serializer:
         public: false
         class: Goat\Bridge\Symfony\Serializer\GoatSerializerAdapter
         arguments: ["@serializer"]
 
-    Goat\Normalization\NameMap:
+    goat.name_map:
+        class: Goat\Normalization\DefaultNameMap
         public: false
-        alias: goat.name_map
 
-    Goat\Normalization\TypeMap:
+    Goat\Normalization\NameMap:
         public: false
         alias: goat.name_map
 

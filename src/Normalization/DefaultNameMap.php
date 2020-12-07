@@ -5,108 +5,71 @@ declare(strict_types=1);
 namespace Goat\Normalization;
 
 /**
- * Default array-based implementation.
+ * Default name mapper: use a strategy per context.
+ *
+ * Brings aliasing as well.
  */
-final class DefaultNameMap implements NameMap
+class DefaultNameMap implements NameMap
 {
-    /** @var string[] */
+    private NameMappingStrategy $defaultStrategy;
+    /** @var array<string,NameMappingStrategy> */
+    private array $strategies = [];
+
+    /** @var array<string,array<string,string>> */
+    private array $map = [];
+    /** @var array<string,array<string,string>> */
     private array $aliases = [];
-    /** @var string[] */
-    private array $nameToTypeMap = [];
-    /** @var string[] */
-    private array $typeToNameMap = [];
 
-    /**
-     * @param string $map[]
-     *   Keys are message normalize names, values are PHP native types to
-     *   convert the messages to, this is a 1:1 map where a PHP message will
-     *   be normalize the associated name.
-     * @param string[] $aliases
-     *   Alias map for incomming normalized message names, this allows you
-     *   to map historical names to changed PHP native types, but also map
-     *   the same PHP native type over multiple names depending on the
-     *   message source.
-     *   Keys are legacy or duplicate names, values are either of normalized
-     *   name or PHP native types. Althought for maintanability purpose, it's
-     *   recommened to always use normalized names instead of PHP types.
-     */
-    public function __construct(array $map = [], array $aliases = [])
+    public function __construct()
     {
-        $this->aliases = $aliases;
-        $this->nameToTypeMap = $map;
-        $this->typeToNameMap = \array_flip($map);
+        $this->defaultStrategy = new PassthroughNameMappingStrategy();
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getAliasOf($message): string
+    public function logicalNameToPhpType(string $context, string $logicalName): string
     {
-        $type = $this->getTypeOf($message);
-
-        return $this->typeToNameMap[$type] ?? $type;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getTypeOf($message): string
-    {
-        if (null === $message) {
-            return NameMap::TYPE_NULL;
+        if (isset($this->map[$context][$logicalName])) {
+            return $logicalName;
         }
-        if (\is_array($message)) {
-            return NameMap::TYPE_ARRAY;
-        }
-        if (\is_string($message) || \is_resource($message)) {
-            return NameMap::TYPE_STRING;
-        }
-        if (\is_object($message)) {
-            return \get_class($message);
-        }
-        // @codeCoverageIgnoreStart
-        switch ($type = \gettype($message)) {
-            case 'integer':
-                return 'int';
-            case 'double':
-                return 'float';
-            default:
-                return $type;
-        }
-        // @codeCoverageIgnoreEnd
+
+        return $this->aliases[$context][$logicalName] ?? $this->getNameMappingStrategyFor($context)->logicalNameToPhpType($logicalName);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getAlias(string $type): string
+    public function phpTypeToLogicalName(string $context, string $phpType): string
     {
-        return $this->typeToNameMap[$type] ?? $type;
+        if (isset($this->aliases[$context][$phpType])) {
+            return $phpType;
+        }
+
+        return $this->map[$context][$phpType] ?? $this->getNameMappingStrategyFor($context)->phpTypeToLogicalName($phpType);
     }
 
     /**
-     * {@inheritdoc}
+     * @param array<string,string> $map
+     *   Keys are PHP type names, values are aliases. Converts PHP type names
+     *   to their actual names.
+     * @param array<string,string> $aliases
+     *   Keys are aliases, values are PHP type names. Converts possibly obsolete
+     *   aliases to the real PHP type name. 
      */
-    public function getType(string $alias): string
+    public function setStaticNameMapFor(string $context, array $map, array $aliases = []): void
     {
-        $alias = $this->aliases[$alias] ?? $alias;
-
-        return $this->nameToTypeMap[$alias] ?? $alias;
+        $this->map[$context] = $map;
+        $this->aliases[$context] = \array_flip($map) + $aliases;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getTypeMap(): iterable
+    public function setNameMappingStrategryFor(string $context, NameMappingStrategy $strategy): void
     {
-        return $this->nameToTypeMap;
+        $this->strategies[$context] = $strategy;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getAliasesMap(): iterable
+    private function getNameMappingStrategyFor(string $context): NameMappingStrategy
     {
-        return $this->aliases;
+        return $this->strategies[$context] ?? $this->defaultStrategy;
     }
 }

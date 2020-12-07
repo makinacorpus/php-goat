@@ -130,19 +130,40 @@ goat:
         # the same purpose the other way arround, you MUST NOT put duplicates
         # in there, use the 'aliases' option key for duplicates.
         #
-        map:
-            my_app.normalized_name: Php\Native\Type
-            my_app.other_normalized_name: Php\Other\Native\Type
 
-        #
-        # Whereas each PHP native type may have only one valid normalized name
-        # at a single point in time.
-        #
-        aliases:
-            Php\Legacy\Name: Php\Native\Type
-            Php\EvenMoreLegacy\Name: Php\Native\Type
-            my_app.legacy_normalized_name: Php\Native\Type
-            my_app.other_legacy_normalized_name: my_app.normalized_name
+        strategy:
+            #
+            # Keys here are \Goat\Normalization\NameMap::CONTEXT_* constants
+            # values, but they can be anything else, those consttants are only
+            # here for convenience.
+            #
+            # Values must be container services identifiers.
+            #
+            command: \App\Goat\Normalization\CustomCommandNameMappingStrategy
+            event: \App\Goat\Normalization\CustomEventNameMappingStrategy
+
+        static:
+            #
+            # Keys here are \Goat\Normalization\NameMap::CONTEXT_* constants
+            # values, but they can be anything else, those consttants are only
+            # here for convenience.
+            #
+            command:
+                #
+                # Actual logical name to PHP class name conversion.
+                #
+                map:
+                    Php\Native\Type: my_app.normalized_name
+                    Php\Other\Native\Type: my_app.other_normalized_name
+
+                #
+                # Legacy aliases to PHP class name conversion.
+                #
+                aliases:
+                    Php\Legacy\Name: Php\Native\Type
+                    Php\EvenMoreLegacy\Name: Php\Native\Type
+                    my_app.legacy_normalized_name: Php\Native\Type
+                    my_app.other_legacy_normalized_name: my_app.normalized_name
 
     preferences:
         #
