@@ -220,7 +220,7 @@ final class PgSQLMessageBroker implements MessageBroker, LoggerAwareInterface, N
         if ($envelope->hasProperty(Property::MESSAGE_TYPE)) {
             $type = $envelope->getProperty(Property::MESSAGE_TYPE);
         } else {
-            $type = $this->getNameMap()->logicalNameToPhpType(NameMap::CONTEXT_COMMAND, \get_class($message));
+            $type = $this->getNameMap()->phpTypeToLogicalName(NameMap::CONTEXT_COMMAND, \get_class($message));
         }
 
         $contentType = $envelope->getProperty(Property::CONTENT_TYPE);
