@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace Goat\Bridge\Symfony\DependencyInjection\Compiler;
 
 use Goat\Dispatcher\Handler;
-use Goat\Dispatcher\Cache\HandlerLocator\CallableHandlerListPhpDumper;
+use Goat\Dispatcher\Cache\HandlerLocator\HandlerReferenceListPhpDumper;
+use Goat\Dispatcher\HandlerLocator\NullHandlerReferenceList;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
@@ -26,10 +27,10 @@ final class HandlerLocatorRegistrationPass implements CompilerPassInterface
      */
     public function process(ContainerBuilder $container)
     {
-        $dumpedClassName = CallableHandlerListPhpDumper::getDumpedClassName('command');
-        $dumpedFileName = CallableHandlerListPhpDumper::getFilename($container->getParameter('kernel.cache_dir'), 'command');
+        $dumpedClassName = HandlerReferenceListPhpDumper::getDumpedClassName('command');
+        $dumpedFileName = HandlerReferenceListPhpDumper::getFilename($container->getParameter('kernel.cache_dir'), 'command');
 
-        $dumper = new CallableHandlerListPhpDumper($dumpedFileName, false);
+        $dumper = new HandlerReferenceListPhpDumper($dumpedFileName, false);
 
         foreach ($container->findTaggedServiceIds($this->handlerTag, true) as $id => $attributes) {
             $definition = $container->getDefinition($id);
@@ -45,14 +46,24 @@ final class HandlerLocatorRegistrationPass implements CompilerPassInterface
             }
         }
 
-        $dumper->dump($dumpedClassName);
+        if ($dumper->isEmpty()) {
+            $dumper->delete();
 
-        $serviceClassName = CallableHandlerListPhpDumper::getDumpedClassNamespace() . '\\' . $dumpedClassName;
-        $definition = new Definition();
-        $definition->setClass($serviceClassName);
-        $definition->setFile($dumpedFileName);
-        $definition->setPrivate(true);
-        $container->setDefinition($serviceClassName, $definition);
+            $serviceClassName = NullHandlerReferenceList::class;
+            $definition = new Definition();
+            $definition->setClass($serviceClassName);
+            $definition->setPrivate(true);
+            $container->setDefinition($serviceClassName, $definition);
+        } else {
+            $dumper->dump($dumpedClassName);
+
+            $serviceClassName = HandlerReferenceListPhpDumper::getDumpedClassNamespace() . '\\' . $dumpedClassName;
+            $definition = new Definition();
+            $definition->setClass($serviceClassName);
+            $definition->setFile($dumpedFileName);
+            $definition->setPrivate(true);
+            $container->setDefinition($serviceClassName, $definition);
+        }
 
         $container
             ->getDefinition('goat.dispatcher.handler_locator.default')

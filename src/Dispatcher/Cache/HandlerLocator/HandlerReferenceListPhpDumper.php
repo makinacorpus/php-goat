@@ -8,7 +8,7 @@ use Goat\Dispatcher\HandlerLocator\DefaultHandlerReferenceList;
 use Goat\Dispatcher\HandlerLocator\HandlerReference;
 use Symfony\Component\Filesystem\Exception\IOException;
 
-class CallableHandlerListPhpDumper
+class HandlerReferenceListPhpDumper
 {
     private string $filename;
     private bool $allowMultiple;
@@ -49,13 +49,23 @@ class CallableHandlerListPhpDumper
         }
     }
 
-    public function dump(string $dumpedClassName): void
+    public function isEmpty(): bool
+    {
+        return empty($this->references);
+    }
+
+    public function delete(): void
     {
         if (\file_exists($this->filename)) {
             if (!@\unlink($this->filename)) {
                 throw new IOException(\sprintf("Could not delete file: %s", $this->filename));
             }
         }
+    }
+
+    public function dump(string $dumpedClassName): void
+    {
+        $this->delete();
 
         if (!$handle = @\fopen($this->filename, 'cw+')) {
             throw new IOException(\sprintf("Could not open file for writing: %s", $this->filename));
