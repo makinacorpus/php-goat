@@ -15,9 +15,19 @@ final class DefaultHandlerLocator implements HandlerLocator, ContainerAwareInter
 
     private HandlerReferenceList $referenceList;
 
-    public function __construct(?HandlerReferenceList $referenceList = null)
+    /**
+     * @param array<string,string>|HandlerReferenceList $references
+     */
+    public function __construct($references)
     {
-        $this->referenceList = $referenceList ?? HandlerReferenceList::create();
+        if ($references instanceof HandlerReferenceList) {
+            $this->referenceList = $references;
+        } else if (\is_array($references)) {
+            $this->referenceList = new DefaultHandlerReferenceList(null, false);
+            foreach ($references as $id => $className) {
+                $this->referenceList->appendFromClass($className, $id);
+            }
+        }
     }
 
     /**

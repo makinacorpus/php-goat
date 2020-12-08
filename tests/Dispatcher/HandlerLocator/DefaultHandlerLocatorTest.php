@@ -6,7 +6,7 @@ namespace Goat\Dispatcher\Tests\HandlerLocator;
 
 use Goat\Dispatcher\Error\HandlerNotFoundError;
 use Goat\Dispatcher\HandlerLocator\DefaultHandlerLocator;
-use Goat\Dispatcher\HandlerLocator\HandlerReferenceList;
+use Goat\Dispatcher\HandlerLocator\DefaultHandlerReferenceList;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\DependencyInjection\Container;
 
@@ -17,7 +17,7 @@ final class DefaultHandlerLocatorTest extends TestCase
         $container = new Container();
         $container->set('mock_handler', new MockHandler());
 
-        $referenceList = HandlerReferenceList::create();
+        $referenceList = new DefaultHandlerReferenceList(null, false);
         $referenceList->appendFromClass(MockHandler::class, 'mock_handler');
         $locator = new DefaultHandlerLocator($referenceList);
         $locator->setContainer($container);

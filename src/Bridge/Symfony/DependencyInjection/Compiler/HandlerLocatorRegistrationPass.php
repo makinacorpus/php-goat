@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Goat\Bridge\Symfony\DependencyInjection\Compiler;
 
 use Goat\Dispatcher\Handler;
-use Goat\Dispatcher\HandlerLocator\HandlerReferenceList;
+use Goat\Dispatcher\Cache\HandlerLocator\CallableHandlerListPhpDumper;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
@@ -26,7 +26,10 @@ final class HandlerLocatorRegistrationPass implements CompilerPassInterface
      */
     public function process(ContainerBuilder $container)
     {
-        $referenceList = HandlerReferenceList::create();
+        $dumpedClassName = CallableHandlerListPhpDumper::getDumpedClassName('command');
+        $dumpedFileName = CallableHandlerListPhpDumper::getFilename($container->getParameter('kernel.cache_dir'), 'command');
+
+        $dumper = new CallableHandlerListPhpDumper($dumpedFileName, false);
 
         foreach ($container->findTaggedServiceIds($this->handlerTag, true) as $id => $attributes) {
             $definition = $container->getDefinition($id);
@@ -35,24 +38,25 @@ final class HandlerLocatorRegistrationPass implements CompilerPassInterface
             if (!$reflexion = $container->getReflectionClass($className)) {
                 throw new InvalidArgumentException(\sprintf('Class "%s" used for service "%s" cannot be found.', $className, $id));
             }
+
             if ($reflexion->implementsInterface(Handler::class)) {
-                // @todo Find another way, for later.
                 $definition->setPublic(true);
-                $referenceList->appendFromClass($className, $id);
+                $dumper->appendFromClass($className, $id);
             }
         }
 
-        $referenceListServiceId = 'goat.dispatcher.handler_locator.default.reference_list';
-        $referenceListDefinition = new Definition();
-        $referenceListDefinition->setClass(HandlerReferenceList::class);
-        $referenceListDefinition->setFactory([HandlerReferenceList::class, 'fromArray']);
-        $referenceListDefinition->setPrivate(true);
-        $referenceListDefinition->setArguments([$referenceList->toArray()]);
-        $container->setDefinition($referenceListServiceId, $referenceListDefinition);
+        $dumper->dump($dumpedClassName);
+
+        $serviceClassName = CallableHandlerListPhpDumper::getDumpedClassNamespace() . '\\' . $dumpedClassName;
+        $definition = new Definition();
+        $definition->setClass($serviceClassName);
+        $definition->setFile($dumpedFileName);
+        $definition->setPrivate(true);
+        $container->setDefinition($serviceClassName, $definition);
 
         $container
             ->getDefinition('goat.dispatcher.handler_locator.default')
-            ->setArguments([new Reference($referenceListServiceId)])
+            ->setArguments([new Reference($serviceClassName)])
             ->addMethodCall('setContainer', [new Reference('service_container')])
         ;
     }
