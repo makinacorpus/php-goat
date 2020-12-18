@@ -136,6 +136,8 @@ PHP
         }
 
         \fwrite($handle, <<<PHP
+            default:
+                return null;
         }
     }
 }
