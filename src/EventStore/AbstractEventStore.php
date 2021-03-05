@@ -315,8 +315,13 @@ abstract class AbstractEventStore implements EventStore, LoggerAwareInterface, N
             return $data;
         }
 
+        $type = $this->nameMap->logicalNameToPhpType(
+            NameMap::CONTEXT_EVENT,
+            $properties[Property::MESSAGE_TYPE] ?? $eventName
+        );
+
         return $this->serializer->unserialize(
-            $properties[Property::MESSAGE_TYPE] ?? $eventName,
+            $type,
             $properties[Property::CONTENT_TYPE] ?? $defaultFormat,
             \is_resource($data) ? \stream_get_contents($data) : $data
         );
