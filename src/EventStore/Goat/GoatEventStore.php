@@ -8,6 +8,7 @@ use Goat\EventStore\AbstractEventStore;
 use Goat\EventStore\AggregateMetadata;
 use Goat\EventStore\Event;
 use Goat\EventStore\EventQuery;
+use Goat\EventStore\Property;
 use Goat\EventStore\Error\AggregateDoesNotExistError;
 use Goat\Query\ExpressionRelation;
 use Goat\Query\ExpressionValue;
@@ -125,16 +126,30 @@ final class GoatEventStore extends AbstractEventStore
             throw new \BadMethodCallException('You cannot store an already stored event');
         }
 
+        $builder = $this->runner->getQueryBuilder();
+        $transaction = null;
+
         $aggregateId = $event->getAggregateId();
         $aggregateType = $event->getAggregateType();
         $createdAt = $event->createdAt();
         $validAt = $event->validAt();
 
-        $eventRelation = $this->getEventRelation($namespace = $this->getNamespace($aggregateType));
         $indexRelation = $this->getIndexRelation();
 
-        $builder = $this->runner->getQueryBuilder();
-        $transaction = null;
+        // If there is no suitable aggregate type, we need one, attempt to find
+        // in event index if one other than the default exist. We need this for
+        // being able to use the right namespace.
+        if (!$aggregateType || Property::DEFAULT_TYPE === $aggregateType) {
+            $aggregateType = $builder
+                ->select($indexRelation)
+                ->column('aggregate_type')
+                ->where('aggregate_id', $aggregateId)
+                ->execute()
+                ->fetchField() ?? Property::DEFAULT_TYPE
+            ;
+        }
+
+        $eventRelation = $this->getEventRelation($namespace = $this->getNamespace($aggregateType));
 
         try {
             // REPEATABLE READ transaction level turns out to be extra-isolated
