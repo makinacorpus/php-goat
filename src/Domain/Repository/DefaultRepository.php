@@ -244,7 +244,7 @@ class DefaultRepository implements GoatRepositoryInterface
     /**
      * Normalize column for select
      */
-    private final function normalizeColumn($column, ?string $relationAlias = null): Expression
+    private function normalizeColumn($column, ?string $relationAlias = null): Expression
     {
         if ($column instanceof Expression) {
             return $column;
@@ -255,7 +255,7 @@ class DefaultRepository implements GoatRepositoryInterface
         return new ExpressionColumn($column);
     }
 
-    private final function checkIsEligibleToReturning(Query $query): void
+    private function checkIsEligibleToReturning(Query $query): void
     {
         if (!$query instanceof InsertQueryQuery &&
             !$query instanceof InsertValuesQuery &&
@@ -271,7 +271,7 @@ class DefaultRepository implements GoatRepositoryInterface
     /**
      * Append given columns to returning
      */
-    private final function appendColumnsToReturning(Query $query, iterable $columns, string $relationAlias): void
+    private function appendColumnsToReturning(Query $query, iterable $columns, string $relationAlias): void
     {
         $this->checkIsEligibleToReturning($query);
 
@@ -315,7 +315,7 @@ class DefaultRepository implements GoatRepositoryInterface
     /**
      * Append given columns to select
      */
-    private final function appendColumnsToSelect(SelectQuery $select, iterable $columns, string $relationAlias): void
+    private function appendColumnsToSelect(SelectQuery $select, iterable $columns, string $relationAlias): void
     {
         foreach ($columns as $alias => $column) {
             $columnExpr = $this->normalizeColumn($column, $relationAlias);
