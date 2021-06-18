@@ -44,13 +44,9 @@ class WritableDefaultRepository extends DefaultRepository implements WritableRep
             ->values($values)
         ;
 
-        $this->addReturningToQuery($query);
+        $this->configureQueryForHydrationViaReturning($query);
 
-        if ($className = $this->getClassName()) {
-            $result = $query->execute([], $className);
-        } else {
-            $result = $query->execute();
-        }
+        $result = $query->execute();
 
         if (1 < $result->countRows()) {
             throw new EntityNotFoundError(\sprintf("entity counld not be created"));
@@ -71,13 +67,9 @@ class WritableDefaultRepository extends DefaultRepository implements WritableRep
         ;
 
         // @todo deal with runner that don't support returning
-        $this->addReturningToQuery($query);
+        $this->configureQueryForHydrationViaReturning($query);
 
-        if ($className = $this->getClassName()) {
-            $result = $query->execute([], $className);
-        } else {
-            $result = $query->execute();
-        }
+        $result = $query->execute();
 
         $affected = $result->countRows();
         if ($raiseErrorOnMissing) {
@@ -111,13 +103,9 @@ class WritableDefaultRepository extends DefaultRepository implements WritableRep
         ;
 
         // @todo deal with runner that don't support returning
-        $this->addReturningToQuery($query);
+        $this->configureQueryForHydrationViaReturning($query);
 
-        if ($className = $this->getClassName()) {
-            $result = $query->execute([], $className);
-        } else {
-            $result = $query->execute();
-        }
+        $result = $query->execute();
 
         $affected = $result->countRows();
         if (1 < $affected) {
