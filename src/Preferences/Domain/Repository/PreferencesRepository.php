@@ -14,20 +14,12 @@ use Goat\Preferences\Domain\Model\ValueType;
  * You've been warn, drivers are allowed to be extremely slow, except
  * when the get() method is being called.
  */
-interface PreferencesRepository
+interface PreferencesRepository extends Preferences
 {
     /**
      * Does it has a value for
      */
     public function has(string $name): bool;
-
-    /**
-     * Fetch a value
-     *
-     * @return mixed
-     *   Return type depends upon schema
-     */
-    public function get(string $name);
 
     /**
      * Fetch multiple values at once
