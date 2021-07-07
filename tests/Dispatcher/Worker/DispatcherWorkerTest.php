@@ -45,7 +45,7 @@ final class DispatcherWorkerTest extends TestCase
                 throw new \BadMethodCallException("I shall not be called.");
             }
 
-            public function reject(MessageEnvelope $envelope): void
+            public function reject(MessageEnvelope $envelope, ?\Throwable $exception = null): void
             {
                 throw new \BadMethodCallException("I shall not be called.");
             }
@@ -105,7 +105,7 @@ final class DispatcherWorkerTest extends TestCase
                 throw new \BadMethodCallException("I shall not be called.");
             }
 
-            public function reject(MessageEnvelope $envelope): void
+            public function reject(MessageEnvelope $envelope, ?\Throwable $exception = null): void
             {
                 throw new \BadMethodCallException("I shall not be called.");
             }

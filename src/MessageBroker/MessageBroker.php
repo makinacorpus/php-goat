@@ -57,5 +57,5 @@ interface MessageBroker
      *
      * Re-queing will be decided using envelope properties.
      */
-    public function reject(MessageEnvelope $envelope): void;
+    public function reject(MessageEnvelope $envelope, ?\Throwable $e = null): void;
 }

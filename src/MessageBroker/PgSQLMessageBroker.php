@@ -159,7 +159,7 @@ final class PgSQLMessageBroker implements MessageBroker, LoggerAwareInterface, N
     /**
      * {@inheritdoc}
      */
-    public function reject(MessageEnvelope $envelope): void
+    public function reject(MessageEnvelope $envelope, ?\Throwable $exception = null): void
     {
         $serial = (int)$envelope->getProperty(self::PROP_SERIAL);
 
@@ -191,7 +191,7 @@ final class PgSQLMessageBroker implements MessageBroker, LoggerAwareInterface, N
         }
 
         if ($serial) {
-            $this->markAsFailed($serial);
+            $this->markAsFailed($serial, $exception);
         }
     }
 

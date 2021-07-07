@@ -57,11 +57,11 @@ final class RetryDispatcherDecorator implements Dispatcher, LoggerAwareInterface
             if ($response->shouldRetry()) {
                 $this->logger->debug("Failure is retryable.", ['exception' => $e]);
 
-                $this->doRequeue($envelope, $response);
+                $this->doRequeue($envelope, $response, $e);
             } else {
                 $this->logger->debug("Failure is not retryable.", ['exception' => $e]);
 
-                $this->doReject($envelope);
+                $this->doReject($envelope, $e);
             }
 
             throw $e;
@@ -82,14 +82,14 @@ final class RetryDispatcherDecorator implements Dispatcher, LoggerAwareInterface
     /**
      * Requeue message if possible.
      */
-    protected function doRequeue(MessageEnvelope $envelope, RetryStrategyResponse $response): void
+    protected function doRequeue(MessageEnvelope $envelope, RetryStrategyResponse $response, ?\Throwable $exception = null): void
     {
         $count = (int)$envelope->getProperty(Property::RETRY_COUNT, "0");
         $delay = (int)$envelope->getProperty(Property::RETRY_DELAI, (string)$response->getDelay());
         $max = (int)$envelope->getProperty(Property::RETRY_MAX, (string)$response->getMaxCount());
 
         if ($count >= $max) {
-            $this->doReject($envelope);
+            $this->doReject($envelope, $exception);
 
             return;
         }
@@ -101,14 +101,15 @@ final class RetryDispatcherDecorator implements Dispatcher, LoggerAwareInterface
                 Property::RETRY_DELAI => $delay * ($count + 1),
                 Property::RETRY_MAX => $max,
                 Property::RETRY_REASON => $response->getReason(),
-            ])
+            ]),
+            $exception
         );
     }
 
     /**
      * Reject message.
      */
-    protected function doReject(MessageEnvelope $envelope): void
+    protected function doReject(MessageEnvelope $envelope, ?\Throwable $exception = null): void
     {
         // Rest all routing information, so that the broker will not take
         // those into account if some were remaining.
@@ -118,7 +119,8 @@ final class RetryDispatcherDecorator implements Dispatcher, LoggerAwareInterface
                 Property::RETRY_DELAI => null,
                 Property::RETRY_MAX => null,
                 Property::RETRY_REASON => null,
-            ])
+            ]),
+            $exception
         );
     }
 }

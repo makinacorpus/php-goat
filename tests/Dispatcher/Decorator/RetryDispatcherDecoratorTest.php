@@ -244,7 +244,7 @@ final class RetryDispatcherDecoratorTest extends AbstractEventStoreTest
                             throw new \BadMethodCallException("We are not testing this.");
                         }
 
-                        public function reject(MessageEnvelope $envelope): void
+                        public function reject(MessageEnvelope $envelope, ?\Throwable $exception = null): void
                         {
                             if ($envelope->hasProperty(Property::RETRY_COUNT)) {
                                 ($this->retryCallback)($envelope);
