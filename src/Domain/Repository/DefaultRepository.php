@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace Goat\Domain\Repository;
 
+use Goat\Driver\Runner\AbstractRunner;
 use Goat\Query\DeleteQuery;
 use Goat\Query\Expression;
 use Goat\Query\ExpressionColumn;
 use Goat\Query\ExpressionRelation;
+use Goat\Query\InsertQuery;
 use Goat\Query\InsertQueryQuery;
 use Goat\Query\InsertValuesQuery;
+use Goat\Query\MergeQuery;
 use Goat\Query\Query;
 use Goat\Query\QueryBuilder;
 use Goat\Query\QueryError;
@@ -19,9 +22,7 @@ use Goat\Query\UpsertQueryQuery;
 use Goat\Query\UpsertValuesQuery;
 use Goat\Runner\ResultIterator;
 use Goat\Runner\Runner;
-use Goat\Driver\Runner\AbstractRunner;
 use Goat\Runner\Hydrator\HydratorRegistry;
-use Goat\Query\MergeQuery;
 
 /**
  * Table repository is a simple model implementation that works on an arbitrary
@@ -253,7 +254,8 @@ class DefaultRepository implements GoatRepositoryInterface
 
     final function checkIsEligibleToReturning(Query $query): void
     {
-        if (!$query instanceof InsertQueryQuery &&
+        if (!$query instanceof InsertQuery &&
+            !$query instanceof InsertQueryQuery &&
             !$query instanceof InsertValuesQuery &&
             !$query instanceof UpsertQueryQuery &&
             !$query instanceof UpsertValuesQuery &&
