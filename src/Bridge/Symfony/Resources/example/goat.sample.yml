@@ -137,6 +137,21 @@ goat:
         # in there, use the 'aliases' option key for duplicates.
         #
 
+        default_strategy:
+            #
+            # Default name mapping strategy configuration.
+            #
+            # Per default the "PrefixNameMappingStrategy" is used, which means
+            # that you need to give an application name prefix string, which will
+            # be all normalized names prefix, and a PHP class namespace prefix
+            # that will identify which PHP classes belongs to you or not.
+            #
+            # Per default the app name is "App" and the namespace prefix is
+            # "App" as well, to mimic default Symfony skeleton app.
+            #
+            app_name: MyApp
+            class_prefix: MyVendor\\MyApp
+
         strategy:
             #
             # Keys here are \Goat\Normalization\NameMap::CONTEXT_* constants

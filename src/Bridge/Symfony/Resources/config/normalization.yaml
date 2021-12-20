@@ -3,11 +3,20 @@ services:
     goat.serializer:
         public: false
         class: Goat\Bridge\Symfony\Serializer\GoatSerializerAdapter
-        arguments: ["@serializer"]
+        arguments: ["?@serializer"]
+
+    goat.name_map.strategy.prefix:
+        public: false
+        class: Goat\Normalization\PrefixNameMappingStrategy
+        arguments: ['App', 'App'] # Filled later by extension.
+
+    goat.name_map.strategy.default:
+        alias: goat.name_map.strategy.prefix
 
     goat.name_map:
-        class: Goat\Normalization\DefaultNameMap
         public: false
+        class: Goat\Normalization\DefaultNameMap
+        arguments: ['@goat.name_map.strategy.default']
 
     Goat\Normalization\NameMap:
         public: false

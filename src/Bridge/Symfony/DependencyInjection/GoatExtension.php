@@ -240,6 +240,11 @@ final class GoatExtension extends Extension
      */
     private function processNormalization(ContainerBuilder $container, array $config): void
     {
+        $container->getDefinition('goat.name_map.strategy.prefix')->setArguments([
+            $config['default_strategy']['app_name'] ?? 'App',
+            $config['default_strategy']['class_prefix'] ?? 'App',
+        ]);
+
         foreach (($config['strategy'] ?? []) as $context => $serviceId) {
             $container->getDefinition('goat.name_map')->addMethodCall('setNameMappingStrategryFor', [$context, new Reference($serviceId)]);
         }

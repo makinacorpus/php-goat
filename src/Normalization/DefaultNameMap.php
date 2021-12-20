@@ -20,9 +20,9 @@ class DefaultNameMap implements NameMap
     /** @var array<string,array<string,string>> */
     private array $aliases = [];
 
-    public function __construct()
+    public function __construct(?NameMappingStrategy $defaultStrategy = null)
     {
-        $this->defaultStrategy = new PassthroughNameMappingStrategy();
+        $this->defaultStrategy = $defaultStrategy ?? new PassthroughNameMappingStrategy();
     }
 
     /**
