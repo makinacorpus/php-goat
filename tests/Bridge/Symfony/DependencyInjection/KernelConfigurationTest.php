@@ -72,6 +72,9 @@ final class KernelConfigurationTest extends TestCase
             'lock' => [
                 'enabled' => true,
             ],
+            'message_broker' => [
+                'enabled' => true,
+            ],
             'normalization' => [
                 'strategy' => [
                     'command' => StupidNameMappingStrategy::class,

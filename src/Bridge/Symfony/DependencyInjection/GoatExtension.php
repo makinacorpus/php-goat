@@ -42,11 +42,16 @@ final class GoatExtension extends Extension
         $dispatcherEnabled = $config['dispatcher']['enabled'] ?? false;
         $eventStoreEnabled = $config['event_store']['enabled'] ?? false;
         $lockEnabled = $config['lock']['enabled'] ?? false;
+        $messageBrokerEnabled = $config['message_broker']['enabled'] ?? false;
         $preferenceEnabled = $config['preferences']['enabled'] ?? false;
         $twigEnabled = \class_exists(Environment::class);
 
         $loader->load('normalization.yaml');
         $this->processNormalization($container, $config['normalization'] ?? []);
+
+        if ($messageBrokerEnabled) {
+            $loader->load('message-broker.yaml');
+        }
 
         if ($eventStoreEnabled) {
             $loader->load('event-store.yaml');
@@ -143,7 +148,7 @@ final class GoatExtension extends Extension
 
         if ($config['with_retry']) {
             if (!$container->hasDefinition('goat.message_broker') && !$container->hasAlias('goat.message_broker')) {
-                throw new InvalidArgumentException("You must set goat.event_store.enabled (for message broker support) to true in order to be able to enable goat.dispatcher.with_retry");
+                throw new InvalidArgumentException("You must set goat.message_broker.enabled to true in order to be able to enable goat.dispatcher.with_retry");
             }
 
             $decoratedInnerId = 'goat.dispatcher.retry.inner';

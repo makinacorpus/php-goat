@@ -53,46 +53,11 @@ services:
     goat.runner.event_store:
         alias: "goat.runner.default"
 
-    # Everything described in the comment block upper is true for the message
-    # broker as well. Nevertheless, message broker SQL queries are much simpler
-    # and safer and will hopefully not trigger any contention, changing its SQL
-    # connection is probably unnecessary and will possibility lead to wrongly
-    # sent message issued by business transactions which have been ROLLBACK.
-    goat.runner.message_broker:
-        alias: "goat.runner.default"
-
     # @todo
     #   - Autoconfigure this from user configuration
     goat.event_store.namespace_map:
         public: false
         class: Goat\EventStore\NamespaceMap
-
-    # By arbitrarily injecting the message broker here, we loose the messenger
-    # configuration and routing flexibility: we cannot have multiple queues
-    # and multiple transports in parallel. But nevertheless, as of today, we
-    # do not need it, so let's just force a single bus/queue interface.
-    # You also cannot choose the SQL connection, this will come later.
-    # 'default' in name refers to the queue, not the service being the default.
-    # @todo
-    #    - As said below, later implement a registry for allow more than one
-    #      service to co-exist, one for each queue.
-    goat.message_broker.default:
-        public: false
-        class: Goat\MessageBroker\PgSQLMessageBroker
-        arguments: ["@goat.runner.message_broker", "@goat.serializer"]
-        tags: [{ name: "monolog.logger", channel: "goat_dispatcher" }]
-        calls:
-            - [setNameMap, ["@goat.name_map"]]
-
-    # Give a generic identifier for message broker.
-    # @todo
-    #   - Later allow a registry as facade, for allowing more than one to
-    #     exists and fetch them on a per-queue basis.
-    goat.message_broker:
-        alias: goat.message_broker.default
-
-    Goat\MessageBroker\MessageBroker:
-        alias: goat.message_broker
 
     goat.event_store:
         public: false

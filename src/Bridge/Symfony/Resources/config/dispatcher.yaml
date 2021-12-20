@@ -18,8 +18,6 @@ services:
     goat.dispatcher:
         public: false
         class: Goat\Dispatcher\DefaultDispatcher
-        calls:
-            - [setRetryStrategy, ["@goat.dispatcher.retry_strategy"]]
         arguments: ['@goat.dispatcher.handler_locator', '@goat.message_broker']
         tags: [{ name: "monolog.logger", channel: "goat_dispatcher" }]
 

@@ -90,6 +90,12 @@ goat:
         #
         enabled: false
 
+    message_broker:
+        #
+        # Enable the message broker service.
+        #
+        enabled: false
+
     monolog:
         #
         # Registers a custom monolog  formatter that will add process PID to

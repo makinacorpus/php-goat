@@ -52,7 +52,7 @@ final class HandlerLocatorRegistrationPass implements CompilerPassInterface
             $serviceClassName = NullHandlerReferenceList::class;
             $definition = new Definition();
             $definition->setClass($serviceClassName);
-            $definition->setPrivate(true);
+            $definition->setPublic(false);
             $container->setDefinition($serviceClassName, $definition);
         } else {
             $dumper->dump($dumpedClassName);
@@ -61,7 +61,7 @@ final class HandlerLocatorRegistrationPass implements CompilerPassInterface
             $definition = new Definition();
             $definition->setClass($serviceClassName);
             $definition->setFile($dumpedFileName);
-            $definition->setPrivate(true);
+            $definition->setPublic(false);
             $container->setDefinition($serviceClassName, $definition);
         }
 

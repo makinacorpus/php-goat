@@ -41,7 +41,7 @@ final class PreferencesEnvVarProcessor implements EnvVarProcessorInterface
     /**
      * {@inheritdoc}
      */
-    public static function getProvidedTypes()
+    public static function getProvidedTypes(): array
     {
         return [
             'preference' => 'bool|int|float|string|array',
@@ -51,7 +51,7 @@ final class PreferencesEnvVarProcessor implements EnvVarProcessorInterface
     /**
      * {@inheritdoc}
      */
-    public function getEnv($prefix, $name, \Closure $getEnv)
+    public function getEnv(string $prefix, string $name, \Closure $getEnv): mixed
     {
         if ('preference' !== $prefix) {
             throw new RuntimeException(sprintf('Unsupported env var prefix "%s".', $prefix));

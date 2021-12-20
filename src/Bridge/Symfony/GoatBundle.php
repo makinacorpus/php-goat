@@ -9,6 +9,7 @@ use Goat\Bridge\Symfony\DependencyInjection\Compiler\DomainConfigurationPass;
 use Goat\Bridge\Symfony\DependencyInjection\Compiler\HandlerLocatorRegistrationPass;
 use Goat\Bridge\Symfony\DependencyInjection\Compiler\MonologConfigurationPass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Extension\ExtensionInterface;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 
 /**
@@ -29,7 +30,7 @@ final class GoatBundle extends Bundle
     /**
      * {@inheritdoc}
      */
-    public function getContainerExtension()
+    public function getContainerExtension(): ?ExtensionInterface
     {
         return new GoatExtension();
     }
