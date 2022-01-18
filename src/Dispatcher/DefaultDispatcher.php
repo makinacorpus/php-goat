@@ -22,7 +22,7 @@ final class DefaultDispatcher implements Dispatcher
      */
     final public function dispatch($message, array $properties = []): void
     {
-        ($this->handlerLocator->find($message))($message);
+        $this->messageBroker->dispatch(MessageEnvelope::wrap($message, $properties));
     }
 
     /**
@@ -30,6 +30,6 @@ final class DefaultDispatcher implements Dispatcher
      */
     final public function process($message, array $properties = []): void
     {
-        $this->messageBroker->dispatch(MessageEnvelope::wrap($message, $properties));
+        ($this->handlerLocator->find($message))($message);
     }
 }

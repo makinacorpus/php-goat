@@ -3,7 +3,7 @@ services:
     goat.serializer:
         public: false
         class: Goat\Bridge\Symfony\Serializer\GoatSerializerAdapter
-        arguments: ["?@serializer"]
+        arguments: ["@?serializer"]
 
     goat.name_map.strategy.prefix:
         public: false
