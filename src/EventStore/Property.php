@@ -17,9 +17,15 @@ final class Property
     const DEFAULT_CONTENT_TYPE = 'application/json';
     const DEFAULT_CONTENT_ENCODING = 'UTF-8';
 
+    const DELIVERY_MODE_TRANSCIENT = 1;
+    const DELIVERY_MODE_PERSISTENT = 2;
+
     const APP_ID = 'app-id';
     const CONTENT_ENCODING = 'content-encoding';
     const CONTENT_TYPE = 'content-type';
+    const CORRELATION_ID = 'correlation-id';
+    const DELIVERY_MODE = 'delivery-mode';
+    const EXPIRATION = 'expiration';
     const MESSAGE_ID = 'message-id';
     const MESSAGE_TYPE = 'type';
     const REPLY_TO = 'reply-to';
@@ -68,6 +74,9 @@ final class Property
                 case Property::APP_ID:
                 case Property::CONTENT_ENCODING:
                 case Property::CONTENT_TYPE:
+                case Property::CORRELATION_ID:
+                case Property::DELIVERY_MODE:
+                case Property::EXPIRATION:
                 case Property::MESSAGE_ID:
                 case Property::MESSAGE_TYPE:
                 case Property::REPLY_TO:
@@ -76,12 +85,8 @@ final class Property
                     $ret[\str_replace('-', '_', $key)] = $value;
                     break;
 
-                // @todo should we handle those?
-                //   They've been copied from php-amqplib.
-                case 'delivery_mode':
+                // They've been copied from php-amqplib.
                 case 'priority':
-                case 'correlation_id':
-                case 'expiration':
                 case 'timestamp':
                 case 'cluster_id':
                     $ret[$key] = $key;
@@ -109,10 +114,13 @@ final class Property
                 case 'app_id':
                 case 'content_encoding':
                 case 'content_type':
+                case 'correlation_id':
+                case 'delivery_mode':
+                case 'expiration':
                 case 'message_id':
-                case 'type':
                 case 'reply_to':
                 case 'subject':
+                case 'type':
                 case 'user_id':
                     $ret[\str_replace('_', '-', $key)] = $value;
                     break;
@@ -127,10 +135,7 @@ final class Property
 
                 // @todo should we handle those?
                 //   They've been copied from php-amqplib.
-                case 'delivery_mode':
                 case 'priority':
-                case 'correlation_id':
-                case 'expiration':
                 case 'timestamp':
                 case 'cluster_id':
                     $ret[$key] = $key;
