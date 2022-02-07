@@ -28,9 +28,6 @@
         <testsuite name="Normalization">
             <directory>./tests/Normalization</directory>
         </testsuite>
-        <testsuite name="Preferences">
-            <directory>./tests/Preferences</directory>
-        </testsuite>
         <testsuite name="Projector">
             <directory>./tests/Projector</directory>
         </testsuite>
