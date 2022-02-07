@@ -4,6 +4,14 @@ declare(strict_types=1);
 
 namespace Goat\Normalization;
 
+/**
+ * This exists because in Symfony, there are here and there a few API bits
+ * that don't use mimetypes, but what they call a "format" instead.
+ *
+ * For example, "symfony/serializer" doesn't care about mimetypes, it just
+ * uses a "format" name, such as "json" or "xml". At some point, we needed
+ * something to glue Symfony's "format" with real mimetypes.
+ */
 final class MimeTypeConverter
 {
     /**

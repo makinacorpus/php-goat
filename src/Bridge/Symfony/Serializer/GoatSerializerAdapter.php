@@ -8,6 +8,10 @@ use Goat\Normalization\MimeTypeConverter;
 use Goat\Normalization\Serializer;
 use Symfony\Component\Serializer\SerializerInterface;
 
+/**
+ * Brings a custom serializer interface implementation that internally uses
+ * the symfony/serializer package for doing the job.
+ */
 final class GoatSerializerAdapter implements Serializer
 {
     private SerializerInterface $symfonySerializer;

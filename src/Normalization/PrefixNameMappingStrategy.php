@@ -7,15 +7,18 @@ namespace Goat\Normalization;
 /**
  * This class will convert things such as:
  *
- *  - Cgv\Shop\Domain\Order\Command\BasketProductAdd
- *  - Cgv\Shop\Domain\Order\Event\BasketProductAdded
- *  - Cgv\Shop\Domain\Catalogue\Model\Product
+ *  - Foo\Shop\Domain\Order\Command\BasketProductAdd
+ *  - Foo\Shop\Domain\Order\Event\BasketProductAdded
+ *  - Foo\Shop\Domain\Catalogue\Model\Product
  *
  * To respectively those:
  *
- *  - CgvShop.Order.Command.BasketProductAdd
- *  - CgvShop.Order.Event.BasketProductAdded
- *  - CgvShop.Catalogue.Model.Product
+ *  - FooShop.Order.Command.BasketProductAdd
+ *  - FooShop.Order.Event.BasketProductAdded
+ *  - FooShop.Catalogue.Model.Product
+ *
+ * Considering that the namespace "Foo\Shop\Domain" is the prefix, and must be
+ * replaced with the canonical application name "FooShop".
  *
  * Considering that is has the form:
  *
