@@ -3,6 +3,57 @@
 Provides a set of tooling for domain driven design. Automatic integration to
 Symfony >= 4 is provided via makinacorpus/goat-bundle package.
 
+# Status
+
+This was kind of micro-framework, including many features:
+
+ - Command bus logic with a command dispatcher and a command handler locator.
+ - Indepdent message broker implementation using PostgreSQL.
+ - A command for reading the message broker queue and send it into the
+   command bus synchronous dispatcher.
+ - A name normalization and mapping API (e.g. `\App\Foo\Bar` to `App.Foo.Bar`)
+   for sharing business identifier across techonology boundary.
+ - Some rather generic, stable and functionnal event store implementation with
+   a PostgreSQL driver.
+ - An event projector API for consuming event store events and projecting them
+   into custom implementation, for populating read model databases.
+ - A legary repository pattern implementation.
+ - Preferences API restitued as pseudo Symfony environement variables.
+ - A Symfony bundle to tie everything.
+
+All together this represents a huge functionnal surface, and many items in this
+list don't belong together.
+
+The name `goat` itself refers to something stupid or insecure.
+
+This project has lived throught 4 production projects, and still exist and is
+maintained, but not for long.
+
+Next version major, i.e. 5.x will be the last one, it reprensents the current
+state where:
+
+ - Preferences API no long exists, and has been moved to an independant package
+   `makinacorpus/preferences-bundle` (you may look it up on packagist).
+ - Repository pattern implementation has gone away, it was really in use in a
+   single project, and will remain minimally maintained (bugfixes only) in an
+   independent package as well `makinacorpus/preferences-domain`.
+ - Lots of other dead code pieces will be trashed away.
+ - It will mostly remain only the command bus, dispatcher, message broker,
+   event store and normalization API.
+
+This will enter a state of bugfixes only, for our production projects still
+using it, but most of its code will progressively be deprecated in favor of new
+independant and more accurate packages:
+
+ - Future `makinacorpus/event-store` package will contain the event bus and
+   the projector API. Please note that the project API itself might end up being
+   deprecated if we don't have any new use case.
+ - Existing `makinacorpus/corebus` package which is more or less the same as the
+   dispatcher of this package, using more modern code and that is more
+   extensively tested will eventually inherit from this dispatcher and message
+   broker code.
+ - Name normalization could end-up in its own package.
+
 # Pre-requisites
 
 Due to SQL `RETURNING` clause usage, this cannot work with MySQL. This feature
