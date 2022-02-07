@@ -31,22 +31,17 @@
         "psr-4" : {
             "Goat\\Bridge\\Symfony\\" : "src/Bridge/Symfony/",
             "Goat\\Dispatcher\\" : "src/Dispatcher/",
-            "Goat\\Domain\\" : "src/Domain/",
             "Goat\\EventStore\\" : "src/EventStore/",
             "Goat\\Lock\\" : "src/Lock/",
             "Goat\\MessageBroker\\" : "src/MessageBroker/",
             "Goat\\Normalization\\" : "src/Normalization/",
             "Goat\\Projector\\" : "src/Projector/"
-        },
-        "classmap": [
-            "src/Domain/Generator/MessageDocumentation.php"
-        ]
+        }
     },
     "autoload-dev": {
         "psr-4": {
             "Goat\\Bridge\\Symfony\\Tests\\": "tests/Bridge/Symfony/",
             "Goat\\Dispatcher\\Tests\\": "tests/Dispatcher/",
-            "Goat\\Domain\\Tests\\": "tests/Domain/",
             "Goat\\EventStore\\Tests\\": "tests/EventStore/",
             "Goat\\Lock\\Tests\\": "tests/Lock/",
             "Goat\\MessageBroker\\Tests\\": "tests/MessageBroker/",
