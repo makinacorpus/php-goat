@@ -2,7 +2,7 @@
     "name" : "makinacorpus/goat",
     "type": "library",
     "description": "Event store, domain repositories and preference API for PHP, with a Symfony bundle",
-    "keywords": ["orm", "postgresql", "mysql", "database", "symfony", "pdo", "preferences", "configuration"],
+    "keywords": ["orm", "postgresql", "mysql", "database", "symfony", "pdo"],
     "homepage": "http://github.com/makinacorpus/php-goat",
     "license": "GPL-2.0-or-later",
     "authors": [
@@ -36,14 +36,10 @@
             "Goat\\Lock\\" : "src/Lock/",
             "Goat\\MessageBroker\\" : "src/MessageBroker/",
             "Goat\\Normalization\\" : "src/Normalization/",
-            "Goat\\Preferences\\" : "src/Preferences",
             "Goat\\Projector\\" : "src/Projector/"
         },
         "classmap": [
             "src/Domain/Generator/MessageDocumentation.php"
-        ],
-        "files": [
-            "lib/compat.php"
         ]
     },
     "autoload-dev": {
@@ -55,7 +51,6 @@
             "Goat\\Lock\\Tests\\": "tests/Lock/",
             "Goat\\MessageBroker\\Tests\\": "tests/MessageBroker/",
             "Goat\\Normalization\\Tests\\": "tests/Normalization/",
-            "Goat\\Preferences\\Tests\\": "tests/Preferences/",
             "Goat\\Projector\\Tests\\": "tests/Projector/"
         }
     },
