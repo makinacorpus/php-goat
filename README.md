@@ -1,44 +1,101 @@
-# Goat tooling
+# Goat domain driven design tools
 
-Set of tools for developing applications based upon a message bus, event store
-and the [goat-query](https://github.com/pounard/goat-query) database connector
-and query builder, along with a Symfony bundle to configure those tools.
+Provides a set of tooling for domain driven design. Automatic integration to
+Symfony >= 4 is provided via makinacorpus/goat-bundle package.
 
-All tools provided can function independently.
+# Pre-requisites
 
-# Tools
+Due to SQL `RETURNING` clause usage, this cannot work with MySQL. This feature
+is not SQL standard, but all of PostgreSQL, SQL Server and Oracle have a variant
+of this feature, therefore could work with this package.
 
-## Event store and event dispatcher
+As of now, only PostgreSQL is an active target and have been tested with.
 
-This provides a commande bus dispatcher and event store implementations.
+# Features
 
-Please see the [README.domain.md](./README.domain.md) file for more information.
+ - build a domain event driven model, derived from DDD and CQS with a
+   message broken in the middle,
+ - provide an event store to save everything, and replay it.
 
-## Domain object repository
+# Installation
 
-This package provide default domain objects or entities repository, with basic
-CRUD functionnality, pluged over the
-[goat-query](https://github.com/pounard/goat-query) database query builder.
+```sh
+composer req makinacorpus/goat-domain
+```
 
-## Preference API
+# Usage
 
-Preference API is a key-value store interface, accompagnied with a SQL
-implementation, that is store user-set application configuration values.
+Please document me.
 
-It is per default fast for reading, and slow for writing.
+## Dispatcher
 
-It is plugged into `symfony/dependency-injection` using a hack around
-environment variable processor, which allows you to use preference values
-as services configuration transparently without hard-wiring the preference
-API into your services.
+The **Dispatcher** is a component that behaves like `symfony/messenger`
+component, it is the user facing interface for sending and consuming
+messages from a bus.
 
-## Symfony bundle
+It gives two methods:
 
-It should wire everything.
+ - an asynchronous message `dispatch()`, whose goal is to send messages to
+   a message broker,
 
-Please see the [README.bundle.md](./README.bundle.md) file for more information.
+ - a synchronous message `process()` whose goal is to consume messages and
+   dispatch them to the correct message handler.
 
-## Monolog integration
+Base implementation comes down to:
+
+ - `dispatch()` just passes messages to a message broker,
+ - `process()` just fetch a handler using an handler locator and executes it.
+
+All other advanced features, including event store support are implemented
+using dispatcher interface decorators.
+
+A console consumer command exists, it simply fetches messages from the message
+broker and call dispatcher's `dispatch()` method.
+
+## Event store
+
+### Introduction
+
+The **EventStore** is a very primitive implementation of what you might use for
+implementing event sourcing. It saves all events that have been throught the
+applications into an ordered and immutable append-only log.
+
+Every event that have been executed in the application will be saved into this
+journalisation mecanism.
+
+It works the following way:
+
+ * when a domain event is run through the dispatcher and processed synchronously
+   the event is saved directly into the log, with the fail or success status
+   along (a fail event is one that have been rollbacked),
+
+ * when the messenger consumes an external or asynchronous message, it goes
+   througth the dispatcher once again, and gets saved the way it has been
+   written above.
+
+Its usage is optional.
+
+### Some concepts
+
+The event store allows to partially implement an event sourcing based system
+or it can be used a pure journalisation mecanism without being source of the
+actual data.
+
+In both case, it will be plugged onto the message bus, and store every message
+or domain event that happen to the system. For this to work gracefully, your
+own events should implement the `Goat\Dispatcher\Message\Message` interface in
+order for the event store to be able to identify every aggregate or entity that
+gets created or update within the system and keep track of objects life time.
+
+It doesn't matter if you actually identify creation or modification, only a
+UUID is necessary, if it doesn't exist in the index, a new event stream will
+be created, if it exist a single event will append to the existing stream.
+
+# Advanced configuration
+
+Please document me.
+
+# Monolog integration
 
 Provide some extra options for monolog.
 
