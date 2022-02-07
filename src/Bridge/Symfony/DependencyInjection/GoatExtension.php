@@ -10,8 +10,6 @@ use Goat\Dispatcher\Decorator\ParallelExecutionBlockerDispatcherDecorator;
 use Goat\Dispatcher\Decorator\ProfilingDispatcherDecorator;
 use Goat\Dispatcher\Decorator\RetryDispatcherDecorator;
 use Goat\Dispatcher\Decorator\TransactionDispatcherDecorator;
-use Goat\Preferences\Domain\Repository\ArrayPreferencesSchema;
-use Goat\Preferences\Domain\Repository\PreferencesSchema;
 use Monolog\Formatter\LineFormatter;
 use Monolog\Processor\ProcessIdProcessor;
 use Symfony\Bundle\MonologBundle\MonologBundle;
@@ -43,7 +41,6 @@ final class GoatExtension extends Extension
         $eventStoreEnabled = $config['event_store']['enabled'] ?? false;
         $lockEnabled = $config['lock']['enabled'] ?? false;
         $messageBrokerEnabled = $config['message_broker']['enabled'] ?? false;
-        $preferenceEnabled = $config['preferences']['enabled'] ?? false;
         $twigEnabled = \class_exists(Environment::class);
 
         $loader->load('normalization.yaml');
@@ -74,11 +71,6 @@ final class GoatExtension extends Extension
 
         if ($dispatcherEnabled && $consoleEnabled) {
             $loader->load('dispatcher-console.yaml');
-        }
-
-        if ($preferenceEnabled) {
-            $loader->load('preferences.yaml');
-            $this->processPreferences($container, $config['preferences'] ?? []);
         }
 
         if ($twigEnabled) {
@@ -293,23 +285,6 @@ final class GoatExtension extends Extension
         }
 
         $container->getDefinition('goat.name_map')->addMethodCall('setStaticNameMapFor', [$context, $map, $aliases]);
-    }
-
-    /**
-     * Process preferences.
-     */
-    private function processPreferences(ContainerBuilder $container, array $config)
-    {
-        // @todo caching strategy.
-        if (isset($config['schema'])) {
-            $schemaDefinition = new Definition();
-            $schemaDefinition->setClass(ArrayPreferencesSchema::class);
-            // In theory, our configuration was correctly registered, this should
-            // work gracefully.
-            $schemaDefinition->setArguments([$config['schema']]);
-            $container->setDefinition('goat.preferences.schema', $schemaDefinition);
-            $container->setAlias(PreferencesSchema::class, 'goat.preferences.schema');
-        }
     }
 
     /**

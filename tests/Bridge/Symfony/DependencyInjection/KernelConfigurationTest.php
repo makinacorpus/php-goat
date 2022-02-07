@@ -88,18 +88,6 @@ final class KernelConfigurationTest extends TestCase
                     ],
                 ],
             ],
-            'preferences' => [
-                'enabled' => true,
-                'schema' => [
-                    'app_domain_some_variable' => [
-                        'label' => "Some variable",
-                        'description' => "Uncheck this value to deactive this feature",
-                        'type' => 'bool',
-                        'collection' => false,
-                        'default' => true,
-                    ],
-                ],
-            ],
         ];
     }
 

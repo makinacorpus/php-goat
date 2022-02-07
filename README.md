@@ -32,9 +32,6 @@ environment variable processor, which allows you to use preference values
 as services configuration transparently without hard-wiring the preference
 API into your services.
 
-Please see the [README.preferences.md](./README.preferences.md) file for more
-information.
-
 ## Symfony bundle
 
 It should wire everything.
