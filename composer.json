@@ -48,8 +48,7 @@
         }
     },
     "replace": {
-        "makinacorpus/goat-bundle": "*",
-        "makinacorpus/goat-hydrator": "*"
+        "makinacorpus/goat-bundle": "*"
     },
     "require" : {
         "makinacorpus/goat-query": "^2.1.7 || ^3.0",
