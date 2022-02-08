@@ -37,6 +37,8 @@ state where:
  - Repository pattern implementation has gone away, it was really in use in a
    single project, and will remain minimally maintained (bugfixes only) in an
    independent package as well `makinacorpus/goat-domain`.
+ - Name normalization feature as been moved to the `makinacorpus/normalization`
+   package.
  - Lots of other dead code pieces will be trashed away.
  - It will mostly remain only the command bus, dispatcher, message broker,
    event store and normalization API.
@@ -52,7 +54,6 @@ independant and more accurate packages:
    dispatcher of this package, using more modern code and that is more
    extensively tested will eventually inherit from this dispatcher and message
    broker code.
- - Name normalization could end-up in its own package.
 
 # Pre-requisites
 
