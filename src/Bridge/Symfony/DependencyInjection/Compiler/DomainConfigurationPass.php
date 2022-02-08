@@ -30,7 +30,7 @@ final class DomainConfigurationPass implements CompilerPassInterface
         string $transactionHandlerTag = 'goat.transaction_handler',
         string $eventStoreId = 'goat.event_store',
         string $lockServiceId = 'goat.lock',
-        string $serializerId = 'goat.serializer'
+        string $serializerId = 'normalization.serializer'
     ) {
         $this->projectorTag = $projectorTag;
         $this->projectorRegistryId = $projectorRegistryId;

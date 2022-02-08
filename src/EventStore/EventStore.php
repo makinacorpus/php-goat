@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Goat\EventStore;
 
 use Goat\EventStore\Error\AggregateDoesNotExistError;
-use Goat\Normalization\Serializer;
+use MakinaCorpus\Normalization\Serializer;
 use Ramsey\Uuid\UuidInterface;
 
 interface EventStore

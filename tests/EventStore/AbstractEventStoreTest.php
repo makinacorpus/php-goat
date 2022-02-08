@@ -8,9 +8,9 @@ use Goat\EventStore\Event;
 use Goat\EventStore\EventStore;
 use Goat\EventStore\EventStream;
 use Goat\EventStore\Goat\GoatEventStore;
-use Goat\Normalization\Tests\WithSerializerTestTrait;
 use Goat\Runner\Runner;
 use Goat\Runner\Testing\DatabaseAwareQueryTest;
+use MakinaCorpus\Normalization\Testing\WithSerializerTestTrait;
 use Ramsey\Uuid\Uuid;
 use Ramsey\Uuid\UuidInterface;
 

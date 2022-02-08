@@ -5,14 +5,7 @@ services:
         arguments: ["@goat.dispatcher", "@goat.message_broker"]
         tags: ["console.command"]
 
-    # @todo
-    #   This is broken and doesn't work.
-    # Goat\Dispatcher\Command\DispatcherListCommand:
-    #     public: false
-    #     arguments: ["@goat.name_map"]
-    #     tags: ["console.command"]
-
     Goat\Dispatcher\Command\DispatcherPushCommand:
         public: false
-        arguments: ["@goat.dispatcher", "@goat.serializer", "@goat.name_map"]
+        arguments: ["@goat.dispatcher", "@normalization.serializer", "@normalization.name_map"]
         tags: ["console.command"]

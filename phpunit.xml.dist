@@ -22,9 +22,6 @@
         <testsuite name="MessageBroker">
             <directory>./tests/MessageBroker</directory>
         </testsuite>
-        <testsuite name="Normalization">
-            <directory>./tests/Normalization</directory>
-        </testsuite>
         <testsuite name="Projector">
             <directory>./tests/Projector</directory>
         </testsuite>

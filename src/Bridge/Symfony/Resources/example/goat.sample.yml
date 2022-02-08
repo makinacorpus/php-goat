@@ -2,8 +2,7 @@
 # Goat various components configuration.
 #
 # This file explicits all existing configuration parameters, all values
-# documented within this file are set to defaults, except for normalization
-# example values.
+# documented within this file are set to defaults.
 #
 goat:
 
@@ -110,78 +109,3 @@ goat:
         # enable exception stack trace collection.
         #
         always_log_stacktrace: false
-
-    normalization:
-        #
-        # PHP native type to normalized type name
-        #
-        # This is one very important yet missing symfony/serializer feature:
-        #
-        #   - While you code will evolve upon time passing, at some point you
-        #     will eventually end up renaming your classes, or moving them
-        #     around in other namespaces, this allows you to map legacy names.
-        # 
-        #   - While your platform evolve, and you start plugging new external
-        #     components on the same message broker, you may want at some point
-        #     want to normalize event names to a semantic business-relative
-        #     codified names.
-        #
-        # In both cases, it decorates the symfony/serializer component and
-        # transparently convert incomming normalized names to PHP native types
-        # to avoid it exploding upon missing classes. It also removes you the
-        # pain of developping custom normalizers after each code modification
-        # you do.
-        #
-        # This maps incomming normalized names to PHP types, but it also serve
-        # the same purpose the other way arround, you MUST NOT put duplicates
-        # in there, use the 'aliases' option key for duplicates.
-        #
-
-        default_strategy:
-            #
-            # Default name mapping strategy configuration.
-            #
-            # Per default the "PrefixNameMappingStrategy" is used, which means
-            # that you need to give an application name prefix string, which will
-            # be all normalized names prefix, and a PHP class namespace prefix
-            # that will identify which PHP classes belongs to you or not.
-            #
-            # Per default the app name is "App" and the namespace prefix is
-            # "App" as well, to mimic default Symfony skeleton app.
-            #
-            app_name: MyApp
-            class_prefix: MyVendor\\MyApp
-
-        strategy:
-            #
-            # Keys here are \Goat\Normalization\NameMap::CONTEXT_* constants
-            # values, but they can be anything else, those consttants are only
-            # here for convenience.
-            #
-            # Values must be container services identifiers.
-            #
-            command: \App\Goat\Normalization\CustomCommandNameMappingStrategy
-            event: \App\Goat\Normalization\CustomEventNameMappingStrategy
-
-        static:
-            #
-            # Keys here are \Goat\Normalization\NameMap::CONTEXT_* constants
-            # values, but they can be anything else, those consttants are only
-            # here for convenience.
-            #
-            command:
-                #
-                # Actual logical name to PHP class name conversion.
-                #
-                map:
-                    Php\Native\Type: my_app.normalized_name
-                    Php\Other\Native\Type: my_app.other_normalized_name
-
-                #
-                # Legacy aliases to PHP class name conversion.
-                #
-                aliases:
-                    Php\Legacy\Name: Php\Native\Type
-                    Php\EvenMoreLegacy\Name: Php\Native\Type
-                    my_app.legacy_normalized_name: Php\Native\Type
-                    my_app.other_legacy_normalized_name: my_app.normalized_name

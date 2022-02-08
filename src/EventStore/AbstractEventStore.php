@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Goat\EventStore;
 
 use Goat\Dispatcher\Message\BrokenMessage;
-use Goat\Normalization\NameMap;
-use Goat\Normalization\NameMapAware;
-use Goat\Normalization\NameMapAwareTrait;
-use Goat\Normalization\Serializer;
+use MakinaCorpus\Normalization\NameMap;
+use MakinaCorpus\Normalization\Serializer;
+use MakinaCorpus\Normalization\NameMap\NameMapAware;
+use MakinaCorpus\Normalization\NameMap\NameMapAwareTrait;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\NullLogger;
@@ -101,12 +101,12 @@ abstract class AbstractEventStore implements EventStore, LoggerAwareInterface, N
 
             // Compute normalized aggregate type, otherwise the PHP native class
             // or type name would be stored in database, we sure don't want that.
-            $aggregateType = $nameMap->phpTypeToLogicalName(NameMap::CONTEXT_MODEL, $aggregateType ?? $event->getAggregateType());
+            $aggregateType = $nameMap->fromPhpType($aggregateType ?? $event->getAggregateType(), NameMap::TAG_MODEL);
 
             // Compute normalized event name. If event name was given by the
             // caller normalize it before registering it into the properties
             // array. Otherwise, use the name map directly to guess it.
-            $eventName = $nameMap->phpTypeToLogicalName(NameMap::CONTEXT_EVENT, $eventName ?? \get_class($message));
+            $eventName = $nameMap->fromPhpType($eventName ?? \get_class($message), NameMap::TAG_EVENT);
 
             // Compute necessary common properties. Custom properties from
             // caller might be overriden, the store is authoritative on some
@@ -315,10 +315,7 @@ abstract class AbstractEventStore implements EventStore, LoggerAwareInterface, N
             return $data;
         }
 
-        $type = $this->nameMap->logicalNameToPhpType(
-            NameMap::CONTEXT_EVENT,
-            $properties[Property::MESSAGE_TYPE] ?? $eventName
-        );
+        $type = $this->nameMap->toPhpType($properties[Property::MESSAGE_TYPE] ?? $eventName, NameMap::TAG_EVENT);
 
         return $this->serializer->unserialize(
             $type,

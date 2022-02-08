@@ -43,9 +43,6 @@ final class GoatExtension extends Extension
         $messageBrokerEnabled = $config['message_broker']['enabled'] ?? false;
         $twigEnabled = \class_exists(Environment::class);
 
-        $loader->load('normalization.yaml');
-        $this->processNormalization($container, $config['normalization'] ?? []);
-
         if ($messageBrokerEnabled) {
             $loader->load('message-broker.yaml');
         }
@@ -201,90 +198,6 @@ final class GoatExtension extends Extension
         // not involving user to modify its monolog.yaml file.
         // @see \Goat\Bridge\Symfony\DependencyInjection\Compiler\MonologConfigurationPass
         $container->setDefinition('goat.monolog.formatter.line', $formatterDefinition);
-    }
-
-    /**
-     * Normalize type name, do not check for type existence?
-     *
-     * @codeCoverageIgnore
-     * @todo Export this into a testable class.
-     */
-    private function normalizeType(string $type, string $key): string
-    {
-        if (!\is_string($type)) {
-            throw new InvalidArgumentException(\sprintf(
-                "goat.normalization.map: key '%s': value must be a string",
-                $key
-            ));
-        }
-        if (\ctype_digit($key)) {
-            throw new InvalidArgumentException(\sprintf(
-                "goat.normalization.map: key '%s': cannot be numeric",
-                $key
-            ));
-        }
-        // Normalize to FQDN
-        return \ltrim(\trim($type), '\\');
-    }
-
-    /**
-     * Process type normalization map and aliases.
-     */
-    private function processNormalization(ContainerBuilder $container, array $config): void
-    {
-        $container->getDefinition('goat.name_map.strategy.prefix')->setArguments([
-            $config['default_strategy']['app_name'] ?? 'App',
-            $config['default_strategy']['class_prefix'] ?? 'App',
-        ]);
-
-        foreach (($config['strategy'] ?? []) as $context => $serviceId) {
-            $container->getDefinition('goat.name_map')->addMethodCall('setNameMappingStrategryFor', [$context, new Reference($serviceId)]);
-        }
-        foreach (($config['static'] ?? []) as $context => $data) {
-            $this->processNormalizationStaticForContext($container, $context, $data['map'] ?? [], $data['aliases'] ?? []);
-        }
-    }
-
-    /**
-     * Process type normalization map and aliases.
-     */
-    private function processNormalizationStaticForContext(ContainerBuilder $container, string $context, array $map, array $aliases): void
-    {
-        $types = [];
-        foreach ($map as $key => $type) {
-            $type = $this->normalizeType($type, $key);
-            if ('string' !== $type && 'array' !== $type && 'null' !== $type && !\class_exists($type)) {
-                throw new InvalidArgumentException(\sprintf(
-                    "goat.normalization.map: key '%s': class '%s' does not exist",
-                    $key, $type
-                ));
-            }
-            if ($existing = ($types[$type] ?? null)) {
-                throw new InvalidArgumentException(\sprintf(
-                    "goat.normalization.map: key '%s': class '%s' previously defined at key '%s'",
-                    $key, $type, $existing
-                ));
-            }
-            // Value is normalized, fix incomming array.
-            $map[$key] = $type;
-            $types[$type] = $key;
-        }
-
-        foreach ($aliases as $alias => $type) {
-            $type = $this->normalizeType($type, $key);
-            // Alias toward another alias, or alias toward an PHP native type?
-            if (!isset($map[$alias]) && !\in_array($type, $map)) {
-                if ($existing = ($types[$type] ?? null)) {
-                    throw new InvalidArgumentException(\sprintf(
-                        "goat.normalization.alias: key '%s': normalized name or type '%s' is not defined in goat.normalization.map",
-                        $alias, $type, $existing
-                    ));
-                }
-            }
-            $aliases[$alias] = $type;
-        }
-
-        $container->getDefinition('goat.name_map')->addMethodCall('setStaticNameMapFor', [$context, $map, $aliases]);
     }
 
     /**

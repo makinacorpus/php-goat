@@ -6,12 +6,12 @@ namespace Goat\EventStore\Goat;
 
 use Goat\EventStore\AbstractEventQuery;
 use Goat\EventStore\EventStream;
-use Goat\Normalization\NameMap;
 use Goat\Query\ExpressionLike;
 use Goat\Query\ExpressionRaw;
 use Goat\Query\ExpressionValue;
 use Goat\Query\Query;
 use Goat\Query\SelectQuery;
+use MakinaCorpus\Normalization\NameMap;
 
 final class GoatEventQuery extends AbstractEventQuery
 {
@@ -68,10 +68,10 @@ final class GoatEventQuery extends AbstractEventQuery
         if ($this->names) {
             $conditions = [];
             foreach ($this->names as $name) {
-                if ($name !== ($value = $nameMap->logicalNameToPhpType(NameMap::CONTEXT_EVENT, $name))) {
+                if ($name !== ($value = $nameMap->toPhpType($name, NameMap::TAG_EVENT))) {
                     $conditions[] = $value;
                     $conditions[] = $name;
-                } else if ($name !== ($value = $nameMap->phpTypeToLogicalName(NameMap::CONTEXT_EVENT, $name))) {
+                } else if ($name !== ($value = $nameMap->fromPhpType($name, NameMap::TAG_EVENT))) {
                     $conditions[] = $value;
                     $conditions[] = $name;
                 } else {

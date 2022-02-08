@@ -7,7 +7,7 @@ namespace Goat\Bridge\Symfony\Twig;
 use Goat\Dispatcher\Message\WithDescription;
 use Goat\Dispatcher\Message\WithLogMessage;
 use Goat\Dispatcher\MessageDescriptor\MessageDescriptor;
-use Goat\Normalization\Serializer;
+use MakinaCorpus\Normalization\Serializer;
 use Twig\TwigFunction;
 use Twig\Extension\AbstractExtension;
 

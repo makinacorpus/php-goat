@@ -9,9 +9,11 @@ use Goat\Dispatcher\Dispatcher;
 use Goat\EventStore\EventStore;
 use Goat\Lock\LockManager;
 use Goat\MessageBroker\MessageBroker;
-use Goat\Normalization\Serializer;
 use Goat\Query\Symfony\GoatQueryBundle;
 use Goat\Runner\Runner;
+use MakinaCorpus\Normalization\NameMap;
+use MakinaCorpus\Normalization\Serializer;
+use MakinaCorpus\Normalization\NameMap\DefaultNameMap;
 use PHPUnit\Framework\TestCase;
 use Symfony\Bundle\MonologBundle\MonologBundle;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -54,6 +56,16 @@ final class KernelConfigurationTest extends TestCase
         $stupidStrategyDefinition->setClass(StupidNameMappingStrategy::class);
         $container->setDefinition(StupidNameMappingStrategy::class, $stupidStrategyDefinition);
 
+        $nameMapDefinition = new Definition();
+        $nameMapDefinition->setClass(DefaultNameMap::class);
+        $container->setDefinition(NameMap::class, $nameMapDefinition);
+        $container->setAlias('normalization.name_map', NameMap::class);
+
+        $normalizationSerializerDefinition = new Definition();
+        $normalizationSerializerDefinition->setClass(Serializer::class);
+        $container->setDefinition(Serializer::class, $normalizationSerializerDefinition);
+        $container->setAlias('normalization.serializer', Serializer::class);
+
         return $container;
     }
 
@@ -74,19 +86,6 @@ final class KernelConfigurationTest extends TestCase
             ],
             'message_broker' => [
                 'enabled' => true,
-            ],
-            'normalization' => [
-                'strategy' => [
-                    'command' => StupidNameMappingStrategy::class,
-                ],
-                'static' => [
-                    'command' => [
-                        'map' => [
-                            'my_app.normalized_name' => \DateTimeImmutable::class,
-                            'my_app.other_normalized_name' => \DateTime::class,
-                        ],
-                    ],
-                ],
             ],
         ];
     }
@@ -115,10 +114,6 @@ final class KernelConfigurationTest extends TestCase
         // And message broker.
         self::assertTrue($container->hasAlias(MessageBroker::class));
         self::assertTrue($container->hasDefinition('goat.message_broker.default'));
-
-        // And custom serializer.
-        self::assertTrue($container->hasAlias(Serializer::class));
-        self::assertTrue($container->hasDefinition('goat.serializer'));
 
         $container->compile();
     }

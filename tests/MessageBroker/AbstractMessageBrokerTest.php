@@ -10,11 +10,11 @@ use Goat\Dispatcher\Tests\MockMessage;
 use Goat\Dispatcher\Tests\MockRetryableMessage;
 use Goat\EventStore\Property;
 use Goat\MessageBroker\MessageBroker;
-use Goat\Normalization\Tests\WithSerializerTestTrait;
 use Goat\Query\ExpressionValue;
 use Goat\Runner\Runner;
 use Goat\Runner\Testing\DatabaseAwareQueryTest;
 use Goat\Runner\Testing\TestDriverFactory;
+use MakinaCorpus\Normalization\Testing\WithSerializerTestTrait;
 use Ramsey\Uuid\Uuid;
 use Ramsey\Uuid\UuidInterface;
 

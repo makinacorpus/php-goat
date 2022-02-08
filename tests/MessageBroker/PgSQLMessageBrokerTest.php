@@ -15,17 +15,17 @@ final class PgSQLMessageBrokerTest extends AbstractMessageBrokerTest
      *
      * Override this for your own event store.
      */
-    protected function createTestSchema(Runner $runner)
+    protected function createTestSchema(Runner $runner, string $schema)
     {
         $runner->execute(
             <<<SQL
-            DROP TABLE IF EXISTS "message_broker"
+            DROP TABLE IF EXISTS "{$schema}"."message_broker"
             SQL
         );
 
         $runner->execute(
             <<<SQL
-            CREATE TABLE "message_broker" (
+            CREATE TABLE "{$schema}"."message_broker" (
                 "id" uuid NOT NULL,
                 "serial" serial NOT NULL,
                 "queue" varchar(500) NOT NULL DEFAULT 'default',
@@ -38,6 +38,9 @@ final class PgSQLMessageBrokerTest extends AbstractMessageBrokerTest
                 "body" bytea NOT NULL,
                 "retry_count" bigint DEFAULT 0,
                 "retry_at" timestamp DEFAULT NULL,
+                "error_code" bigint default null,
+                "error_message" varchar(500) default null,
+                "error_trace" text default null,
                 PRIMARY KEY ("serial")
             );
             SQL
@@ -45,13 +48,13 @@ final class PgSQLMessageBrokerTest extends AbstractMessageBrokerTest
 
         $runner->execute(
             <<<SQL
-            DROP TABLE IF EXISTS "message_broker_dead_letters"
+            DROP TABLE IF EXISTS "{$schema}"."message_broker_dead_letters"
             SQL
         );
 
         $runner->execute(
             <<<SQL
-            CREATE TABLE "message_broker_dead_letters" (
+            CREATE TABLE "{$schema}"."message_broker_dead_letters" (
                 "id" uuid NOT NULL,
                 "serial" bigint,
                 "queue" varchar(500) NOT NULL DEFAULT 'default',
@@ -61,6 +64,9 @@ final class PgSQLMessageBrokerTest extends AbstractMessageBrokerTest
                 "type" text DEFAULT NULL,
                 "content_type" varchar(500) DEFAULT NULL,
                 "body" bytea NOT NULL,
+                "error_code" bigint default null,
+                "error_message" varchar(500) default null,
+                "error_trace" text default null,
                 PRIMARY KEY ("id")
             );
             SQL
@@ -74,7 +80,7 @@ final class PgSQLMessageBrokerTest extends AbstractMessageBrokerTest
      */
     protected function createMessageBroker(Runner $runner, string $schema): MessageBroker
     {
-        $this->createTestSchema($runner);
+        $this->createTestSchema($runner, $schema);
 
         return new PgSQLMessageBroker($runner, $this->createSerializer());
     }

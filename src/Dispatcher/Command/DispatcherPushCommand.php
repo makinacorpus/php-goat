@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Goat\Dispatcher\Command;
 
 use Goat\Dispatcher\Dispatcher;
-use Goat\Normalization\DefaultNameMap;
-use Goat\Normalization\NameMap;
-use Goat\Normalization\Serializer;
+use MakinaCorpus\Normalization\NameMap;
+use MakinaCorpus\Normalization\Serializer;
+use MakinaCorpus\Normalization\NameMap\DefaultNameMap;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -41,7 +41,7 @@ final class DispatcherPushCommand extends Command
     {
         $this
             ->setDescription('Push a command into the dispatcher')
-            ->addArgument('event-name', InputArgument::REQUIRED, 'Command name, usually a class name')
+            ->addArgument('command-name', InputArgument::REQUIRED, 'Command name, usually a class name')
             ->addOption('content-type', 't', InputOption::VALUE_REQUIRED, 'Content type, must be a known type to the serializer component', 'json')
             ->addOption('content', 'c', InputOption::VALUE_REQUIRED, 'Content formatted using the given --content-type format (default is JSON)')
             ->addOption('async', 'a', InputOption::VALUE_NONE, 'Only pushes the event into the bus for later asynchronous execution')
@@ -53,11 +53,11 @@ final class DispatcherPushCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $logicalName = $input->getArgument('event-name');
+        $commandName = $input->getArgument('command-name');
         $format = $input->getOption('content-type');
         $data = $input->getOption('content');
 
-        $className = $this->nameMap->logicalNameToPhpType(NameMap::CONTEXT_COMMAND, $logicalName);
+        $className = $this->nameMap->toPhpType($commandName, NameMap::TAG_COMMAND);
 
         if ($data) {
             $message = $this->serializer->unserialize($className, $format, $data);
@@ -70,10 +70,10 @@ final class DispatcherPushCommand extends Command
 
         if ($input->getOption('async')) {
             $this->dispatcher->dispatch($message);
-            $output->writeln(\sprintf("<info>Message '%s' has been pushed into the asynchronous command bus successfuly</info>", $logicalName));
+            $output->writeln(\sprintf("<info>Message '%s' has been pushed into the asynchronous command bus successfuly</info>", $commandName));
         } else {
             $this->dispatcher->process($message);
-            $output->writeln(\sprintf("<info>Message '%s' has been processed successfuly</info>", $logicalName));
+            $output->writeln(\sprintf("<info>Message '%s' has been processed successfuly</info>", $commandName));
         }
 
         return 0;

@@ -68,7 +68,7 @@ services:
             - { name: "monolog.logger", channel: "goat_eventstore" }
         calls:
             - [setNamespaceMap, ["@goat.event_store.namespace_map"]]
-            - [setNameMap, ["@goat.name_map"]]
+            - [setNameMap, ["@normalization.name_map"]]
 
     Goat\EventStore\EventStore:
         public: false

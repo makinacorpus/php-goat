@@ -9,5 +9,5 @@ services:
     goat.twig_extension:
         public: false
         class: Goat\Bridge\Symfony\Twig\GoatTwigExtension
-        arguments: ['@goat.dispatcher.message_descriptor', '@goat.serializer', '%kernel.debug%']
+        arguments: ['@goat.dispatcher.message_descriptor', '@normalization.serializer', '%kernel.debug%']
         tags: ['twig.extension']

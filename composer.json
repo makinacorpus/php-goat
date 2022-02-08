@@ -34,7 +34,6 @@
             "Goat\\EventStore\\" : "src/EventStore/",
             "Goat\\Lock\\" : "src/Lock/",
             "Goat\\MessageBroker\\" : "src/MessageBroker/",
-            "Goat\\Normalization\\" : "src/Normalization/",
             "Goat\\Projector\\" : "src/Projector/"
         }
     },
@@ -45,7 +44,6 @@
             "Goat\\EventStore\\Tests\\": "tests/EventStore/",
             "Goat\\Lock\\Tests\\": "tests/Lock/",
             "Goat\\MessageBroker\\Tests\\": "tests/MessageBroker/",
-            "Goat\\Normalization\\Tests\\": "tests/Normalization/",
             "Goat\\Projector\\Tests\\": "tests/Projector/"
         }
     },
@@ -55,6 +53,7 @@
     },
     "require" : {
         "makinacorpus/goat-query": "^2.1.7 || ^3.0",
+        "makinacorpus/normalization": "^1.0.1",
         "php" : ">=8.0",
         "psr/log": "^1.0",
         "ramsey/uuid": "^3.8 || ^4",
