@@ -4,13 +4,12 @@ declare(strict_types=1);
 
 namespace Goat\Dispatcher\Tests;
 
-use Goat\Dispatcher\MessageEnvelope;
 use Goat\Dispatcher\Decorator\EventStoreDispatcherDecorator;
-use Goat\EventStore\Event;
-use Goat\EventStore\Tests\AbstractEventStoreTest;
 use Goat\Runner\Testing\TestDriverFactory;
+use MakinaCorpus\EventStore\Event;
+use MakinaCorpus\Message\Envelope;
 
-final class GoatDispatcherTest extends AbstractEventStoreTest
+final class GoatDispatcherTest extends AbstractWithEventStoreTest
 {
     /**
      * @dataProvider runnerDataProvider
@@ -22,7 +21,7 @@ final class GoatDispatcherTest extends AbstractEventStoreTest
         $eventStore = $this->createEventStore($runner, $factory->getSchema());
 
         $decorated = new MockDispatcher(
-            function (MessageEnvelope $message) {
+            function (Envelope $message) {
                 return $message;
             },
             function () {
@@ -54,7 +53,7 @@ final class GoatDispatcherTest extends AbstractEventStoreTest
         $eventStore = $this->createEventStore($runner, $factory->getSchema());
 
         $decorated = new MockDispatcher(
-            function (MessageEnvelope $message) {
+            function (Envelope $message) {
                 return $message;
             },
             function () {
@@ -86,7 +85,7 @@ final class GoatDispatcherTest extends AbstractEventStoreTest
         $eventStore = $this->createEventStore($runner, $factory->getSchema());
 
         $decorated = new MockDispatcher(
-            function (MessageEnvelope $message) {
+            function (Envelope $message) {
                 throw new \DomainException("This is a failure", 12);
             },
             function () {
@@ -121,7 +120,7 @@ final class GoatDispatcherTest extends AbstractEventStoreTest
         $eventStore = $this->createEventStore($runner, $factory->getSchema());
 
         $decorated = new MockDispatcher(
-            function (MessageEnvelope $message) {
+            function (Envelope $message) {
                 throw new \Exception("This is a failure", 12);
             },
             function () {

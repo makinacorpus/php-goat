@@ -56,7 +56,8 @@
         "php" : ">=8.0",
         "psr/log": "^1.0",
         "ramsey/uuid": "^3.8 || ^4",
-        "symfony/event-dispatcher": "^4.4 || ^5.0 || ^6.0"
+        "symfony/event-dispatcher": "^4.4 || ^5.0 || ^6.0",
+        "makinacorpus/message": "^1.0.2"
     },
     "require-dev" : {
         "makinacorpus/goat-query-bundle": ">=2.0",
@@ -70,7 +71,8 @@
         "symfony/yaml": "^5.4 || ^6.0",
         "twig/twig": "^2.5 || ^3.0",
         "symfony/form": "^5.4 || ^6.0",
-        "phpunit/phpunit": "^9"
+        "phpunit/phpunit": "^9",
+        "makinacorpus/event-store": "^1.0.2"
     },
     "suggest" : {
         "doctrine/dbal": "For query builder usage over a Doctrine PDO connection",

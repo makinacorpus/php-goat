@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Goat\Dispatcher\Tests;
 
 use Goat\Dispatcher\Dispatcher;
-use Goat\Dispatcher\MessageEnvelope;
+use MakinaCorpus\Message\Envelope;
 
 class MockDispatcher Implements Dispatcher
 {
@@ -30,7 +30,7 @@ class MockDispatcher Implements Dispatcher
      */
     public function process($message, array $properties = []): void
     {
-        \call_user_func($this->processCallback, MessageEnvelope::wrap($message, $properties));
+        \call_user_func($this->processCallback, Envelope::wrap($message, $properties));
     }
 
     /**
@@ -38,6 +38,6 @@ class MockDispatcher Implements Dispatcher
      */
     public function dispatch($message, array $properties = []): void
     {
-        \call_user_func($this->asyncProcessCallback, MessageEnvelope::wrap($message, $properties));
+        \call_user_func($this->asyncProcessCallback, Envelope::wrap($message, $properties));
     }
 }

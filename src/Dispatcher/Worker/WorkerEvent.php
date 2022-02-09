@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Goat\Dispatcher\Worker;
 
-use Goat\Dispatcher\MessageEnvelope;
+use MakinaCorpus\Message\Envelope;
 
 /**
  * Exists for updating UI.
@@ -36,7 +36,7 @@ final class WorkerEvent
         return new self(self::STOP);
     }
 
-    public static function next(MessageEnvelope $message): self
+    public static function next(Envelope $message): self
     {
         return new self(self::NEXT, $message);
     }
@@ -52,9 +52,9 @@ final class WorkerEvent
     }
 
     private string $eventName;
-    private ?MessageEnvelope $message = null;
+    private ?Envelope $message = null;
 
-    private function __construct(string $eventName, ?MessageEnvelope $message = null)
+    private function __construct(string $eventName, ?Envelope $message = null)
     {
         $this->eventName = $eventName;
         $this->message = $message;
@@ -65,7 +65,7 @@ final class WorkerEvent
         return $this->eventName;
     }
 
-    public function getMessage(): ?MessageEnvelope
+    public function getMessage(): ?Envelope
     {
         return $this->message;
     }

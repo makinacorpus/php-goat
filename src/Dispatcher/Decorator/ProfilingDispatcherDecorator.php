@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Goat\Dispatcher\Decorator;
 
 use Goat\Dispatcher\Dispatcher;
-use Goat\Dispatcher\MessageEnvelope;
-use Goat\EventStore\Property;
+use MakinaCorpus\Message\Envelope;
+use MakinaCorpus\Message\Property;
 
 final class ProfilingDispatcherDecorator implements Dispatcher
 {
@@ -27,7 +27,7 @@ final class ProfilingDispatcherDecorator implements Dispatcher
     public function process($message, array $properties = []): void
     {
         $timerStart = \hrtime(true);
-        $envelope = MessageEnvelope::wrap($message, $properties);
+        $envelope = Envelope::wrap($message, $properties);
 
         try {
             $this->decorated->process($envelope);

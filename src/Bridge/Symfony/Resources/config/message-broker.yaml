@@ -1,9 +1,8 @@
 services:
-    # Everything described in "event-store.yaml" is true for the message
-    # broker as well. Nevertheless, message broker SQL queries are much simpler
-    # and safer and will hopefully not trigger any contention, changing its SQL
-    # connection is probably unnecessary and will possibility lead to wrongly
-    # sent message issued by business transactions which have been ROLLBACK.
+    # Message broker SQL queries are simple and supposedly safe and will
+    # hopefully not trigger any contention, changing its SQL connection is
+    # probably unnecessary and will possibility lead to wrongly sent message
+    # issued by business transactions which have been ROLLBACK.
     goat.runner.message_broker:
         alias: "goat.runner.default"
 

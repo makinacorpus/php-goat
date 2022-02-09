@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Goat\Dispatcher\Decorator;
 
 use Goat\Dispatcher\Dispatcher;
-use Goat\Dispatcher\MessageEnvelope;
-use Goat\EventStore\EventStore;
-use Goat\Projector\Runtime\RuntimePlayer;
+use MakinaCorpus\EventStore\EventStore;
+use MakinaCorpus\EventStore\Projector\Runtime\RuntimePlayer;
+use MakinaCorpus\Message\Envelope;
 
 final class EventStoreDispatcherDecorator implements Dispatcher
 {
@@ -34,7 +34,7 @@ final class EventStoreDispatcherDecorator implements Dispatcher
      */
     public function process($message, array $properties = []): void
     {
-        $envelope = MessageEnvelope::wrap($message, $properties);
+        $envelope = Envelope::wrap($message, $properties);
 
         $event = $this
             ->eventStore

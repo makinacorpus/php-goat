@@ -38,23 +38,12 @@ final class GoatExtension extends Extension
         $consoleEnabled = \class_exists(Command::class);
 
         $dispatcherEnabled = $config['dispatcher']['enabled'] ?? false;
-        $eventStoreEnabled = $config['event_store']['enabled'] ?? false;
         $lockEnabled = $config['lock']['enabled'] ?? false;
         $messageBrokerEnabled = $config['message_broker']['enabled'] ?? false;
         $twigEnabled = \class_exists(Environment::class);
 
         if ($messageBrokerEnabled) {
             $loader->load('message-broker.yaml');
-        }
-
-        if ($eventStoreEnabled) {
-            $loader->load('event-store.yaml');
-            $loader->load('event-projector.yaml');
-        }
-
-        if ($eventStoreEnabled && $consoleEnabled) {
-            $loader->load('event-store-console.yaml');
-            $loader->load('event-projector-console.yaml');
         }
 
         if ($lockEnabled) {
@@ -109,9 +98,12 @@ final class GoatExtension extends Extension
         }
 
         if ($config['with_event_store']) {
+            // @todo Fix this.
+            /*
             if (!$container->hasDefinition('goat.event_store') && !$container->hasAlias('goat.event_store')) {
                 throw new InvalidArgumentException("You must set goat.event_store.enabled to true in order to be able to enable goat.dispatcher.with_event_store");
             }
+             */
 
             $decoratedInnerId = 'goat.dispatcher.event_store.inner';
             $decoratorDef = new Definition();
@@ -119,7 +111,7 @@ final class GoatExtension extends Extension
             $decoratorDef->setDecoratedService('goat.dispatcher', $decoratedInnerId, 600);
             $decoratorDef->setArguments([
                 new Reference($decoratedInnerId),
-                new Reference('goat.event_store'),
+                new Reference('event_store.event_store'),
             ]);
             $container->setDefinition('goat.dispatcher.decorator.event_store', $decoratorDef);
         }

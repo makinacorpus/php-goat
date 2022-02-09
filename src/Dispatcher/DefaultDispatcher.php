@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Goat\Dispatcher;
 
 use Goat\MessageBroker\MessageBroker;
+use MakinaCorpus\Message\Envelope;
 
 final class DefaultDispatcher implements Dispatcher
 {
@@ -22,7 +23,7 @@ final class DefaultDispatcher implements Dispatcher
      */
     final public function dispatch($message, array $properties = []): void
     {
-        $this->messageBroker->dispatch(MessageEnvelope::wrap($message, $properties));
+        $this->messageBroker->dispatch(Envelope::wrap($message, $properties));
     }
 
     /**

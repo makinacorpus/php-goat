@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Goat\Dispatcher\Tests;
 
-use Goat\Dispatcher\Message\Message;
-use Goat\Dispatcher\Message\MessageTrait;
+use MakinaCorpus\Message\BackwardCompat\AggregateMessage;
+use MakinaCorpus\Message\BackwardCompat\AggregateMessageTrait;
 
-class MockMessage implements Message
+class MockMessage implements AggregateMessage
 {
-    use MessageTrait;
+    use AggregateMessageTrait;
 }

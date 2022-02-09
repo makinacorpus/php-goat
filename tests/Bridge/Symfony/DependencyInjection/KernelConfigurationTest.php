@@ -6,11 +6,11 @@ namespace Goat\Bridge\Symfony\Tests\DependencyInjection;
 
 use Goat\Bridge\Symfony\DependencyInjection\GoatExtension;
 use Goat\Dispatcher\Dispatcher;
-use Goat\EventStore\EventStore;
 use Goat\Lock\LockManager;
 use Goat\MessageBroker\MessageBroker;
 use Goat\Query\Symfony\GoatQueryBundle;
 use Goat\Runner\Runner;
+use MakinaCorpus\EventStore\EventStore;
 use MakinaCorpus\Normalization\NameMap;
 use MakinaCorpus\Normalization\Serializer;
 use MakinaCorpus\Normalization\NameMap\DefaultNameMap;
@@ -51,6 +51,13 @@ final class KernelConfigurationTest extends TestCase
         $container->setDefinition('serializer', $serializerDefinition);
         $container->setAlias(SymfonySerializer::class, 'serializer');
 
+        // And this.
+        $eventStoreDefinition = new Definition();
+        $eventStoreDefinition->setClass(EventStore::class);
+        $eventStoreDefinition->setSynthetic(true);
+        $container->setDefinition('event_store.event_store', $eventStoreDefinition);
+        $container->setAlias(EventStore::class, 'event_store.event_store');
+
         // Strategy definition
         $stupidStrategyDefinition = new Definition();
         $stupidStrategyDefinition->setClass(StupidNameMappingStrategy::class);
@@ -78,9 +85,6 @@ final class KernelConfigurationTest extends TestCase
                 'with_lock' => true,
                 'with_profiling' => true,
             ],
-            'event_store' => [
-                'enabled' => true,
-            ],
             'lock' => [
                 'enabled' => true,
             ],
@@ -98,10 +102,6 @@ final class KernelConfigurationTest extends TestCase
         $extension = new GoatExtension();
         $config = $this->getMinimalConfig();
         $extension->load([$config], $container = $this->getContainer());
-
-        // Ensure event store configuration.
-        self::assertTrue($container->hasAlias(EventStore::class));
-        self::assertTrue($container->hasDefinition('goat.event_store'));
 
         // Ensure dispatcher configuration.
         self::assertTrue($container->hasAlias(Dispatcher::class));

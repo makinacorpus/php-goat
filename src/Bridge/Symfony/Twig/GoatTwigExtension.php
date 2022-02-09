@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace Goat\Bridge\Symfony\Twig;
 
-use Goat\Dispatcher\Message\WithDescription;
-use Goat\Dispatcher\Message\WithLogMessage;
 use Goat\Dispatcher\MessageDescriptor\MessageDescriptor;
+use MakinaCorpus\Message\DescribeableMessage;
 use MakinaCorpus\Normalization\Serializer;
 use Twig\TwigFunction;
 use Twig\Extension\AbstractExtension;
@@ -31,7 +30,6 @@ final class GoatTwigExtension extends AbstractExtension
     {
         return [
             new TwigFunction('message_describe', [$this, 'renderEventDescription']),
-            new TwigFunction('message_log_message', [$this, 'getEventLogMessage']),
             new TwigFunction('message_message', [$this, 'renderEventMessage']),
         ];
     }
@@ -41,7 +39,7 @@ final class GoatTwigExtension extends AbstractExtension
      */
     private function renderMessageDescription($object): ?string
     {
-        if ($object instanceof WithDescription) {
+        if ($object instanceof DescribeableMessage) {
             return (string) $object->describe();
         }
 
@@ -75,17 +73,5 @@ final class GoatTwigExtension extends AbstractExtension
 
             return $e->getMessage();
         }
-    }
-
-    /**
-     * Event log message
-     */
-    public function getEventLogMessage($object): ?string
-    {
-        if ($object instanceof WithLogMessage) {
-            return $object->getLogMessage();
-        }
-
-        return null;
     }
 }

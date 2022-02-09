@@ -13,7 +13,7 @@ use Goat\Dispatcher\RetryStrategy\RetryStrategyResponse;
  * related to a transaction isolation kind of error, it will be wrapped into
  * this exception.
  *
- * It might also be triggered if the message implemens the RetryableMessage
+ * It might also be triggered if the message implements the RetryableMessage
  * interface.
  *
  * Our message bus transport, which is agnostic from this namespace, will

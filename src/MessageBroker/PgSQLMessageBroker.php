@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Goat\MessageBroker;
 
-use Goat\Dispatcher\MessageEnvelope;
-use Goat\Dispatcher\Message\BrokenMessage;
-use Goat\EventStore\Property;
 use Goat\Runner\Runner;
+use MakinaCorpus\Message\BrokenEnvelope;
+use MakinaCorpus\Message\Envelope;
+use MakinaCorpus\Message\Property;
 use MakinaCorpus\Normalization\NameMap;
 use MakinaCorpus\Normalization\Serializer;
 use MakinaCorpus\Normalization\NameMap\NameMapAware;
@@ -43,7 +43,7 @@ final class PgSQLMessageBroker implements MessageBroker, LoggerAwareInterface, N
     /**
      * {@inheritdoc}
      */
-    public function get(): ?MessageEnvelope
+    public function get(): ?Envelope
     {
         $data = $this
             ->runner
@@ -83,6 +83,8 @@ final class PgSQLMessageBroker implements MessageBroker, LoggerAwareInterface, N
             $serial = (int)$data['serial'];
 
             try {
+                $message = null;
+
                 if (\is_resource($data['body'])) { // Bytea
                     $body = \stream_get_contents($data['body']);
                 } else {
@@ -105,9 +107,9 @@ final class PgSQLMessageBroker implements MessageBroker, LoggerAwareInterface, N
 
                 // Restore necessary properties on which we are authoritative.
                 $data['headers'][Property::MESSAGE_ID] = $data['id']->toString();
-                $data['headers'][self::PROP_SERIAL] = (string)$serial;
+                $data['headers'][self::PROP_SERIAL] = (string) $serial;
                 if ($data['retry_count']) {
-                    $data['headers'][Property::RETRY_COUNT] = (string)$data['retry_count'];
+                    $data['headers'][Property::RETRY_COUNT] = (string) $data['retry_count'];
                 }
 
                 if ($contentType && $type) {
@@ -122,13 +124,13 @@ final class PgSQLMessageBroker implements MessageBroker, LoggerAwareInterface, N
                         // which doesn't like very much types when you are not
                         // working with doctrine entities.
                         // @todo place instrumentation over here.
-                        $message = new BrokenMessage(null, null, $body, $type);
+                        $message = BrokenEnvelope::wrap($body, $data['headers']);
                     }
                 } else {
-                    $message = new BrokenMessage(null, null, $body, $type);
+                    $message = BrokenEnvelope::wrap($body, $data['headers']);
                 }
 
-                return MessageEnvelope::wrap($message, $data['headers']);
+                return Envelope::wrap($message, $data['headers']);
 
             } catch (\Throwable $e) {
                 $this->markAsFailed($serial, $e);
@@ -143,7 +145,7 @@ final class PgSQLMessageBroker implements MessageBroker, LoggerAwareInterface, N
     /**
      * {@inheritdoc}
      */
-    public function dispatch(MessageEnvelope $envelope): void
+    public function dispatch(Envelope $envelope): void
     {
         $this->doDispatch($envelope);
     }
@@ -151,7 +153,7 @@ final class PgSQLMessageBroker implements MessageBroker, LoggerAwareInterface, N
     /**
      * {@inheritdoc}
      */
-    public function ack(MessageEnvelope $envelope): void
+    public function ack(Envelope $envelope): void
     {
         // Nothing to do, ACK was atomic in the UPDATE/RETURNING SQL query.
     }
@@ -159,7 +161,7 @@ final class PgSQLMessageBroker implements MessageBroker, LoggerAwareInterface, N
     /**
      * {@inheritdoc}
      */
-    public function reject(MessageEnvelope $envelope, ?\Throwable $exception = null): void
+    public function reject(Envelope $envelope, ?\Throwable $exception = null): void
     {
         $serial = (int)$envelope->getProperty(self::PROP_SERIAL);
 
@@ -198,7 +200,7 @@ final class PgSQLMessageBroker implements MessageBroker, LoggerAwareInterface, N
     /**
      * Real implementation of dispatch.
      */
-    private function doDispatch(MessageEnvelope $envelope, bool $keepMessageIdIfPresent = false): void
+    private function doDispatch(Envelope $envelope, bool $keepMessageIdIfPresent = false): void
     {
         if ($keepMessageIdIfPresent) {
             $messageId = $envelope->getMessageId();
@@ -213,7 +215,7 @@ final class PgSQLMessageBroker implements MessageBroker, LoggerAwareInterface, N
         // that the application could arbitrary resend a message as a new
         // message at anytime, and message identifier is the unique key.
         if ($envelope->hasProperty(Property::MESSAGE_ID)) {
-            $envelope = $envelope->withProperties([Property::MESSAGE_ID => $messageId]);
+            $envelope = $envelope->withProperties([Property::MESSAGE_ID => (string) $messageId]);
         }
 
         $message = $envelope->getMessage();
@@ -252,7 +254,7 @@ final class PgSQLMessageBroker implements MessageBroker, LoggerAwareInterface, N
     /**
      * Mark single message for retry.
      */
-    private function markForRetry(int $serial, MessageEnvelope $envelope): void
+    private function markForRetry(int $serial, Envelope $envelope): void
     {
         $delay = (int)$envelope->getProperty(Property::RETRY_DELAI);
         $count = (int)$envelope->getProperty(Property::RETRY_COUNT, "0");

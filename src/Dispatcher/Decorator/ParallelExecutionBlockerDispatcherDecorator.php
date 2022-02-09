@@ -5,9 +5,8 @@ declare(strict_types=1);
 namespace Goat\Dispatcher\Decorator;
 
 use Goat\Dispatcher\Dispatcher;
-use Goat\Dispatcher\MessageEnvelope;
-use Goat\Dispatcher\Message\UnparallelizableMessage;
 use Goat\Lock\LockManager;
+use MakinaCorpus\Message\Envelope;
 
 final class ParallelExecutionBlockerDispatcherDecorator implements Dispatcher
 {
@@ -27,9 +26,13 @@ final class ParallelExecutionBlockerDispatcherDecorator implements Dispatcher
      */
     public function process($message, array $properties = []): void
     {
-        $envelope = MessageEnvelope::wrap($message, $properties);
+        $envelope = Envelope::wrap($message, $properties);
         $message = $envelope->getMessage();
 
+        /*
+         * @todo
+         *   Restore this using attributes
+         *
         if ($message instanceof UnparallelizableMessage) {
             $acquired = false;
             $lockId = $message->getUniqueIntIdentifier();
@@ -45,6 +48,7 @@ final class ParallelExecutionBlockerDispatcherDecorator implements Dispatcher
         } else {
             $this->decorated->process($envelope);
         }
+         */
     }
 
     /**

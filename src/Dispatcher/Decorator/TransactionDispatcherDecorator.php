@@ -6,10 +6,10 @@ namespace Goat\Dispatcher\Decorator;
 
 use Goat\Dispatcher\Dispatcher;
 use Goat\Dispatcher\DispatcherTransaction;
-use Goat\Dispatcher\MessageEnvelope;
 use Goat\Dispatcher\Transaction;
 use Goat\Dispatcher\TransactionHandler;
 use Goat\Driver\Error\TransactionError;
+use MakinaCorpus\Message\Envelope;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\NullLogger;
@@ -49,7 +49,7 @@ final class TransactionDispatcherDecorator implements Dispatcher, LoggerAwareInt
             return;
         }
 
-        $envelope = MessageEnvelope::wrap($message, $properties);
+        $envelope = Envelope::wrap($message, $properties);
         $transaction = null;
         $atCommit = false;
 

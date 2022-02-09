@@ -4,16 +4,15 @@ declare(strict_types=1);
 
 namespace Goat\Tests\MessageBroker;
 
-use Goat\Dispatcher\MessageEnvelope;
-use Goat\Dispatcher\Message\BrokenMessage;
 use Goat\Dispatcher\Tests\MockMessage;
-use Goat\Dispatcher\Tests\MockRetryableMessage;
-use Goat\EventStore\Property;
 use Goat\MessageBroker\MessageBroker;
 use Goat\Query\ExpressionValue;
 use Goat\Runner\Runner;
 use Goat\Runner\Testing\DatabaseAwareQueryTest;
 use Goat\Runner\Testing\TestDriverFactory;
+use MakinaCorpus\Message\BrokenEnvelope;
+use MakinaCorpus\Message\Envelope;
+use MakinaCorpus\Message\Property;
 use MakinaCorpus\Normalization\Testing\WithSerializerTestTrait;
 use Ramsey\Uuid\Uuid;
 use Ramsey\Uuid\UuidInterface;
@@ -39,14 +38,14 @@ abstract class AbstractMessageBrokerTest extends DatabaseAwareQueryTest
     {
         $messageBroker = $this->createMessageBroker($factory->getRunner(), $factory->getSchema());
 
-        $messageBroker->dispatch(MessageEnvelope::wrap(new MockMessage()));
-        $messageBroker->dispatch(MessageEnvelope::wrap(new MockRetryableMessage()));
+        $messageBroker->dispatch(Envelope::wrap(new MockMessage()));
+        $messageBroker->dispatch(Envelope::wrap(new \DateTimeImmutable()));
 
         $envelope1 = $messageBroker->get();
         self::assertSame(MockMessage::class, $envelope1->getProperty(Property::MESSAGE_TYPE));
 
         $envelope2 = $messageBroker->get();
-        self::assertSame(MockRetryableMessage::class, $envelope2->getProperty(Property::MESSAGE_TYPE));
+        self::assertSame(\DateTimeImmutable::class, $envelope2->getProperty(Property::MESSAGE_TYPE));
 
         self::assertNull($messageBroker->get());
     }
@@ -58,11 +57,11 @@ abstract class AbstractMessageBrokerTest extends DatabaseAwareQueryTest
     {
         $messageBroker = $this->createMessageBroker($factory->getRunner(), $factory->getSchema());
 
-        $messageBroker->dispatch(MessageEnvelope::wrap(new MockMessage()));
+        $messageBroker->dispatch(Envelope::wrap(new MockMessage()));
         $envelope = $messageBroker->get();
 
         self::assertSame(MockMessage::class, $envelope->getProperty(Property::MESSAGE_TYPE));
-        self::assertNotInstanceOf(BrokenMessage::class, $envelope->getMessage());
+        self::assertNotInstanceOf(BrokenEnvelope::class, $envelope);
         self::assertSame(Property::DEFAULT_CONTENT_ENCODING, $envelope->getMessageContentEncoding());
         self::assertSame(Property::DEFAULT_CONTENT_TYPE, $envelope->getMessageContentType());
         self::assertNotNull($envelope->getMessageId());
@@ -75,7 +74,7 @@ abstract class AbstractMessageBrokerTest extends DatabaseAwareQueryTest
     {
         $messageBroker = $this->createMessageBroker($factory->getRunner(), $factory->getSchema());
 
-        $messageBroker->dispatch(MessageEnvelope::wrap(new MockMessage(), [
+        $messageBroker->dispatch(Envelope::wrap(new MockMessage(), [
             Property::CONTENT_TYPE => 'application/xml',
         ]));
         $envelope = $messageBroker->get();
@@ -85,7 +84,7 @@ abstract class AbstractMessageBrokerTest extends DatabaseAwareQueryTest
         self::assertNotSame(Property::DEFAULT_CONTENT_TYPE, 'application/xml');
 
         self::assertSame(MockMessage::class, $envelope->getProperty(Property::MESSAGE_TYPE));
-        self::assertNotInstanceOf(BrokenMessage::class, $envelope->getMessage());
+        self::assertNotInstanceOf(BrokenEnvelope::class, $envelope->getMessage());
         self::assertSame('application/xml', $envelope->getMessageContentType());
     }
 
@@ -96,7 +95,7 @@ abstract class AbstractMessageBrokerTest extends DatabaseAwareQueryTest
     {
         $messageBroker = $this->createMessageBroker($factory->getRunner(), $factory->getSchema());
 
-        $messageBroker->dispatch(MessageEnvelope::wrap(new MockMessage(), [
+        $messageBroker->dispatch(Envelope::wrap(new MockMessage(), [
             'x-foo' => 'bar',
         ]));
 
@@ -112,7 +111,7 @@ abstract class AbstractMessageBrokerTest extends DatabaseAwareQueryTest
     {
         $messageBroker = $this->createMessageBroker($factory->getRunner(), $factory->getSchema());
 
-        $messageBroker->dispatch(MessageEnvelope::wrap(new MockMessage()));
+        $messageBroker->dispatch(Envelope::wrap(new MockMessage()));
 
         $envelope = $messageBroker->get();
         $messageBroker->reject($envelope);
@@ -127,7 +126,7 @@ abstract class AbstractMessageBrokerTest extends DatabaseAwareQueryTest
     {
         $messageBroker = $this->createMessageBroker($factory->getRunner(), $factory->getSchema());
 
-        $messageBroker->dispatch(MessageEnvelope::wrap(new MockMessage()));
+        $messageBroker->dispatch(Envelope::wrap(new MockMessage()));
 
         $originalEnvelope = $messageBroker->get();
 
@@ -142,7 +141,7 @@ abstract class AbstractMessageBrokerTest extends DatabaseAwareQueryTest
 
         self::assertSame("1", $envelope->getProperty(Property::RETRY_COUNT));
         self::assertSame($serial, $envelope->getProperty('x-serial'));
-        self::assertSame($originalEnvelope->getMessageId(), $envelope->getMessageId());
+        self::assertTrue($originalEnvelope->getMessageId()->equals($envelope->getMessageId()));
     }
 
     /**
@@ -152,7 +151,7 @@ abstract class AbstractMessageBrokerTest extends DatabaseAwareQueryTest
     {
         $messageBroker = $this->createMessageBroker($factory->getRunner(), $factory->getSchema());
 
-        $messageBroker->dispatch(MessageEnvelope::wrap(new MockMessage()));
+        $messageBroker->dispatch(Envelope::wrap(new MockMessage()));
 
         $originalEnvelope = $messageBroker->get();
 
@@ -169,7 +168,7 @@ abstract class AbstractMessageBrokerTest extends DatabaseAwareQueryTest
         self::assertSame("1", $envelope->getProperty(Property::RETRY_COUNT));
         self::assertNotNull($envelope->getProperty('x-serial'));
         self::assertNotSame($serial, $envelope->getProperty('x-serial'));
-        self::assertSame($originalEnvelope->getMessageId(), $envelope->getMessageId());
+        self::assertTrue($originalEnvelope->getMessageId()->equals($envelope->getMessageId()));
     }
 
     /**
@@ -179,7 +178,7 @@ abstract class AbstractMessageBrokerTest extends DatabaseAwareQueryTest
     {
         $messageBroker = $this->createMessageBroker($factory->getRunner(), $factory->getSchema());
 
-        $messageBroker->dispatch(MessageEnvelope::wrap(new MockMessage()));
+        $messageBroker->dispatch(Envelope::wrap(new MockMessage()));
 
         $originalEnvelope = $messageBroker->get();
 
@@ -202,7 +201,7 @@ abstract class AbstractMessageBrokerTest extends DatabaseAwareQueryTest
     {
         $messageBroker = $this->createMessageBroker($factory->getRunner(), $factory->getSchema());
 
-        $messageBroker->dispatch(MessageEnvelope::wrap(new MockMessage()));
+        $messageBroker->dispatch(Envelope::wrap(new MockMessage()));
 
         $originalEnvelope = $messageBroker->get();
         $messageBroker->reject($originalEnvelope->withProperties([
@@ -282,7 +281,7 @@ abstract class AbstractMessageBrokerTest extends DatabaseAwareQueryTest
     /**
      * @dataProvider runnerDataProvider
      */
-    public function testNoTypeGivesBrokenMessage(TestDriverFactory $factory): void
+    public function testNoTypeGivesBrokenEnvelope(TestDriverFactory $factory): void
     {
         $runner = $factory->getRunner();
 
@@ -302,14 +301,14 @@ abstract class AbstractMessageBrokerTest extends DatabaseAwareQueryTest
         $envelope = $messageBroker->get();
 
         self::assertNull($envelope->getProperty(Property::MESSAGE_TYPE));
-        self::assertInstanceOf(BrokenMessage::class, $envelope->getMessage());
-        self::assertSame('{}', $envelope->getMessage()->getOriginalData());
+        self::assertInstanceOf(BrokenEnvelope::class, $envelope);
+        self::assertSame('{}', $envelope->getMessage());
     }
 
     /**
      * @dataProvider runnerDataProvider
      */
-    public function testNoContentTypeGivesBrokenMessage(TestDriverFactory $factory): void
+    public function testNoContentTypeGivesBrokenEnvelope(TestDriverFactory $factory): void
     {
         $runner = $factory->getRunner();
 
@@ -329,8 +328,8 @@ abstract class AbstractMessageBrokerTest extends DatabaseAwareQueryTest
         $envelope = $messageBroker->get();
 
         self::assertSame(MockMessage::class, $envelope->getProperty(Property::MESSAGE_TYPE));
-        self::assertInstanceOf(BrokenMessage::class, $envelope->getMessage());
-        self::assertSame('{}', $envelope->getMessage()->getOriginalData());
+        self::assertInstanceOf(BrokenEnvelope::class, $envelope);
+        self::assertSame('{}', $envelope->getMessage());
     }
 
     /**

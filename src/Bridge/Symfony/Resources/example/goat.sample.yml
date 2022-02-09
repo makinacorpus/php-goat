@@ -74,15 +74,6 @@ goat:
         #
         with_transaction: true
 
-    event_store:
-        #
-        # Enable the event store.
-        #
-        # By itself, this setting doesn't do anything except registering the
-        # event store service into the container.
-        #
-        enabled: false
-
     lock:
         #
         # Enable the lock service.

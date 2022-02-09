@@ -5,15 +5,14 @@ declare(strict_types=1);
 namespace Goat\Dispatcher\Tests;
 
 use Goat\Dispatcher\Dispatcher;
-use Goat\Dispatcher\MessageEnvelope;
 use Goat\Dispatcher\TransactionHandler;
 use Goat\Dispatcher\Decorator\EventStoreDispatcherDecorator;
 use Goat\Dispatcher\Decorator\LoggingDispatcherDecorator;
 use Goat\Dispatcher\Decorator\ProfilingDispatcherDecorator;
 use Goat\Dispatcher\Decorator\TransactionDispatcherDecorator;
-use Goat\EventStore\Tests\AbstractEventStoreTest;
+use MakinaCorpus\Message\Envelope;
 
-final class DefaultDispatcherTest extends AbstractEventStoreTest
+final class DefaultDispatcherTest extends AbstractWithEventStoreTest
 {
     public function testProcessSuccessStoresEvent(): void
     {
@@ -94,7 +93,7 @@ final class DefaultDispatcherTest extends AbstractEventStoreTest
             static function () use ($dispatcher, &$count) {
                 if (++$count < 3) {
                     $dispatcher->process(
-                        MessageEnvelope::wrap(
+                        Envelope::wrap(
                             new MockMessage(),
                             [
                                 'x-test-count' => $count,

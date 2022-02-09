@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
-namespace Goat\EventStore\Tests;
+namespace Goat\Dispatcher\Tests;
 
-use Goat\EventStore\Event;
-use Goat\EventStore\EventStore;
-use Goat\EventStore\EventStream;
-use Goat\EventStore\Goat\GoatEventStore;
 use Goat\Runner\Runner;
 use Goat\Runner\Testing\DatabaseAwareQueryTest;
+use MakinaCorpus\EventStore\Event;
+use MakinaCorpus\EventStore\EventStore;
+use MakinaCorpus\EventStore\EventStream;
+use MakinaCorpus\EventStore\Bridge\GoatQuery\GoatQueryEventStore;
 use MakinaCorpus\Normalization\Testing\WithSerializerTestTrait;
 use Ramsey\Uuid\Uuid;
 use Ramsey\Uuid\UuidInterface;
 
-abstract class AbstractEventStoreTest extends DatabaseAwareQueryTest
+abstract class AbstractWithEventStoreTest extends DatabaseAwareQueryTest
 {
     use WithSerializerTestTrait;
 
@@ -82,7 +82,7 @@ SQL
     {
         $this->createTestSchema($runner);
 
-        $eventStore = new GoatEventStore($runner, $schema);
+        $eventStore = new GoatQueryEventStore($runner, $schema);
         $eventStore->setSerializer($this->createSerializer());
 
         return $eventStore;

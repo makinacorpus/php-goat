@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace Goat\Dispatcher\Decorator;
 
 use Goat\Dispatcher\Dispatcher;
-use Goat\Dispatcher\MessageEnvelope;
 use Goat\Dispatcher\TransactionHandler;
 use Goat\Dispatcher\RetryStrategy\RetryStrategy;
 use Goat\Dispatcher\RetryStrategy\RetryStrategyResponse;
-use Goat\EventStore\Property;
 use Goat\MessageBroker\MessageBroker;
+use MakinaCorpus\Message\Envelope;
+use MakinaCorpus\Message\Property;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\NullLogger;
@@ -42,7 +42,7 @@ final class RetryDispatcherDecorator implements Dispatcher, LoggerAwareInterface
      */
     public function process($message, array $properties = []): void
     {
-        $envelope = MessageEnvelope::wrap($message, $properties);
+        $envelope = Envelope::wrap($message, $properties);
 
         try {
             $this->decorated->process($envelope);
@@ -82,7 +82,7 @@ final class RetryDispatcherDecorator implements Dispatcher, LoggerAwareInterface
     /**
      * Requeue message if possible.
      */
-    protected function doRequeue(MessageEnvelope $envelope, RetryStrategyResponse $response, ?\Throwable $exception = null): void
+    protected function doRequeue(Envelope $envelope, RetryStrategyResponse $response, ?\Throwable $exception = null): void
     {
         $count = (int)$envelope->getProperty(Property::RETRY_COUNT, "0");
         $delay = (int)$envelope->getProperty(Property::RETRY_DELAI, (string)$response->getDelay());
@@ -109,7 +109,7 @@ final class RetryDispatcherDecorator implements Dispatcher, LoggerAwareInterface
     /**
      * Reject message.
      */
-    protected function doReject(MessageEnvelope $envelope, ?\Throwable $exception = null): void
+    protected function doReject(Envelope $envelope, ?\Throwable $exception = null): void
     {
         // Rest all routing information, so that the broker will not take
         // those into account if some were remaining.

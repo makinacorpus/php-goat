@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Goat\Dispatcher\Tests;
 
-use Goat\EventStore\AbstractEventStore;
-use Goat\EventStore\AggregateMetadata;
-use Goat\EventStore\Event;
-use Goat\EventStore\EventQuery;
+use MakinaCorpus\EventStore\AbstractEventStore;
+use MakinaCorpus\EventStore\AggregateMetadata;
+use MakinaCorpus\EventStore\Event;
+use MakinaCorpus\EventStore\EventQuery;
 use Ramsey\Uuid\UuidInterface;
 
 class MockEventStore extends AbstractEventStore

@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Goat\Dispatcher\MessageDescriptor;
 
-use Goat\Dispatcher\Message\MessageDescription;
-use Goat\Dispatcher\Message\WithDescription;
-use Goat\EventStore\Event;
+use MakinaCorpus\EventStore\Event;
+use MakinaCorpus\Message\DescribeableMessage;
+use MakinaCorpus\Message\Description;
 
 /**
  * Attempt to describe messages whenever possible.
@@ -31,7 +31,7 @@ class DefaultMessageDescriptor implements MessageDescriptor
     /**
      * Process description with variables
      */
-    private function process(MessageDescription $description): ?string
+    private function process(Description $description): ?string
     {
         if (!$variables = $description->getVariables()) {
             return $description->getText();
@@ -48,7 +48,7 @@ class DefaultMessageDescriptor implements MessageDescriptor
     /**
      * Describe event
      */
-    private function doDescribe(WithDescription $event): ?string
+    private function doDescribe(Description $event): ?string
     {
         return $this->process($event->describe());
     }
@@ -62,16 +62,16 @@ class DefaultMessageDescriptor implements MessageDescriptor
             return $message;
         }
 
-        if ($message instanceof MessageDescription) {
+        if ($message instanceof Description) {
             return $this->process($message);
         }
 
-        if ($message instanceof WithDescription) {
+        if ($message instanceof DescribeableMessage) {
             return $this->doDescribe($message);
         }
 
         if ($message instanceof Event) {
-            if (($data = $message->getMessage()) instanceof WithDescription) {
+            if (($data = $message->getMessage()) instanceof DescribeableMessage) {
                 return $this->doDescribe($data);
             }
         }

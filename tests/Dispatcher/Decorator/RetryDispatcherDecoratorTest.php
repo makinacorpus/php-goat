@@ -5,21 +5,18 @@ declare(strict_types=1);
 namespace Goat\Dispatcher\Tests;
 
 use Goat\Dispatcher\Dispatcher;
-use Goat\Dispatcher\MessageEnvelope;
 use Goat\Dispatcher\TransactionHandler;
-use Goat\Dispatcher\Decorator\EventStoreDispatcherDecorator;
 use Goat\Dispatcher\Decorator\LoggingDispatcherDecorator;
 use Goat\Dispatcher\Decorator\ProfilingDispatcherDecorator;
 use Goat\Dispatcher\Decorator\RetryDispatcherDecorator;
 use Goat\Dispatcher\Decorator\TransactionDispatcherDecorator;
 use Goat\Dispatcher\Error\DispatcherRetryableError;
 use Goat\Dispatcher\RetryStrategy\DefaultRetryStrategy;
-use Goat\EventStore\Event;
-use Goat\EventStore\Property;
-use Goat\EventStore\Tests\AbstractEventStoreTest;
 use Goat\MessageBroker\MessageBroker;
+use MakinaCorpus\Message\Envelope;
+use MakinaCorpus\Message\Property;
 
-final class RetryDispatcherDecoratorTest extends AbstractEventStoreTest
+final class RetryDispatcherDecoratorTest extends AbstractWithEventStoreTest
 {
     public function testProcessDoesNotAttemptRetryOnArbitraryException(): void
     {
@@ -32,10 +29,10 @@ final class RetryDispatcherDecoratorTest extends AbstractEventStoreTest
 
         $dispatcher = $this->decorate(
             $dispatcher,
-            static function (MessageEnvelope $envelope) {
+            static function (Envelope $envelope) {
                throw new \BadMethodCallException("Message should not have been retried.");
             },
-            static function (MessageEnvelope $envelope) {
+            static function (Envelope $envelope) {
                 // Do nothing.
             }
         );
@@ -57,10 +54,10 @@ final class RetryDispatcherDecoratorTest extends AbstractEventStoreTest
 
         $dispatcher = $this->decorate(
             $dispatcher,
-            static function (MessageEnvelope $envelope) use (&$retries) {
+            static function (Envelope $envelope) use (&$retries) {
                 $retries[] = $envelope;
             },
-            static function (MessageEnvelope $envelope) {
+            static function (Envelope $envelope) {
                 throw new \BadMethodCallException("Message should be retried, not rejected.");
             }
         );
@@ -75,44 +72,7 @@ final class RetryDispatcherDecoratorTest extends AbstractEventStoreTest
         self::assertCount(1, $retries);
 
         $envelope = $retries[0];
-        \assert($envelope instanceof MessageEnvelope);
-
-        self::assertSame($sentMessage, $envelope->getMessage());
-        self::assertSame("1", $envelope->getProperty(Property::RETRY_COUNT));
-        self::assertSame("100", $envelope->getProperty(Property::RETRY_DELAI));
-        self::assertSame("4", $envelope->getProperty(Property::RETRY_MAX));
-    }
-
-    public function testProcessAttempsRetryOnRetryableMessage(): void
-    {
-        $retries = [];
-
-        $dispatcher = new MockDispatcher(
-            static function () { throw new \DomainException(); },
-            static function () { throw new \BadMethodCallException(); }
-        );
-
-        $dispatcher = $this->decorate(
-            $dispatcher,
-            static function (MessageEnvelope $envelope) use (&$retries) {
-                $retries[] = $envelope;
-            },
-            static function (MessageEnvelope $envelope) {
-                throw new \BadMethodCallException("Message should be retried, not rejected.");
-            }
-        );
-
-        $sentMessage = new MockRetryableMessage();
-
-        try {
-            $dispatcher->process($sentMessage);
-            self::fail();
-        } catch (\DomainException $e) {}
-
-        self::assertCount(1, $retries);
-
-        $envelope = $retries[0];
-        \assert($envelope instanceof MessageEnvelope);
+        \assert($envelope instanceof Envelope);
 
         self::assertSame($sentMessage, $envelope->getMessage());
         self::assertSame("1", $envelope->getProperty(Property::RETRY_COUNT));
@@ -131,15 +91,13 @@ final class RetryDispatcherDecoratorTest extends AbstractEventStoreTest
 
         $dispatcher = $this->decorate(
             $dispatcher,
-            static function (MessageEnvelope $envelope) {
-               throw new \BadMethodCallException("Message should not have been retried.");
-            },
-            static function (MessageEnvelope $envelope) {
+            static function () { throw new DispatcherRetryableError(); },
+            static function (Envelope $envelope) {
                 // Do nothing.
             }
         );
 
-        $sentEnvelope = MessageEnvelope::wrap(new MockRetryableMessage(), [
+        $sentEnvelope = Envelope::wrap(new \DateTimeImmutable(), [
             Property::RETRY_MAX => 4,
             Property::RETRY_COUNT => 4,
         ]);
@@ -148,49 +106,6 @@ final class RetryDispatcherDecoratorTest extends AbstractEventStoreTest
             $dispatcher->process($sentEnvelope);
             self::fail();
         } catch (\DomainException $e) {}
-    }
-
-    public function testProcessStoreFailedEventWhenRetry(): void
-    {
-        $decorated = new MockDispatcher(
-            static function () { throw new \DomainException(); },
-            static function () { throw new \BadMethodCallException(); }
-        );
-
-        $eventStore = new MockEventStore();
-
-        $dispatcher = $this->decorate(
-            $decorated,
-            static function (MessageEnvelope $envelope) {
-                // It should pass here. That's not what we test.
-            },
-            static function (MessageEnvelope $envelope) {
-                throw new \BadMethodCallException("Message should be retried, not rejected.");
-            }
-        );
-
-        $dispatcher = new EventStoreDispatcherDecorator($dispatcher, $eventStore);
-
-        $sentMessage = new MockRetryableMessage();
-
-        try {
-            $dispatcher->process($sentMessage);
-            self::fail();
-        } catch (\DomainException $e) {}
-
-
-        $storedEvents = $eventStore->getStored();
-
-        self::assertCount(1, $storedEvents);
-
-        $envelope = $storedEvents[0];
-        \assert($envelope instanceof Event);
-
-        self::assertSame($sentMessage, $envelope->getMessage());
-        self::assertTrue($envelope->hasProperty(Property::RETRY_COUNT));
-        self::assertSame("1", $envelope->getProperty(Property::RETRY_COUNT));
-        self::assertTrue($envelope->hasProperty(Property::RETRY_DELAI));
-        self::assertTrue($envelope->hasProperty(Property::RETRY_MAX));
     }
 
     private function decorate(Dispatcher $decorated, callable $retryCallback, callable $rejectCallback): Dispatcher
@@ -229,22 +144,22 @@ final class RetryDispatcherDecoratorTest extends AbstractEventStoreTest
                             $this->rejectCallback = $rejectCallback;
                         }
 
-                        public function get(): ?MessageEnvelope
+                        public function get(): ?Envelope
                         {
                             throw new \BadMethodCallException("We are not testing this.");
                         }
 
-                        public function dispatch(MessageEnvelope $envelope): void
+                        public function dispatch(Envelope $envelope): void
                         {
                             throw new \BadMethodCallException("We are not testing this.");
                         }
 
-                        public function ack(MessageEnvelope $envelope): void
+                        public function ack(Envelope $envelope): void
                         {
                             throw new \BadMethodCallException("We are not testing this.");
                         }
 
-                        public function reject(MessageEnvelope $envelope, ?\Throwable $exception = null): void
+                        public function reject(Envelope $envelope, ?\Throwable $exception = null): void
                         {
                             if ($envelope->hasProperty(Property::RETRY_COUNT)) {
                                 ($this->retryCallback)($envelope);

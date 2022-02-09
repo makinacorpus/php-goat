@@ -39,6 +39,11 @@ state where:
    independent package as well `makinacorpus/goat-domain`.
  - Name normalization feature as been moved to the `makinacorpus/normalization`
    package.
+ - New `makinacorpus/message` package now contains the shared message envelope
+   and associated interfaces.
+ - New `makinacorpus/event-store` package now contains the event store and
+   the projector API. Please note that the project API itself might end up being
+   deprecated if we don't have any new use case.
  - Lots of other dead code pieces will be trashed away.
  - It will mostly remain only the command bus, dispatcher, message broker,
    event store and normalization API.
@@ -47,9 +52,6 @@ This will enter a state of bugfixes only, for our production projects still
 using it, but most of its code will progressively be deprecated in favor of new
 independant and more accurate packages:
 
- - Future `makinacorpus/event-store` package will contain the event bus and
-   the projector API. Please note that the project API itself might end up being
-   deprecated if we don't have any new use case.
  - Existing `makinacorpus/corebus` package which is more or less the same as the
    dispatcher of this package, using more modern code and that is more
    extensively tested will eventually inherit from this dispatcher and message
@@ -152,3 +154,18 @@ Please document me.
 Provide some extra options for monolog.
 
 Please see the [README.monolog.md](./README.monolog.md) file for more information.
+
+# Testing
+
+A docker environement with various containers for various PHP versions is
+present in the `sys/` folder. For tests to work in all PHP versions, you
+need to run `composer update --prefer-lowest` otherwise PHP 7.4 tests will
+fail.
+
+```sh
+composer install
+composer update --prefer-lowest
+cd sys/
+./docker-rebuild.sh # Run this only once
+./docker-run.sh
+```

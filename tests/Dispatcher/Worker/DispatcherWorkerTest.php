@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Goat\Dispatcher\Tests\Worker;
 
 use Goat\Dispatcher\Dispatcher;
-use Goat\Dispatcher\MessageEnvelope;
 use Goat\Dispatcher\Worker\Worker;
 use Goat\Dispatcher\Worker\WorkerEvent;
 use Goat\MessageBroker\MessageBroker;
+use MakinaCorpus\Message\Envelope;
 use PHPUnit\Framework\TestCase;
 
 final class DispatcherWorkerTest extends TestCase
@@ -30,22 +30,22 @@ final class DispatcherWorkerTest extends TestCase
 
         $messageBroker = new class implements MessageBroker
         {
-            public function get(): ?MessageEnvelope
+            public function get(): ?Envelope
             {
                 return null;
             }
 
-            public function dispatch(MessageEnvelope $envelope): void
+            public function dispatch(Envelope $envelope): void
             {
                 throw new \BadMethodCallException("I shall not be called.");
             }
 
-            public function ack(MessageEnvelope $envelope): void
+            public function ack(Envelope $envelope): void
             {
                 throw new \BadMethodCallException("I shall not be called.");
             }
 
-            public function reject(MessageEnvelope $envelope, ?\Throwable $exception = null): void
+            public function reject(Envelope $envelope, ?\Throwable $exception = null): void
             {
                 throw new \BadMethodCallException("I shall not be called.");
             }
@@ -90,22 +90,22 @@ final class DispatcherWorkerTest extends TestCase
 
         $messageBroker = new class implements MessageBroker
         {
-            public function get(): ?MessageEnvelope
+            public function get(): ?Envelope
             {
-                return MessageEnvelope::wrap(new \DateTime());
+                return Envelope::wrap(new \DateTime());
             }
 
-            public function dispatch(MessageEnvelope $envelope): void
-            {
-                throw new \BadMethodCallException("I shall not be called.");
-            }
-
-            public function ack(MessageEnvelope $envelope): void
+            public function dispatch(Envelope $envelope): void
             {
                 throw new \BadMethodCallException("I shall not be called.");
             }
 
-            public function reject(MessageEnvelope $envelope, ?\Throwable $exception = null): void
+            public function ack(Envelope $envelope): void
+            {
+                throw new \BadMethodCallException("I shall not be called.");
+            }
+
+            public function reject(Envelope $envelope, ?\Throwable $exception = null): void
             {
                 throw new \BadMethodCallException("I shall not be called.");
             }

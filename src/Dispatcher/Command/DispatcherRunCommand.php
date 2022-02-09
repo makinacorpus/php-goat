@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Goat\Dispatcher\Command;
 
 use Goat\Dispatcher\Dispatcher;
-use Goat\Dispatcher\MessageEnvelope;
 use Goat\Dispatcher\Worker\Worker;
 use Goat\Dispatcher\Worker\WorkerEvent;
 use Goat\MessageBroker\MessageBroker;
+use MakinaCorpus\Message\Envelope;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Exception\InvalidArgumentException;
 use Symfony\Component\Console\Input\InputInterface;
@@ -107,7 +107,7 @@ final class DispatcherRunCommand extends Command
         if (null === $message) {
             return "(null)";
         }
-        if ($message instanceof MessageEnvelope) {
+        if ($message instanceof Envelope) {
             return \sprintf("%s - %s", $message->getMessageId(), self::messageAsString($message->getMessage()));
         }
         if (\is_object($message)) {
