@@ -31,20 +31,16 @@
         "psr-4" : {
             "Goat\\Bridge\\Symfony\\" : "src/Bridge/Symfony/",
             "Goat\\Dispatcher\\" : "src/Dispatcher/",
-            "Goat\\EventStore\\" : "src/EventStore/",
             "Goat\\Lock\\" : "src/Lock/",
-            "Goat\\MessageBroker\\" : "src/MessageBroker/",
-            "Goat\\Projector\\" : "src/Projector/"
+            "Goat\\MessageBroker\\" : "src/MessageBroker/"
         }
     },
     "autoload-dev": {
         "psr-4": {
             "Goat\\Bridge\\Symfony\\Tests\\": "tests/Bridge/Symfony/",
             "Goat\\Dispatcher\\Tests\\": "tests/Dispatcher/",
-            "Goat\\EventStore\\Tests\\": "tests/EventStore/",
             "Goat\\Lock\\Tests\\": "tests/Lock/",
-            "Goat\\MessageBroker\\Tests\\": "tests/MessageBroker/",
-            "Goat\\Projector\\Tests\\": "tests/Projector/"
+            "Goat\\MessageBroker\\Tests\\": "tests/MessageBroker/"
         }
     },
     "replace": {
@@ -52,27 +48,27 @@
     },
     "require" : {
         "makinacorpus/goat-query": "^2.1.7 || ^3.0",
+        "makinacorpus/message": "^1.0.2",
         "makinacorpus/normalization": "^1.0.1",
         "php" : ">=8.0",
         "psr/log": "^1.0",
         "ramsey/uuid": "^3.8 || ^4",
-        "symfony/event-dispatcher": "^4.4 || ^5.0 || ^6.0",
-        "makinacorpus/message": "^1.0.2"
+        "symfony/event-dispatcher": "^4.4 || ^5.0 || ^6.0"
     },
     "require-dev" : {
+        "makinacorpus/event-store": "^1.0.4",
         "makinacorpus/goat-query-bundle": ">=2.0",
+        "phpunit/phpunit": "^9",
         "symfony/config": "^5.4 || ^6.0",
         "symfony/console": "^5.4 || ^6.0",
         "symfony/dependency-injection": "^5.4 || ^6.0",
+        "symfony/form": "^5.4 || ^6.0",
         "symfony/http-kernel": "^5.4 || ^6.0",
         "symfony/monolog-bundle": "^3.5",
         "symfony/serializer-pack": "^1.0|^5.0",
         "symfony/validator": "^5.4 || ^6.0",
         "symfony/yaml": "^5.4 || ^6.0",
-        "twig/twig": "^2.5 || ^3.0",
-        "symfony/form": "^5.4 || ^6.0",
-        "phpunit/phpunit": "^9",
-        "makinacorpus/event-store": "^1.0.2"
+        "twig/twig": "^2.5 || ^3.0"
     },
     "suggest" : {
         "doctrine/dbal": "For query builder usage over a Doctrine PDO connection",

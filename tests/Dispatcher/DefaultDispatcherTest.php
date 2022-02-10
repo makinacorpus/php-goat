@@ -10,6 +10,7 @@ use Goat\Dispatcher\Decorator\EventStoreDispatcherDecorator;
 use Goat\Dispatcher\Decorator\LoggingDispatcherDecorator;
 use Goat\Dispatcher\Decorator\ProfilingDispatcherDecorator;
 use Goat\Dispatcher\Decorator\TransactionDispatcherDecorator;
+use MakinaCorpus\EventStore\Testing\DummyArrayEventStore;
 use MakinaCorpus\Message\Envelope;
 
 final class DefaultDispatcherTest extends AbstractWithEventStoreTest
@@ -21,7 +22,7 @@ final class DefaultDispatcherTest extends AbstractWithEventStoreTest
             static function () { throw new \BadMethodCallException(); }
         );
 
-        $eventStore = new MockEventStore();
+        $eventStore = new DummyArrayEventStore();
         $dispatcher = new EventStoreDispatcherDecorator($decorated, $eventStore);
         $dispatcher = $this->decorate($dispatcher);
 
@@ -48,7 +49,7 @@ final class DefaultDispatcherTest extends AbstractWithEventStoreTest
             static function () { throw new \BadMethodCallException(); }
         );
 
-        $eventStore = new MockEventStore();
+        $eventStore = new DummyArrayEventStore();
         $dispatcher = new EventStoreDispatcherDecorator($decorated, $eventStore);
         $dispatcher = $this->decorate($dispatcher);
 
@@ -85,7 +86,7 @@ final class DefaultDispatcherTest extends AbstractWithEventStoreTest
             static function () { throw new \BadMethodCallException(); }
         );
 
-        $eventStore = new MockEventStore();
+        $eventStore = new DummyArrayEventStore();
         $dispatcher = new EventStoreDispatcherDecorator($decorated, $eventStore);
         $dispatcher = $this->decorate($dispatcher);
 
