@@ -302,7 +302,7 @@ class DefaultRepository implements GoatRepositoryInterface
             $query->returning(new ExpressionColumn('*', $relationAlias));
         }
 
-        $query->setOption('hydrator', $this->getHydratorWithLazyProperties());
+        $query->setOption('hydrator', $this->getHydrator());
         $query->setOption('types', $this->defineSelectColumnsTypes());
     }
 
@@ -336,7 +336,7 @@ class DefaultRepository implements GoatRepositoryInterface
             $select->column(new ExpressionColumn('*', $relationAlias));
         }
 
-        $select->setOption('hydrator', $this->getHydratorWithLazyProperties());
+        $select->setOption('hydrator', $this->getHydrator());
         $select->setOption('types', $this->defineSelectColumnsTypes());
     }
 
@@ -439,12 +439,46 @@ class DefaultRepository implements GoatRepositoryInterface
     }
 
     /**
-     * Create hydrator with lazy properties hydration
+     * Get raw SQL values normalizer.
+     *
+     * Allows you to normalize SQL values without the need to override the
+     * whole hydrator machinery.
      */
-    final protected function getHydratorWithLazyProperties(): callable
+    public function getHydratorNormalizer(): callable
     {
-        $hydrator = $this->getHydrator();
+        return static fn (array $values) => $values;
+    }
 
+    /**
+     * Create raw values hydrator
+     */
+    public function getHydrator(): callable
+    {
+        $hydrator = null;
+        $nornmalizer = $this->getHydratorNormalizer();
+
+        $runner = $this->runner;
+        if ($runner instanceof AbstractRunner) {
+            $scopeStealer = \Closure::bind(
+                function () {
+                    return $this->getHydratorRegistry();
+                },
+                $runner,
+                AbstractRunner::class
+            );
+
+            $hydratorRegistry = $scopeStealer();
+
+            if ($hydratorRegistry instanceof HydratorRegistry) {
+                $hydrator = $hydratorRegistry->getHydrator($this->getClassName());
+            }
+        }
+
+        if (!$hydrator) {
+            throw new \InvalidArgumentException("Cannot hydrate or extract instance date without an hydrator");
+        }
+
+        $hydrator = static fn (array $values) => $hydrator($nornmalizer($values));
         $lazyProperties = [];
 
         if ($collectionMapping = $this->defineLazyCollectionMapping()) {
@@ -476,32 +510,6 @@ class DefaultRepository implements GoatRepositoryInterface
         }
 
         return $hydrator;
-    }
-
-    /**
-     * Create raw values hydrator
-     */
-    final public function getHydrator(): callable
-    {
-        $runner = $this->runner;
-
-        if ($runner instanceof AbstractRunner) {
-            $scopeStealer = \Closure::bind(
-                function () {
-                    return $this->getHydratorRegistry();
-                },
-                $runner,
-                AbstractRunner::class
-            );
-
-            $hydratorRegistry = $scopeStealer();
-
-            if ($hydratorRegistry instanceof HydratorRegistry) {
-                return $hydratorRegistry->getHydrator($this->getClassName());
-            }
-        }
-
-        throw new \InvalidArgumentException("Cannot hydrate or extract instance date without an hydrator");
     }
 
     /**
