@@ -43,11 +43,7 @@ class WritableDefaultRepository extends DefaultRepository implements WritableRep
 
         $this->addReturningToQuery($query);
 
-        if ($className = $this->getClassName()) {
-            $result = $query->execute([], $className);
-        } else {
-            $result = $query->execute();
-        }
+        $result = $query->execute()->setHydrator($this->getHydrator());
 
         if (1 < $result->countRows()) {
             throw new EntityNotFoundError(\sprintf("entity counld not be created"));
@@ -61,20 +57,11 @@ class WritableDefaultRepository extends DefaultRepository implements WritableRep
      */
     public function delete($id, bool $raiseErrorOnMissing = false)
     {
-        $query = $this
-            ->createDelete(
-                $this->expandPrimaryKey($id)
-            )
-        ;
+        $query = $this->createDelete($this->expandPrimaryKey($id));
 
-        // @todo deal with runner that don't support returning
         $this->addReturningToQuery($query);
 
-        if ($className = $this->getClassName()) {
-            $result = $query->execute([], $className);
-        } else {
-            $result = $query->execute();
-        }
+        $result = $query->execute()->setHydrator($this->getHydrator());
 
         $affected = $result->countRows();
         if ($raiseErrorOnMissing) {
@@ -100,21 +87,11 @@ class WritableDefaultRepository extends DefaultRepository implements WritableRep
      */
     public function update($id, array $values)
     {
-        $query = $this
-            ->createUpdate(
-                $this->expandPrimaryKey($id)
-            )
-            ->sets($values)
-        ;
+        $query = $this->createUpdate($this->expandPrimaryKey($id))->sets($values);
 
-        // @todo deal with runner that don't support returning
         $this->addReturningToQuery($query);
 
-        if ($className = $this->getClassName()) {
-            $result = $query->execute([], $className);
-        } else {
-            $result = $query->execute();
-        }
+        $result = $query->execute()->setHydrator($this->getHydrator());
 
         $affected = $result->countRows();
         if (1 < $affected) {
@@ -138,7 +115,7 @@ class WritableDefaultRepository extends DefaultRepository implements WritableRep
      */
     public function createUpdate($criteria = null): UpdateQuery
     {
-        $update = $this->getRunner()->getQueryBuilder()->update($this->getRelation());
+        $update = $this->getRunner()->getQueryBuilder()->update($this->getTable());
 
         if ($criteria) {
             $update->whereExpression(RepositoryQuery::expandCriteria($criteria));
@@ -152,7 +129,7 @@ class WritableDefaultRepository extends DefaultRepository implements WritableRep
      */
     public function createDelete($criteria = null): DeleteQuery
     {
-        $update = $this->getRunner()->getQueryBuilder()->delete($this->getRelation());
+        $update = $this->getRunner()->getQueryBuilder()->delete($this->getTable());
 
         if ($criteria) {
             $update->whereExpression(RepositoryQuery::expandCriteria($criteria));
@@ -166,6 +143,6 @@ class WritableDefaultRepository extends DefaultRepository implements WritableRep
      */
     public function createInsert(): InsertQuery
     {
-        return $this->getRunner()->getQueryBuilder()->insert($this->getRelation());
+        return $this->getRunner()->getQueryBuilder()->insert($this->getTable());
     }
 }

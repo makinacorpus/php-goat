@@ -1,2 +1,10 @@
 services:
-    # @todo is there anything to push in here?
+
+    Goat\Bridge\Symfony\DependencyInjection\ContainerRepositoryRegistry:
+        arguments: [] # Will be populated by a compiler pass.
+
+    goat.domain.repository.registry:
+        alias: Goat\Bridge\Symfony\DependencyInjection\ContainerRepositoryRegistry
+
+    Goat\Domain\Repository\Registry\RepositoryRegistry:
+        alias: goat.domain.repository.registry
