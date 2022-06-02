@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Goat\Domain\Tests\Repository;
 
 use Goat\Domain\Repository\EntityNotFoundError;
-use Goat\Domain\Repository\GoatRepositoryInterface;
+use Goat\Domain\Repository\RepositoryInterface;
 use Goat\Domain\Repository\WritableRepositoryInterface;
 use Goat\Query\ExpressionRaw;
 use Goat\Query\QueryError;
@@ -104,10 +104,8 @@ abstract class AbstractRepositoryTest extends DatabaseAwareQueryTest
      *   Object class to use for hydrators
      * @param string[] $primaryKey
      *   Entity primary key definition
-     *
-     * @return GoatRepositoryInterface
      */
-    abstract protected function createRepository(Runner $runner, string $class, array $primaryKey): GoatRepositoryInterface;
+    abstract protected function createRepository(Runner $runner, string $class, array $primaryKey): RepositoryInterface;
 
     /**
      * Create writable repository to test
@@ -133,16 +131,16 @@ abstract class AbstractRepositoryTest extends DatabaseAwareQueryTest
         $runner = $factory->getRunner();
 
         $repository = $this->createRepository($runner, DomainModelObject::class, ['t.id']);
-        $relation = $repository->getRelation();
-        $this->assertSame('some_entity', $relation->getName());
-        $this->assertSame('t', $relation->getAlias());
+        $table = $repository->getTable();
+        $this->assertSame('some_entity', $table->getName());
+        $this->assertSame('t', $table->getAlias());
         $this->assertSame(DomainModelObject::class, $repository->getClassName());
         $this->assertSame($runner, $repository->getRunner());
 
         $repository = $this->createWritableRepository($runner, DomainModelObject::class, ['t.id']);
-        $relation = $repository->getRelation();
-        $this->assertSame('some_entity', $relation->getName());
-        $this->assertSame('t', $relation->getAlias());
+        $table = $repository->getTable();
+        $this->assertSame('some_entity', $table->getName());
+        $this->assertSame('t', $table->getAlias());
         $this->assertSame(DomainModelObject::class, $repository->getClassName());
         $this->assertSame($runner, $repository->getRunner());
     }
