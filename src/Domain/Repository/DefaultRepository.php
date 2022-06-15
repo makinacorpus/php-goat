@@ -194,7 +194,7 @@ class DefaultRepository extends AbstractDefinitionRepository
     /**
      * Normalize column for select
      */
-    private final function normalizeColumn($column, ?string $relationAlias = null): Expression
+    private function normalizeColumn($column, ?string $relationAlias = null): Expression
     {
         if ($column instanceof Expression) {
             return $column;
@@ -208,7 +208,7 @@ class DefaultRepository extends AbstractDefinitionRepository
     /**
      * Can query hold a returning statement.
      */
-    private final function checkIsEligibleToReturning(Query $query): void
+    private function checkIsEligibleToReturning(Query $query): void
     {
         if (!$query instanceof InsertQueryQuery &&
             !$query instanceof InsertValuesQuery &&

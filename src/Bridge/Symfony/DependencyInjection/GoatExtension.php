@@ -46,6 +46,8 @@ final class GoatExtension extends Extension
         $preferenceEnabled = $config['preferences']['enabled'] ?? false;
         $twigEnabled = \class_exists(Environment::class);
 
+        $loader->load('domain.yaml');
+
         $loader->load('normalization.yaml');
         $this->processNormalization($container, $config['normalization'] ?? []);
 
