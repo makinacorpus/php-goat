@@ -18,6 +18,7 @@ use Symfony\Bundle\MonologBundle\MonologBundle;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\DependencyInjection\Exception\InvalidArgumentException;
@@ -133,6 +134,7 @@ final class GoatExtension extends Extension
             $decoratorDef->setArguments([
                 new Reference($decoratedInnerId),
                 new Reference('goat.event_store'),
+                new Reference('goat.projector.player', ContainerInterface::NULL_ON_INVALID_REFERENCE)
             ]);
             $container->setDefinition('goat.dispatcher.decorator.event_store', $decoratorDef);
         }

@@ -30,6 +30,9 @@ final class DefaultDispatcher implements Dispatcher
      */
     final public function process($message, array $properties = []): void
     {
+        if ($message instanceof MessageEnvelope) {
+            $message = $message->getMessage();
+        }
         ($this->handlerLocator->find($message))($message);
     }
 }

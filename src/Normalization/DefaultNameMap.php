@@ -31,7 +31,7 @@ class DefaultNameMap implements NameMap
     public function logicalNameToPhpType(string $context, string $logicalName): string
     {
         if (isset($this->map[$context][$logicalName])) {
-            return $logicalName;
+            return $this->map[$context][$logicalName];
         }
 
         return $this->aliases[$context][$logicalName] ?? $this->getNameMappingStrategyFor($context)->logicalNameToPhpType($logicalName);
@@ -43,7 +43,7 @@ class DefaultNameMap implements NameMap
     public function phpTypeToLogicalName(string $context, string $phpType): string
     {
         if (isset($this->aliases[$context][$phpType])) {
-            return $phpType;
+            return $this->aliases[$context][$phpType];
         }
 
         return $this->map[$context][$phpType] ?? $this->getNameMappingStrategyFor($context)->phpTypeToLogicalName($phpType);
